@@ -13,6 +13,10 @@ from ..tools.base_tool import Tool
 from ..monitoring.agent_logger import get_agent_logger
 from ..monitoring.metrics_collector import get_metrics_collector
 from ..monitoring.execution_monitor import get_execution_monitor
+from ..security import (
+    SecurityContext, PermissionManager, SandboxExecutor,
+    get_permission_manager, get_sandbox_executor
+)
 
 
 class BaseAgent(ABC):
@@ -48,6 +52,11 @@ class BaseAgent(ABC):
         self.agent_logger = get_agent_logger()
         self.metrics_collector = get_metrics_collector()
         self.execution_monitor = get_execution_monitor()
+        
+        # Security components
+        self.permission_manager = get_permission_manager()
+        self.sandbox_executor = get_sandbox_executor()
+        self.security_context: Optional[SecurityContext] = None
         
         # Initialize agent-specific tools
         self._initialize_tools()
@@ -108,6 +117,16 @@ class BaseAgent(ABC):
         start_time = time.time()
         execution_id = f"exec_{self.agent_id}_{int(time.time() * 1000)}"
         
+        # Create security context first
+        session_id = f"{execution_id}_{int(time.time())}"
+        self.security_context = self.permission_manager.create_security_context(
+            agent_id=self.agent_id,
+            user_id=user_id,
+            org_id=org_id,
+            session_id=session_id,
+            role="agent_operator"  # Default role, could be customized
+        )
+        
         # Create execution context
         self.context = AgentContext(
             agent_id=self.agent_id,
@@ -140,11 +159,16 @@ class BaseAgent(ABC):
                 # Pre-execution hook
                 self._pre_execute()
                 
-                # Execute core logic
+                # Execute core logic within sandbox
                 self._update_status(AgentStatus.RUNNING)
                 self.context.add_reasoning_step("Executing core agent logic")
                 
-                result = self._execute_core_logic(self.context)
+                # Use sandbox for secure execution
+                result = self.sandbox_executor.execute_with_sandbox(
+                    self.security_context,
+                    self._execute_core_logic,
+                    self.context
+                )
                 
                 # Post-execution hook
                 self._post_execute(result)
