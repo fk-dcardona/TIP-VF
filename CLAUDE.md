@@ -56,3 +56,17 @@ railway domain
 ```
 
 Ready for immediate production deployment to Vercel + Railway.
+
+## 📋 Development Plan
+
+See [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md) for the comprehensive roadmap including:
+- Phase 1: Production Launch (Infrastructure, Security, Performance)
+- Phase 2: Feature Enhancement (Analytics, Document Intelligence, Living Interface)
+- Phase 3: Integration & Automation (Third-party connectors, Workflows, API)
+- Phase 4: Scale & Enterprise Features (Multi-tenant, ML Analytics, Security)
+
+Next immediate steps:
+1. Configure PostgreSQL on Railway
+2. Set production environment variables
+3. Deploy frontend to Vercel
+4. Implement Redis caching

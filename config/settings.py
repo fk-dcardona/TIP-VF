@@ -36,6 +36,31 @@ class Settings:
     # Analytics Configuration
     ANALYTICS_CACHE_TTL: int = int(os.getenv('ANALYTICS_CACHE_TTL', '300'))  # 5 minutes
     
+    # Agent Astra API Configuration
+    AGENT_ASTRA_API_KEY: str = os.getenv('AGENT_ASTRA_API_KEY', 'aa_UFMDHMpOdW0bSy8SuGF0NpOu6I8iy4gu0G049xcIhFk')
+    AGENT_ASTRA_BASE_URL: str = os.getenv('AGENT_ASTRA_BASE_URL', 'https://api.agentastra.ai/v2')
+    
+    # LLM Provider API Keys
+    OPENAI_API_KEY: str = os.getenv('OPENAI_API_KEY', '')
+    ANTHROPIC_API_KEY: str = os.getenv('ANTHROPIC_API_KEY', '')
+    GOOGLE_API_KEY: str = os.getenv('GOOGLE_API_KEY', '')
+    
+    # LLM Configuration
+    LLM_DEFAULT_PROVIDER: str = os.getenv('LLM_DEFAULT_PROVIDER', 'anthropic')
+    LLM_FALLBACK_ENABLED: bool = os.getenv('LLM_FALLBACK_ENABLED', 'true').lower() == 'true'
+    LLM_CACHE_ENABLED: bool = os.getenv('LLM_CACHE_ENABLED', 'true').lower() == 'true'
+    LLM_CACHE_TTL: int = int(os.getenv('LLM_CACHE_TTL', '3600'))  # 1 hour default
+    
+    # Cost Management
+    LLM_COST_TRACKING_ENABLED: bool = os.getenv('LLM_COST_TRACKING_ENABLED', 'true').lower() == 'true'
+    LLM_DAILY_COST_LIMIT: float = float(os.getenv('LLM_DAILY_COST_LIMIT', '100.0'))
+    LLM_MONTHLY_COST_LIMIT: float = float(os.getenv('LLM_MONTHLY_COST_LIMIT', '2000.0'))
+    
+    # Performance Settings
+    LLM_REQUEST_TIMEOUT: int = int(os.getenv('LLM_REQUEST_TIMEOUT', '60'))  # seconds
+    LLM_MAX_RETRIES: int = int(os.getenv('LLM_MAX_RETRIES', '3'))
+    LLM_RETRY_DELAY: int = int(os.getenv('LLM_RETRY_DELAY', '1'))  # seconds
+    
     @classmethod
     def validate(cls) -> bool:
         """Validate configuration settings"""

@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 from dataclasses import dataclass
 from enum import Enum
+from config.settings import settings
 
 class DocumentType(Enum):
     PURCHASE_ORDER = "purchase_order"
@@ -35,8 +36,8 @@ class TradeDocumentProcessor:
     """Main document processing engine with Agent Astra integration"""
     
     def __init__(self):
-        self.api_key = "aa_UFMDHMpOdW0bSy8SuGF0NpOu6I8iy4gu0G049xcIhFk"
-        self.base_url = "https://api.agentastra.ai/v2"
+        self.api_key = settings.AGENT_ASTRA_API_KEY
+        self.base_url = settings.AGENT_ASTRA_BASE_URL
         self.headers = {
             'Authorization': f'Bearer {self.api_key}',
             'Content-Type': 'application/json'
