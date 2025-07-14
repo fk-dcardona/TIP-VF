@@ -2,7 +2,17 @@
 
 ## Quick Start
 
-Run the deployment script:
+### Vercel Deployment (Recommended for Frontend)
+```bash
+# Use the deployment helper script
+./scripts/deploy-vercel.sh
+
+# Or deploy manually
+vercel --prod
+```
+
+### Full Stack Deployment
+Backend is already deployed on Railway. For frontend:
 ```bash
 ./deploy.sh
 ```
@@ -37,23 +47,58 @@ railway login
 railway up
 ```
 
-### 3. Vercel Deployment (Frontend)
+### 3. Vercel Deployment (Frontend) - RECOMMENDED
 
-Best for Next.js applications with serverless functions.
+Best for Next.js applications. The project is fully configured for Vercel deployment.
+
+#### Prerequisites
+- Backend already deployed to Railway at: `https://tip-vf-production.up.railway.app`
+- Clerk account with authentication configured
+- Vercel account
+
+#### Deployment Steps
 
 ```bash
-# Install Vercel CLI
+# Install Vercel CLI (if not already installed)
 npm install -g vercel
 
-# Deploy
+# Option 1: Use deployment helper script
+./scripts/deploy-vercel.sh
+
+# Option 2: Deploy manually
 vercel --prod
 ```
 
-Set these environment variables in Vercel dashboard:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_KEY`
-- `NEXT_PUBLIC_API_URL` (your backend URL)
+#### Required Environment Variables in Vercel Dashboard
+
+```env
+# Clerk Authentication (Required)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_clerk_publishable_key
+CLERK_SECRET_KEY=sk_test_your_clerk_secret_key
+
+# API Configuration (Required)
+NEXT_PUBLIC_API_URL=https://tip-vf-production.up.railway.app/api
+NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+
+# Optional Services
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_KEY=your_service_key
+```
+
+#### Features Configured
+- ✅ Security headers (CSP, XSS protection, etc.)
+- ✅ API proxy/rewrites to Railway backend
+- ✅ PWA support with manifest.json
+- ✅ Optimized build configuration
+- ✅ Edge runtime support
+- ✅ Automatic HTTPS/SSL
+
+#### Post-Deployment Steps
+1. Update Railway backend CORS to include Vercel domain
+2. Test authentication flow with Clerk
+3. Verify API connectivity
+4. Check performance in Vercel Analytics
 
 ### 4. Render Deployment
 
@@ -90,21 +135,42 @@ eb deploy
 
 ## Environment Variables
 
-Create a `.env.local` file with:
+### Development (.env.local)
 
 ```env
-# Supabase
+# Clerk Authentication (Required)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_clerk_publishable_key
+CLERK_SECRET_KEY=sk_test_your_clerk_secret_key
+
+# Backend API
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+
+# Optional Services
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_KEY=your_service_key
+```
+
+### Production (Vercel Dashboard)
+
+```env
+# Clerk Authentication (Required)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_your_clerk_publishable_key
+CLERK_SECRET_KEY=sk_live_your_clerk_secret_key
+
+# Backend API (Railway)
+NEXT_PUBLIC_API_URL=https://tip-vf-production.up.railway.app/api
+NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+
+# Optional Services
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_KEY=your_service_key
 
-# Backend API (for frontend)
-NEXT_PUBLIC_API_URL=http://localhost:5000
-
 # Twilio (optional)
 TWILIO_ACCOUNT_SID=your_account_sid
 TWILIO_AUTH_TOKEN=your_auth_token
-TWILIO_WHATSAPP_NUMBER=your_whatsapp_number
+TWILIO_WHATSAPP_NUMBER=whatsapp:+1234567890
 ```
 
 ## Production Checklist

@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timedelta
 
 from .base_tool import Tool, ToolParameter, ToolResult
-from models import db, Document, SupplyChainTriangle, Agent as AgentModel
+from models import db, TradeDocument as Document, TriangleScore as SupplyChainTriangle, Agent as AgentModel
 
 
 class DatabaseQueryTool(Tool):
