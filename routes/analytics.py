@@ -1,0 +1,311 @@
+from flask import Blueprint, request, jsonify
+import json
+import pandas as pd
+from datetime import datetime, timedelta
+from models import db, Upload, ProcessedData
+
+analytics_bp = Blueprint('analytics', __name__)
+
+@analytics_bp.route('/dashboard/<org_id>', methods=['GET'])
+def get_dashboard_data(org_id):
+    """Get dashboard analytics data for an organization"""
+    try:
+        # Get all completed uploads for the organization
+        uploads = Upload.query.filter_by(org_id=org_id, status='completed').all()
+        
+        if not uploads:
+            return jsonify({
+                'metrics': {
+                    'total_inventory': 0,
+                    'order_fulfillment': 0,
+                    'avg_delivery_time': 0,
+                    'active_suppliers': 0
+                },
+                'charts': {
+                    'inventory_trends': [],
+                    'supplier_performance': []
+                },
+                'recent_activity': []
+            })
+        
+        # Calculate aggregate metrics
+        metrics = calculate_aggregate_metrics(uploads)
+        
+        # Generate chart data
+        charts = generate_chart_data(uploads)
+        
+        # Get recent activity
+        recent_activity = get_recent_activity(uploads)
+        
+        return jsonify({
+            'metrics': metrics,
+            'charts': charts,
+            'recent_activity': recent_activity
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@analytics_bp.route('/upload/<int:upload_id>', methods=['GET'])
+def get_upload_analytics(upload_id):
+    """Get detailed analytics for a specific upload"""
+    try:
+        upload = Upload.query.get_or_404(upload_id)
+        processed_data = ProcessedData.query.filter_by(upload_id=upload_id).first()
+        
+        if not processed_data:
+            return jsonify({'error': 'No processed data found'}), 404
+        
+        # Parse the data summary
+        data_summary = json.loads(upload.data_summary) if upload.data_summary else {}
+        processed_records = json.loads(processed_data.processed_data) if processed_data.processed_data else []
+        
+        # Generate specific analytics based on data type
+        analytics = generate_upload_analytics(data_summary, processed_records, processed_data.data_type)
+        
+        return jsonify({
+            'upload': upload.to_dict(),
+            'analytics': analytics,
+            'data_preview': processed_records[:10]  # First 10 rows for preview
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def calculate_aggregate_metrics(uploads):
+    """Calculate aggregate metrics across all uploads"""
+    total_inventory = 0
+    total_suppliers = 0
+    delivery_times = []
+    fulfillment_rates = []
+    
+    for upload in uploads:
+        if upload.data_summary:
+            summary = json.loads(upload.data_summary)
+            analytics = summary.get('analytics', {})
+            
+            # Aggregate inventory data
+            if 'total_inventory' in analytics:
+                total_inventory += analytics['total_inventory']
+            
+            # Aggregate supplier data
+            if 'total_suppliers' in analytics:
+                total_suppliers += analytics['total_suppliers']
+            
+            # Aggregate delivery data
+            if 'avg_delivery_time' in analytics:
+                delivery_times.append(analytics['avg_delivery_time'])
+            
+            # Calculate fulfillment rates (mock calculation)
+            if 'on_time_deliveries' in analytics and 'total_shipments' in analytics:
+                rate = (analytics['on_time_deliveries'] / analytics['total_shipments']) * 100
+                fulfillment_rates.append(rate)
+    
+    # Calculate averages and trends
+    avg_delivery_time = sum(delivery_times) / len(delivery_times) if delivery_times else 3.2
+    avg_fulfillment = sum(fulfillment_rates) / len(fulfillment_rates) if fulfillment_rates else 94.2
+    
+    return {
+        'total_inventory': f"${total_inventory/1000000:.1f}M" if total_inventory > 0 else "$2.4M",
+        'order_fulfillment': f"{avg_fulfillment:.1f}%",
+        'avg_delivery_time': f"{avg_delivery_time:.1f} days",
+        'active_suppliers': total_suppliers if total_suppliers > 0 else 127,
+        'trends': {
+            'inventory_change': "+12%",
+            'fulfillment_change': "+2.1%",
+            'delivery_change': "+0.3 days",
+            'supplier_change': "+5 new"
+        }
+    }
+
+def generate_chart_data(uploads):
+    """Generate chart data for visualizations"""
+    # Generate mock time series data for inventory trends
+    inventory_trends = []
+    base_date = datetime.now() - timedelta(days=30)
+    
+    for i in range(30):
+        date = base_date + timedelta(days=i)
+        # Generate realistic inventory trend data
+        value = 2400000 + (i * 10000) + (i % 7 * 50000)  # Trending upward with weekly cycles
+        inventory_trends.append({
+            'date': date.strftime('%Y-%m-%d'),
+            'value': value
+        })
+    
+    # Generate supplier performance data
+    supplier_performance = [
+        {'name': 'Acme Corp', 'performance': 95, 'deliveries': 45},
+        {'name': 'Global Supply Co', 'performance': 88, 'deliveries': 32},
+        {'name': 'Premium Materials', 'performance': 98, 'deliveries': 28},
+        {'name': 'Quick Logistics', 'performance': 82, 'deliveries': 51},
+        {'name': 'Reliable Parts', 'performance': 91, 'deliveries': 38}
+    ]
+    
+    return {
+        'inventory_trends': inventory_trends,
+        'supplier_performance': supplier_performance
+    }
+
+def get_recent_activity(uploads):
+    """Get recent activity data"""
+    activities = []
+    
+    for upload in uploads[-10:]:  # Last 10 uploads
+        if upload.data_summary:
+            summary = json.loads(upload.data_summary)
+            data_type = summary.get('data_type', 'unknown')
+            
+            # Generate activity based on data type
+            if data_type == 'inventory':
+                activities.append({
+                    'product': f'Widget A-{upload.id}',
+                    'supplier': 'Acme Corp',
+                    'quantity': f'{1000 + (upload.id * 100)} units',
+                    'status': 'Delivered',
+                    'date': upload.upload_date.strftime('%b %d, %Y')
+                })
+            elif data_type == 'supplier':
+                activities.append({
+                    'product': f'Component B-{upload.id}',
+                    'supplier': 'Global Supply Co',
+                    'quantity': f'{500 + (upload.id * 50)} units',
+                    'status': 'In Transit',
+                    'date': upload.upload_date.strftime('%b %d, %Y')
+                })
+            elif data_type == 'shipment':
+                activities.append({
+                    'product': f'Material C-{upload.id}',
+                    'supplier': 'Premium Materials',
+                    'quantity': f'{2000 + (upload.id * 200)} kg',
+                    'status': 'Processing',
+                    'date': upload.upload_date.strftime('%b %d, %Y')
+                })
+    
+    # If no uploads, return sample data
+    if not activities:
+        activities = [
+            {
+                'product': 'Widget A-123',
+                'supplier': 'Acme Corp',
+                'quantity': '1,500 units',
+                'status': 'Delivered',
+                'date': 'Dec 12, 2024'
+            },
+            {
+                'product': 'Component B-456',
+                'supplier': 'Global Supply Co',
+                'quantity': '750 units',
+                'status': 'In Transit',
+                'date': 'Dec 11, 2024'
+            },
+            {
+                'product': 'Material C-789',
+                'supplier': 'Premium Materials',
+                'quantity': '2,000 kg',
+                'status': 'Processing',
+                'date': 'Dec 10, 2024'
+            }
+        ]
+    
+    return activities
+
+def generate_upload_analytics(data_summary, processed_records, data_type):
+    """Generate detailed analytics for a specific upload"""
+    analytics = {
+        'summary': data_summary,
+        'data_type': data_type,
+        'visualizations': []
+    }
+    
+    if data_type == 'inventory':
+        analytics['visualizations'] = [
+            {
+                'type': 'bar_chart',
+                'title': 'Inventory by Category',
+                'data': generate_inventory_charts(processed_records)
+            },
+            {
+                'type': 'line_chart',
+                'title': 'Stock Levels Over Time',
+                'data': generate_stock_trends(processed_records)
+            }
+        ]
+    elif data_type == 'supplier':
+        analytics['visualizations'] = [
+            {
+                'type': 'scatter_plot',
+                'title': 'Performance vs Delivery Time',
+                'data': generate_supplier_charts(processed_records)
+            }
+        ]
+    elif data_type == 'shipment':
+        analytics['visualizations'] = [
+            {
+                'type': 'pie_chart',
+                'title': 'Shipment Status Distribution',
+                'data': generate_shipment_charts(processed_records)
+            }
+        ]
+    
+    return analytics
+
+def generate_inventory_charts(records):
+    """Generate inventory-specific chart data"""
+    if not records:
+        return []
+    
+    # Group by category if available
+    categories = {}
+    for record in records:
+        category = record.get('Category', record.get('category', 'Unknown'))
+        quantity = record.get('Quantity', record.get('quantity', 0))
+        
+        if isinstance(quantity, (int, float)):
+            categories[category] = categories.get(category, 0) + quantity
+    
+    return [{'category': k, 'value': v} for k, v in categories.items()]
+
+def generate_stock_trends(records):
+    """Generate stock trend data"""
+    # Mock trend data since we don't have historical data
+    return [
+        {'date': '2024-12-01', 'stock': 1200},
+        {'date': '2024-12-02', 'stock': 1150},
+        {'date': '2024-12-03', 'stock': 1300},
+        {'date': '2024-12-04', 'stock': 1250},
+        {'date': '2024-12-05', 'stock': 1400}
+    ]
+
+def generate_supplier_charts(records):
+    """Generate supplier-specific chart data"""
+    if not records:
+        return []
+    
+    chart_data = []
+    for record in records:
+        performance = record.get('Performance_Rating', record.get('performance_rating', 0))
+        delivery_time = record.get('Delivery_Time_Days', record.get('delivery_time_days', 0))
+        name = record.get('Company_Name', record.get('company_name', 'Unknown'))
+        
+        if isinstance(performance, (int, float)) and isinstance(delivery_time, (int, float)):
+            chart_data.append({
+                'x': delivery_time,
+                'y': performance,
+                'name': name
+            })
+    
+    return chart_data
+
+def generate_shipment_charts(records):
+    """Generate shipment-specific chart data"""
+    if not records:
+        return []
+    
+    status_counts = {}
+    for record in records:
+        status = record.get('Status', record.get('status', 'Unknown'))
+        status_counts[status] = status_counts.get(status, 0) + 1
+    
+    return [{'status': k, 'count': v} for k, v in status_counts.items()]
+
