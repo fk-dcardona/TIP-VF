@@ -1,6 +1,40 @@
 version: '3.8'
 
 services:
+  # Twilio API MCP Server
+  mcp-twilio-api:
+    container_name: mcp-servers-twilio-api-1
+    image: node:18-alpine
+    working_dir: /app
+    environment:
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_WHATSAPP_NUMBER=${TWILIO_WHATSAPP_NUMBER}
+      - NODE_ENV=production
+    volumes:
+      - ./twilio-config:/app/config
+    command: |
+      sh -c "npm install -g @twilio-labs/mcp && npx @twilio-labs/mcp"
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # OpenAPI MCP Server
+  mcp-openapi-mcp:
+    container_name: mcp-servers-openapi-mcp-1
+    image: node:18-alpine
+    working_dir: /app
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./openapi-specs:/app/specs
+      - ./openapi-config:/app/config
+    command: |
+      sh -c "npm install -g @twilio-labs/openapi-mcp-server && npx @twilio-labs/openapi-mcp-server"
+    restart: unless-stopped
+    networks:
+      - app-network
+
   # Next.js Frontend
   frontend:
     build:
@@ -10,9 +44,14 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-      - NEXT_PUBLIC_API_URL=http://backend:5000
+      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - NEXT_PUBLIC_API_URL=http://backend:5000/api
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      - NEXT_PUBLIC_CLERK_SIGN_IN_URL=${NEXT_PUBLIC_CLERK_SIGN_IN_URL}
+      - NEXT_PUBLIC_CLERK_SIGN_UP_URL=${NEXT_PUBLIC_CLERK_SIGN_UP_URL}
+      - NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=${NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL}
+      - NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=${NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL}
     depends_on:
       - backend
     networks:
@@ -27,9 +66,14 @@ services:
       - "5000:5000"
     environment:
       - FLASK_ENV=production
-      - DATABASE_URL=sqlite:///supply_chain.db
-      - SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - DATABASE_URL=${DATABASE_URL}
+      - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+      - AGENT_ASTRA_API_KEY=${AGENT_ASTRA_API_KEY}
+      - AGENT_ASTRA_BASE_URL=${AGENT_ASTRA_BASE_URL}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
     volumes:
       - ./uploads:/app/uploads
       - ./data:/app/data

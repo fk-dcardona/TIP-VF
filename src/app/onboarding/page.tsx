@@ -13,8 +13,8 @@ export const dynamic = 'force-dynamic';
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { userId } = useAuth();
-  const { organization } = useOrganization();
+  const { userId, isLoaded: authLoaded } = useAuth();
+  const { organization, isLoaded: orgLoaded } = useOrganization();
   const { createOrganization, setActive } = useOrganizationList();
   
   const [orgName, setOrgName] = useState("");
@@ -26,6 +26,17 @@ export default function OnboardingPage() {
       router.push("/dashboard");
     }
   }, [organization, router]);
+
+  // Show loading while Clerk is initializing
+  if (!authLoaded || !orgLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleCreateOrganization = async () => {
     if (!orgName.trim()) return;

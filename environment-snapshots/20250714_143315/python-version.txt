@@ -1,0 +1,2 @@
+Python 3.11.13
+/Users/helpdesk/Cursor/TIP - Mannus/test-environment/venv/bin/python3

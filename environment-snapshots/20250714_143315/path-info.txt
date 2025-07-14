@@ -1,0 +1,25 @@
+/Users/helpdesk/Cursor/TIP - Mannus/test-environment/venv/bin
+/Users/helpdesk/.cursor/extensions/ms-python.python-2025.6.1-darwin-arm64/python_files/deactivate/zsh
+/Users/helpdesk/Cursor/TIP - Mannus/venv311/bin
+/Users/helpdesk/.cursor/extensions/ms-python.python-2025.6.1-darwin-arm64/python_files/deactivate/zsh
+/Users/helpdesk/Cursor/TIP - Mannus/venv311/bin
+/opt/homebrew/bin
+/opt/homebrew/sbin
+/Users/helpdesk/.nvm/versions/node/v22.14.0/bin
+/Library/Frameworks/Python.framework/Versions/3.13/bin
+/usr/local/bin
+/System/Cryptexes/App/usr/bin
+/usr/bin
+/bin
+/usr/sbin
+/sbin
+/Library/TeX/texbin
+/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin
+/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin
+/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin
+/Users/helpdesk/.cursor/extensions/ms-python.python-2025.6.1-darwin-arm64/python_files/deactivate/zsh
+/Users/helpdesk/Cursor/TIP - Mannus/venv311/bin
+/opt/homebrew/bin
+/opt/homebrew/sbin
+/Users/helpdesk/.nvm/versions/node/v22.14.0/bin
+/Library/Frameworks/Python.framework/Versions/3.13/bin
