@@ -1,3 +1,5 @@
+'use client';
+
 import { SignIn } from "@clerk/nextjs";
 
 export default function SignInPage() {
@@ -16,13 +18,13 @@ export default function SignInPage() {
           appearance={{
             elements: {
               rootBox: "mx-auto",
-              card: "shadow-none",
+              card: "shadow-none border rounded-lg bg-white p-6",
+              headerTitle: "hidden",
+              headerSubtitle: "hidden",
             }
           }}
           routing="path"
           path="/sign-in"
-          signUpUrl="/sign-up"
-          redirectUrl="/dashboard"
         />
       </div>
     </div>
