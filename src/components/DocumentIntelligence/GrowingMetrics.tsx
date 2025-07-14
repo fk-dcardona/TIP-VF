@@ -286,8 +286,7 @@ export default function GrowingMetrics({ metrics, onMetricHover }: GrowingMetric
                     <motion.div
                       className="absolute inset-0 rounded-xl"
                       style={{
-                        border: `2px solid ${metric.color}`,
-                        borderOpacity: 0.3,
+                        border: `2px solid ${metric.color}30`,
                       }}
                       initial={{ scale: 1, opacity: 0.8 }}
                       animate={{ 

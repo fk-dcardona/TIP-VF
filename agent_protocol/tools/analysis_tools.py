@@ -8,7 +8,7 @@ from decimal import Decimal
 import json
 
 from .base_tool import Tool, ToolParameter, ToolResult
-from insights_engine import InsightsEngine, SupplyChainData
+from insights_engine import SupplyChainInsightsEngine
 
 
 class DataAnalysisTool(Tool):
@@ -616,7 +616,7 @@ class InsightGeneratorTool(Tool):
             name="insight_generator",
             description="Generate actionable insights from supply chain data"
         )
-        self.insights_engine = InsightsEngine()
+        self.insights_engine = SupplyChainInsightsEngine()
     
     def get_parameters(self) -> List[ToolParameter]:
         return [
@@ -653,22 +653,8 @@ class InsightGeneratorTool(Tool):
         focus_areas = parameters.get("focus_areas", [])
         
         try:
-            # Convert data to SupplyChainData format if needed
-            if not isinstance(data, SupplyChainData):
-                sc_data = SupplyChainData(
-                    fill_rate=data.get("fill_rate", 0.95),
-                    stockout_rate=data.get("stockout_rate", 0.05),
-                    inventory_turnover=data.get("inventory_turnover", 12),
-                    gross_margin=data.get("gross_margin", 0.35),
-                    operating_margin=data.get("operating_margin", 0.15),
-                    cash_conversion_cycle=data.get("cash_conversion_cycle", 45),
-                    perfect_order_rate=data.get("perfect_order_rate", 0.92),
-                    forecast_accuracy=data.get("forecast_accuracy", 0.85),
-                    supplier_defect_rate=data.get("supplier_defect_rate", 0.02),
-                    on_time_delivery=data.get("on_time_delivery", 0.94)
-                )
-            else:
-                sc_data = data
+            # Use data directly - insights engine should handle dict format
+            sc_data = data if isinstance(data, dict) else data
             
             # Generate role-specific insights
             insights = self.insights_engine.generate_role_specific_insights(sc_data, role)
@@ -751,7 +737,7 @@ class InsightGeneratorTool(Tool):
                 error=f"Insight generation failed: {str(e)}"
             )
     
-    def _generate_recommendations(self, insights: List[Dict], data: SupplyChainData) -> List[Dict]:
+    def _generate_recommendations(self, insights: List[Dict], data: Dict[str, Any]) -> List[Dict]:
         """Generate actionable recommendations based on insights."""
         recommendations = []
         
@@ -769,7 +755,7 @@ class InsightGeneratorTool(Tool):
         
         return recommendations[:5]  # Top 5 recommendations
     
-    def _estimate_roi(self, insight: Dict, data: SupplyChainData) -> str:
+    def _estimate_roi(self, insight: Dict, data: Dict[str, Any]) -> str:
         """Estimate ROI potential for a recommendation."""
         # Simplified ROI estimation
         if "inventory" in insight["title"].lower():

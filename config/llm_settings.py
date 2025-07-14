@@ -245,6 +245,41 @@ class LLMSettings:
     }
     
     @classmethod
+    def get_provider_config(cls, provider: str) -> Dict[str, Any]:
+        """Get configuration for a specific provider."""
+        if provider == 'openai':
+            return {
+                'model': 'gpt-4-turbo-preview',
+                'temperature': 0.7,
+                'max_tokens': 1000,
+                'rate_limit': cls.RATE_LIMITS.get('openai', {}),
+                'api_key_env': 'OPENAI_API_KEY'
+            }
+        elif provider == 'anthropic':
+            return {
+                'model': 'claude-3-haiku-20240307',
+                'temperature': 0.7,
+                'max_tokens': 1000,
+                'rate_limit': cls.RATE_LIMITS.get('anthropic', {}),
+                'api_key_env': 'ANTHROPIC_API_KEY'
+            }
+        elif provider == 'google':
+            return {
+                'model': 'gemini-pro',
+                'temperature': 0.7,
+                'max_tokens': 1000,
+                'rate_limit': cls.RATE_LIMITS.get('google', {}),
+                'api_key_env': 'GOOGLE_API_KEY'
+            }
+        else:
+            return {
+                'model': 'mock-model',
+                'temperature': 0.7,
+                'max_tokens': 1000,
+                'provider': 'mock'
+            }
+    
+    @classmethod
     def validate_environment(cls) -> Dict[str, bool]:
         """Validate that all required environment variables are set."""
         validation_results = {}

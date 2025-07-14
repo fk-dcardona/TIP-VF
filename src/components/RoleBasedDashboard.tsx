@@ -2,14 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
-import GeneralManagerDashboard from './dashboards/GeneralManagerDashboard';
-import SalesDashboard from './dashboards/SalesDashboard';
-import ProcurementDashboard from './dashboards/ProcurementDashboard';
-import FinanceDashboard from './dashboards/FinanceDashboard';
-import LogisticsDashboard from './dashboards/LogisticsDashboard';
-import RoleSwitcher from './sharing/RoleSwitcher';
-import ShareInsights from './sharing/ShareInsights';
-import TeamInvite from './sharing/TeamInvite';
+import GeneralManagerDashboard from './GeneralManagerDashboard';
+import SalesDashboard from './SalesDashboard';
+import ProcurementDashboard from './ProcurementDashboard';
+import FinanceDashboard from './FinanceDashboard';
+import LogisticsDashboard from './LogisticsDashboard';
+// Sharing components will be added in future updates
 
 interface RoleBasedDashboardProps {
   userId: string;
@@ -151,12 +149,12 @@ export default function RoleBasedDashboard({ userId }: RoleBasedDashboardProps) 
         <div className="p-6">
           {activeTab === 'dashboard' && (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Role Switcher */}
+              {/* Role Switcher - Placeholder */}
               <div className="lg:col-span-1">
-                <RoleSwitcher 
-                  currentRole={currentRole} 
-                  onRoleChange={handleRoleChange}
-                />
+                <div className="p-4 bg-white rounded-lg border">
+                  <h3 className="font-medium text-gray-900">Current Role</h3>
+                  <p className="text-sm text-gray-600 mt-1">{currentRole}</p>
+                </div>
               </div>
               
               {/* Main Dashboard */}
@@ -167,15 +165,17 @@ export default function RoleBasedDashboard({ userId }: RoleBasedDashboardProps) 
           )}
 
           {activeTab === 'share' && (
-            <ShareInsights 
-              insights={insights}
-              role={currentRole}
-              onShare={handleShare}
-            />
+            <div className="p-4 bg-white rounded-lg border">
+              <h3 className="font-medium text-gray-900">Share Insights</h3>
+              <p className="text-sm text-gray-600 mt-1">Sharing functionality coming soon</p>
+            </div>
           )}
 
           {activeTab === 'invite' && (
-            <TeamInvite onInviteSent={handleInviteSent} />
+            <div className="p-4 bg-white rounded-lg border">
+              <h3 className="font-medium text-gray-900">Team Management</h3>
+              <p className="text-sm text-gray-600 mt-1">Team invite functionality coming soon</p>
+            </div>
           )}
         </div>
       </div>

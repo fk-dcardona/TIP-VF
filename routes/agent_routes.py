@@ -5,7 +5,11 @@ from datetime import datetime
 import logging
 
 from agent_protocol.executors.agent_executor import get_global_executor
-from agent_protocol.agents.inventory_agent import InventoryMonitorAgent
+from agent_protocol.agents import (
+    InventoryMonitorAgent,
+    SupplierEvaluatorAgent, 
+    DemandForecasterAgent
+)
 from agent_protocol.core.agent_types import AgentType
 from utils.llm_cost_tracker import get_cost_tracker
 from models import db, Agent as AgentModel
@@ -17,8 +21,10 @@ logger = logging.getLogger(__name__)
 # Get global executor
 executor = get_global_executor()
 
-# Register agent classes
+# Register all agent classes
 executor.register_agent_class(AgentType.INVENTORY_MONITOR, InventoryMonitorAgent)
+executor.register_agent_class(AgentType.SUPPLIER_EVALUATOR, SupplierEvaluatorAgent)
+executor.register_agent_class(AgentType.DEMAND_FORECASTER, DemandForecasterAgent)
 
 
 @agent_routes.route('', methods=['GET'])

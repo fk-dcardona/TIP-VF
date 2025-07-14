@@ -10,6 +10,9 @@ from .agent_types import AgentType, AgentStatus, AgentCapability
 from .agent_context import AgentContext
 from .agent_result import AgentResult
 from ..tools.base_tool import Tool
+from ..monitoring.agent_logger import get_agent_logger
+from ..monitoring.metrics_collector import get_metrics_collector
+from ..monitoring.execution_monitor import get_execution_monitor
 
 
 class BaseAgent(ABC):
@@ -40,8 +43,11 @@ class BaseAgent(ABC):
         self.successful_executions = 0
         self.failed_executions = 0
         
-        # Logging
+        # Logging and monitoring
         self.logger = logging.getLogger(f"Agent.{self.name}")
+        self.agent_logger = get_agent_logger()
+        self.metrics_collector = get_metrics_collector()
+        self.execution_monitor = get_execution_monitor()
         
         # Initialize agent-specific tools
         self._initialize_tools()
@@ -100,6 +106,7 @@ class BaseAgent(ABC):
             AgentResult with evidence and reasoning
         """
         start_time = time.time()
+        execution_id = f"exec_{self.agent_id}_{int(time.time() * 1000)}"
         
         # Create execution context
         self.context = AgentContext(
@@ -107,10 +114,21 @@ class BaseAgent(ABC):
             agent_type=self.agent_type.value,
             org_id=org_id,
             user_id=user_id,
-            input_data=input_data
+            input_data=input_data,
+            execution_id=execution_id
+        )
+        
+        # Start monitoring
+        execution_state = self.execution_monitor.start_execution(
+            execution_id, self.agent_id, self.agent_type, 
+            {"input_data": input_data}
         )
         
         try:
+            # Use logging context
+            with self.agent_logger.execution_context(
+                self.agent_id, self.agent_type, execution_id, user_id, org_id
+            ):
             # Update status
             self._update_status(AgentStatus.INITIALIZING)
             self.context.add_reasoning_step(f"Initializing {self.name} agent")
@@ -131,36 +149,47 @@ class BaseAgent(ABC):
             # Post-execution hook
             self._post_execute(result)
             
-            # Update execution metrics
-            execution_time = int((time.time() - start_time) * 1000)
-            result.execution_time_ms = execution_time
-            result.execution_id = self.context.execution_id
-            result.agent_id = self.agent_id
-            result.tokens_used = self.context.tokens_used
-            result.tools_called = [tool["tool"] for tool in self.context.tools_used]
-            
-            # Copy evidence and reasoning from context
-            result.evidence = self.context.evidence
-            result.reasoning = self.context.reasoning_steps
-            
-            # Update success metrics
-            self.total_executions += 1
-            if result.success:
-                self.successful_executions += 1
-                self._update_status(AgentStatus.COMPLETED)
-            else:
-                self.failed_executions += 1
-                self._update_status(AgentStatus.FAILED)
-            
-            # Complete context
-            self.context.completed_at = datetime.utcnow()
-            self.context.execution_time_ms = execution_time
-            self.context.output_data = result.data
-            
-            self.logger.info(f"Agent execution completed in {execution_time}ms")
-            return result
+                # Update execution metrics
+                execution_time = int((time.time() - start_time) * 1000)
+                result.execution_time_ms = execution_time
+                result.execution_id = execution_id
+                result.agent_id = self.agent_id
+                result.tokens_used = self.context.tokens_used
+                result.tools_called = [tool["tool"] for tool in self.context.tools_used]
+                
+                # Copy evidence and reasoning from context
+                result.evidence = self.context.evidence
+                result.reasoning = self.context.reasoning_steps
+                
+                # Update success metrics
+                self.total_executions += 1
+                if result.success:
+                    self.successful_executions += 1
+                    self._update_status(AgentStatus.COMPLETED)
+                else:
+                    self.failed_executions += 1
+                    self._update_status(AgentStatus.FAILED)
+                
+                # Complete context
+                self.context.completed_at = datetime.utcnow()
+                self.context.execution_time_ms = execution_time
+                self.context.output_data = result.data
+                
+                # Record metrics
+                self.metrics_collector.record_execution_end(
+                    self.agent_id, self.agent_type, execution_id, 
+                    result.success, execution_time, result.confidence
+                )
+                
+                # End execution monitoring
+                self.execution_monitor.end_execution(execution_id, result.success, result.tokens_used)
+                
+                self.logger.info(f"Agent execution completed in {execution_time}ms")
+                return result
             
         except Exception as e:
+            execution_time = int((time.time() - start_time) * 1000)
+            
             self.logger.error(f"Agent execution failed: {str(e)}", exc_info=True)
             
             # Update failure metrics
@@ -168,12 +197,22 @@ class BaseAgent(ABC):
             self.failed_executions += 1
             self._update_status(AgentStatus.FAILED)
             
+            # Record failed execution metrics
+            self.metrics_collector.record_execution_end(
+                self.agent_id, self.agent_type, execution_id, 
+                False, execution_time
+            )
+            
+            # End execution monitoring with failure
+            self.execution_monitor.end_execution(execution_id, False)
+            
             # Create error result
             result = AgentResult(
                 success=False,
                 message=f"Agent execution failed: {str(e)}",
-                execution_id=self.context.execution_id if self.context else None,
-                agent_id=self.agent_id
+                execution_id=execution_id,
+                agent_id=self.agent_id,
+                execution_time_ms=execution_time
             )
             result.set_error(type(e).__name__, str(e))
             

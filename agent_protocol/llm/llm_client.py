@@ -24,6 +24,16 @@ class LLMResponse:
         """Get total tokens used."""
         return self.usage.get('total_tokens', 0)
     
+    @property
+    def prompt_tokens(self) -> int:
+        """Get prompt tokens used."""
+        return self.usage.get('prompt_tokens', 0)
+    
+    @property
+    def completion_tokens(self) -> int:
+        """Get completion tokens used."""
+        return self.usage.get('completion_tokens', 0)
+    
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {

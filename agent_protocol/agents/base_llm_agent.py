@@ -32,9 +32,13 @@ class BaseLLMAgent(BaseAgent):
         
     def _initialize_llm_client(self):
         """Initialize the LLM client. Override in subclasses if needed."""
-        # This would be implemented with actual provider initialization
-        # For now, it's a placeholder
-        pass
+        from ..llm.llm_manager import get_llm_manager
+        
+        # Get the LLM manager and appropriate client for this agent type
+        llm_manager = get_llm_manager()
+        self.llm_client = llm_manager.get_client_for_agent(self.agent_type.value)
+        
+        self.logger.info(f"Initialized LLM client: {self.llm_client.provider_name}")
     
     def _execute_core_logic(self, context: AgentContext) -> AgentResult:
         """Execute agent logic using LLM."""
@@ -152,50 +156,136 @@ class BaseLLMAgent(BaseAgent):
     
     def _call_llm(self, messages: List[Dict[str, str]]) -> LLMResponse:
         """Call LLM without tools."""
-        # This would be implemented with actual LLM call
-        # For now, return a mock response
-        return LLMResponse(
-            content="I need to analyze the supply chain data to provide insights.",
-            model=self.llm_config['model'],
-            provider=self.llm_config['provider'],
-            usage={'total_tokens': 50}
-        )
+        try:
+            # Use the real LLM client
+            response = self.llm_client.complete(
+                messages=messages,
+                model=self.llm_config.get('model'),
+                temperature=self.llm_config.get('temperature', 0.7),
+                max_tokens=self.llm_config.get('max_tokens', 1000)
+            )
+            return response
+        except Exception as e:
+            self.logger.error(f"LLM call failed: {str(e)}")
+            # Return a fallback response
+            return LLMResponse(
+                content=f"I apologize, but I encountered an error while processing your request: {str(e)}",
+                model=self.llm_config.get('model', 'unknown'),
+                provider=self.llm_config.get('provider', 'unknown'),
+                usage={'total_tokens': 50}
+            )
     
     def _call_llm_with_tools(self, messages: List[Dict[str, str]], 
                             tools: List[Dict[str, Any]]) -> LLMResponse:
         """Call LLM with tool support."""
-        # This would be implemented with actual LLM call
-        # For now, return a mock response
-        return LLMResponse(
-            content="I'll analyze the inventory data using the available tools.",
-            model=self.llm_config['model'],
-            provider=self.llm_config['provider'],
-            usage={'total_tokens': 75}
-        )
+        try:
+            # Use the real LLM client with tools
+            response = self.llm_client.complete_with_tools(
+                messages=messages,
+                tools=tools,
+                model=self.llm_config.get('model'),
+                temperature=self.llm_config.get('temperature', 0.7),
+                max_tokens=self.llm_config.get('max_tokens', 1000)
+            )
+            return response
+        except Exception as e:
+            self.logger.error(f"LLM call with tools failed: {str(e)}")
+            # Return a fallback response
+            return LLMResponse(
+                content=f"I apologize, but I encountered an error while using tools: {str(e)}",
+                model=self.llm_config.get('model', 'unknown'),
+                provider=self.llm_config.get('provider', 'unknown'),
+                usage={'total_tokens': 75}
+            )
     
     def _process_llm_response(self, response: LLMResponse, 
                              context: AgentContext) -> Dict[str, Any]:
         """Process LLM response and determine next action."""
-        content = response.content.lower()
+        content = response.content
         
-        # Simple pattern matching for demonstration
-        if "final answer:" in content or "conclusion:" in content:
+        # Check for tool calls first
+        if "TOOL_CALLS:" in content:
+            try:
+                tool_calls = self.llm_client.extract_tool_calls(content)
+                if tool_calls:
+                    # Return the first tool call
+                    tool_call = tool_calls[0]
+                    function_data = tool_call.get('function', {})
+                    
+                    # Parse arguments if they're a string
+                    import json
+                    arguments = function_data.get('arguments', '{}')
+                    if isinstance(arguments, str):
+                        try:
+                            arguments = json.loads(arguments)
+                        except json.JSONDecodeError:
+                            arguments = {}
+                    
+                    return {
+                        'type': 'tool_call',
+                        'tool': function_data.get('name', 'unknown_tool'),
+                        'parameters': arguments,
+                        'tool_call_id': tool_call.get('id')
+                    }
+            except Exception as e:
+                self.logger.warning(f"Failed to parse tool calls: {str(e)}")
+        
+        # Check for final answer patterns
+        content_lower = content.lower()
+        if any(phrase in content_lower for phrase in ["final answer:", "conclusion:", "final result:", "summary:"]):
             return {
                 'type': 'final_answer',
                 'content': response.content
             }
-        elif "use tool" in content or "call tool" in content:
-            # Extract tool call (simplified)
-            return {
-                'type': 'tool_call',
-                'tool': 'database_query',  # Mock tool
-                'parameters': {'table': 'triangles', 'limit': 10}
-            }
-        else:
-            return {
-                'type': 'continue',
-                'content': response.content
-            }
+        
+        # Check if response suggests using tools
+        if any(phrase in content_lower for phrase in ["need to check", "let me analyze", "i'll look up", "use tool"]):
+            # Try to determine which tool to use based on context
+            tool_name = self._suggest_tool_from_context(content, context)
+            if tool_name:
+                return {
+                    'type': 'tool_call',
+                    'tool': tool_name,
+                    'parameters': self._extract_tool_parameters(content, tool_name)
+                }
+        
+        # Default: continue conversation
+        return {
+            'type': 'continue',
+            'content': response.content
+        }
+    
+    def _suggest_tool_from_context(self, content: str, context: AgentContext) -> Optional[str]:
+        """Suggest which tool to use based on content and context."""
+        content_lower = content.lower()
+        
+        # Map content keywords to tools
+        if any(word in content_lower for word in ['inventory', 'stock', 'sku']):
+            return 'database_query'
+        elif any(word in content_lower for word in ['document', 'analyze', 'extract']):
+            return 'agent_astra'
+        elif any(word in content_lower for word in ['calculate', 'metric', 'score']):
+            return 'metrics_calculator'
+        elif any(word in content_lower for word in ['trend', 'pattern', 'analysis']):
+            return 'data_analysis'
+        
+        # Default to database query if we have tools available
+        available_tools = list(self._tools.keys()) if self._tools else []
+        return available_tools[0] if available_tools else None
+    
+    def _extract_tool_parameters(self, content: str, tool_name: str) -> Dict[str, Any]:
+        """Extract parameters for tool call from content."""
+        # Simple parameter extraction based on tool type
+        if tool_name == 'database_query':
+            return {'table': 'triangles', 'limit': 10}
+        elif tool_name == 'agent_astra':
+            return {'action': 'analyze', 'document_type': 'auto'}
+        elif tool_name == 'metrics_calculator':
+            return {'metric_type': 'triangle_score'}
+        elif tool_name == 'data_analysis':
+            return {'analysis_type': 'trend', 'time_period': '30d'}
+        
+        return {}
     
     def _execute_tool_call(self, action: Dict[str, Any], 
                           context: AgentContext) -> Any:

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { uploadFile, getUploads, downloadTemplate, type Upload } from '@/lib/api';
+import { uploadFile, getUploads, downloadTemplate } from '@/lib/api';
+import type { Upload } from '@/types/api';
 
 interface UploadInterfaceProps {
   orgId: string;

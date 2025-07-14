@@ -25,7 +25,7 @@ class InventoryMonitorAgent(BaseAgent):
     - Generate inventory optimization recommendations
     """
     
-    def __init__(self, agent_id: str, name: str, description: str, config: Dict[str, Any]):
+    def __init__(self, agent_id: str, agent_type, name: str, description: str, config: Dict[str, Any]):
         super().__init__(
             agent_id=agent_id,
             agent_type=AgentType.INVENTORY_MONITOR,

@@ -12,7 +12,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const { userId } = useAuth();
   const { organization } = useOrganization();
-  const { createOrganization, setActive, organizationList } = useOrganizationList();
+  const { createOrganization, setActive } = useOrganizationList();
   
   const [orgName, setOrgName] = useState("");
   const [creating, setCreating] = useState(false);
@@ -115,32 +115,7 @@ export default function OnboardingPage() {
           </Card>
         </div>
 
-        {/* Show existing organizations if any */}
-        {organizationList && organizationList.length > 0 && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Your Organizations</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {organizationList.map((org) => (
-                  <Button
-                    key={org.organization.id}
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => {
-                      setActive({ organization: org.organization });
-                      router.push("/dashboard");
-                    }}
-                  >
-                    <Building2 className="w-4 h-4 mr-2" />
-                    {org.organization.name}
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Organization selection will be added in future updates */}
       </div>
     </div>
   );
