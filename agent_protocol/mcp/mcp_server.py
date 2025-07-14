@@ -410,7 +410,8 @@ class MCPServer:
                     "event_type": log.event_type
                 }
                 for log in logs
-                if log.level.lower() in ["error", "warning", "info"] if level == "info" else log.level.lower() == level.lower()
+                if (log.level.lower() in ["error", "warning", "info"] if level == "info" 
+                    else log.level.lower() == level.lower())
             ]
         }
     
