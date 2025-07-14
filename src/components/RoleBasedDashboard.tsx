@@ -7,6 +7,11 @@ import SalesDashboard from './SalesDashboard';
 import ProcurementDashboard from './ProcurementDashboard';
 import FinanceDashboard from './FinanceDashboard';
 import LogisticsDashboard from './LogisticsDashboard';
+import { useDashboardData } from '@/hooks/useAPIFetch';
+import { DashboardSkeleton } from '@/components/ui/skeleton';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 // Sharing components will be added in future updates
 
 interface RoleBasedDashboardProps {
@@ -16,42 +21,26 @@ interface RoleBasedDashboardProps {
 export default function RoleBasedDashboard({ userId }: RoleBasedDashboardProps) {
   const { user } = useUser();
   const [currentRole, setCurrentRole] = useState('general_manager');
-  const [dashboardData, setDashboardData] = useState(null);
-  const [insights, setInsights] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'share' | 'invite'>('dashboard');
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, [userId, currentRole]);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch dashboard data
-      const dashboardResponse = await fetch(`/api/dashboard/${userId}?role=${currentRole}`);
-      if (dashboardResponse.ok) {
-        const data = await dashboardResponse.json();
-        setDashboardData(data);
-      }
-
-      // Fetch insights
-      const insightsResponse = await fetch(`/api/insights/${userId}?role=${currentRole}`);
-      if (insightsResponse.ok) {
-        const insightsData = await insightsResponse.json();
-        setInsights(insightsData.insights || []);
-      }
-      
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  // Use the new API hook for parallel data fetching
+  const { 
+    data, 
+    loading, 
+    error, 
+    refetch, 
+    retry, 
+    isRetrying 
+  } = useDashboardData(userId, currentRole);
+  
+  // Extract dashboard data and insights from the parallel fetch result
+  const dashboardData = data?.dashboard || null;
+  const insights = data?.insights?.insights || [];
+  const analytics = data?.analytics || null;
 
   const handleRoleChange = (newRole: string) => {
     setCurrentRole(newRole);
+    // Data will automatically refetch due to dependency in useDashboardData hook
   };
 
   const handleShare = (shareData: any) => {
@@ -65,18 +54,57 @@ export default function RoleBasedDashboard({ userId }: RoleBasedDashboardProps) 
   };
 
   const renderDashboard = () => {
-    if (loading) {
+    // Show loading skeleton while fetching data
+    if (loading && !dashboardData) {
+      return <DashboardSkeleton />;
+    }
+    
+    // Show error state with retry option
+    if (error && !dashboardData) {
       return (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
+        <Alert className="border-red-200 bg-red-50">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertTitle className="text-red-800">Failed to load dashboard data</AlertTitle>
+          <AlertDescription className="text-red-700">
+            {error.message || 'An unexpected error occurred while loading your dashboard.'}
+            <div className="mt-4">
+              <Button 
+                onClick={() => retry()} 
+                disabled={isRetrying}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {isRetrying ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Retrying...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Try Again
+                  </>
+                )}
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
       );
     }
 
+    // Show dashboard with data (even if stale data while reloading)
     const dashboardProps = {
-      data: dashboardData,
+      data: dashboardData || {
+        summary: {},
+        product_performance: [],
+        inventory_alerts: [],
+        financial_insights: {},
+        key_metrics: {},
+        recommendations: []
+      },
       userId,
-      onDataUpdate: fetchDashboardData
+      onDataUpdate: refetch,
+      analytics,
+      insights
     };
 
     switch (currentRole) {
@@ -196,10 +224,27 @@ export default function RoleBasedDashboard({ userId }: RoleBasedDashboardProps) 
             >
               📈 View Analytics
             </a>
+            {/* Refresh button for manual data refresh */}
+            <Button
+              onClick={() => refetch()}
+              disabled={loading}
+              variant="outline"
+              size="sm"
+              className="ml-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
           </div>
           
           <div className="text-sm text-gray-500">
-            Last updated: {new Date().toLocaleTimeString()}
+            {loading ? (
+              <span className="flex items-center">
+                <RefreshCw className="mr-1 h-3 w-3 animate-spin" />
+                Updating...
+              </span>
+            ) : (
+              `Last updated: ${new Date().toLocaleTimeString()}`
+            )}
           </div>
         </div>
       </div>

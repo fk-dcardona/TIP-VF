@@ -2,9 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileText, TrendingUp, CheckCircle, AlertCircle, Activity, Zap } from 'lucide-react';
+import { Upload, FileText, TrendingUp, CheckCircle, AlertCircle, Activity, Zap, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useBreathing } from '@/hooks/useBreathing';
+import { useDocumentAnalytics } from '@/hooks/useAPIFetch';
+import { DocumentIntelligenceSkeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import LivingScore from './LivingScore';
 import FlowingTimeline from './FlowingTimeline';
 import GrowingMetrics from './GrowingMetrics';
@@ -33,59 +36,60 @@ interface DocumentMetrics {
 }
 
 export default function OrganicDashboard({ orgId }: OrganicDashboardProps) {
-  const [score, setScore] = useState<DocumentScore | null>(null);
-  const [metrics, setMetrics] = useState<DocumentMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [hoveredInsight, setHoveredInsight] = useState<string | null>(null);
   const breathing = useBreathing();
+  
+  // Use the document analytics hook for real API data
+  const { 
+    data: analyticsData, 
+    loading, 
+    error, 
+    refetch, 
+    retry, 
+    isRetrying 
+  } = useDocumentAnalytics(orgId);
+  
+  // Process API response into component-specific data structures
+  const score: DocumentScore | null = analyticsData ? {
+    document_intelligence_score: analyticsData.document_intelligence_score || 0,
+    components: {
+      compliance: analyticsData.compliance_score || 0,
+      visibility: analyticsData.visibility_score || 0,
+      efficiency: analyticsData.efficiency_score || 0,
+      accuracy: analyticsData.accuracy_score || 0
+    },
+    insights: analyticsData.insights || []
+  } : null;
+  
+  const metrics: DocumentMetrics | null = analyticsData ? {
+    total_documents: analyticsData.total_documents || 0,
+    average_confidence: analyticsData.average_confidence || 0,
+    automation_rate: analyticsData.automation_rate || 0,
+    error_rate: analyticsData.error_rate || 0,
+    compliance_score: analyticsData.compliance_score || 0
+  } : null;
 
-  useEffect(() => {
-    fetchDocumentAnalytics();
-  }, [orgId]);
-
-  const fetchDocumentAnalytics = async () => {
-    try {
-      // Simulate API call for demo
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setScore({
-        document_intelligence_score: 87,
-        components: {
-          compliance: 92,
-          visibility: 88,
-          efficiency: 82,
-          accuracy: 85
-        },
-        insights: [
-          "Documents processed 23% faster this week",
-          "Compliance rate improved across all regions",
-          "New anomaly detection preventing $12K in potential fraud"
-        ]
-      });
-      
-      setMetrics({
-        total_documents: 1247,
-        average_confidence: 94.2,
-        automation_rate: 87.5,
-        error_rate: 2.3,
-        compliance_score: 92.1
-      });
-      
-      setLoading(false);
-    } catch (error) {
-      console.error('Failed to fetch document analytics:', error);
-      setLoading(false);
-    }
-  };
-
-  const timelineSteps = [
-    { id: 'upload', label: 'Upload', count: 12, status: 'completed' as const, icon: Upload },
-    { id: 'parse', label: 'Parse', count: 11, status: 'completed' as const, icon: FileText },
-    { id: 'validate', label: 'Validate', count: 10, status: 'active' as const, icon: CheckCircle },
-    { id: 'extract', label: 'Extract', count: 9, status: 'pending' as const, icon: TrendingUp },
-    { id: 'analyze', label: 'Analyze', count: 8, status: 'pending' as const, icon: Activity },
-  ];
+  // Process timeline data from API or use defaults
+  const timelineSteps = analyticsData?.processing_stages ? 
+    analyticsData.processing_stages.map((stage: any, index: number) => ({
+      id: stage.id,
+      label: stage.label,
+      count: stage.count || 0,
+      status: stage.status as 'active' | 'completed' | 'pending',
+      icon: 
+        stage.id === 'upload' ? Upload :
+        stage.id === 'parse' ? FileText :
+        stage.id === 'validate' ? CheckCircle :
+        stage.id === 'extract' ? TrendingUp :
+        Activity
+    })) : [
+      { id: 'upload', label: 'Upload', count: 0, status: 'pending' as const, icon: Upload },
+      { id: 'parse', label: 'Parse', count: 0, status: 'pending' as const, icon: FileText },
+      { id: 'validate', label: 'Validate', count: 0, status: 'pending' as const, icon: CheckCircle },
+      { id: 'extract', label: 'Extract', count: 0, status: 'pending' as const, icon: TrendingUp },
+      { id: 'analyze', label: 'Analyze', count: 0, status: 'pending' as const, icon: Activity },
+    ];
 
   const metricsData = metrics ? [
     {
@@ -126,43 +130,42 @@ export default function OrganicDashboard({ orgId }: OrganicDashboardProps) {
     }
   ] : [];
 
-  if (loading) {
+  // Show loading state
+  if (loading && !analyticsData) {
+    return <DocumentIntelligenceSkeleton />;
+  }
+  
+  // Show error state
+  if (error && !analyticsData) {
     return (
-      <motion.div 
-        className="flex items-center justify-center h-64"
-        animate={{
-          opacity: [0.5, 1, 0.5],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-        }}
-      >
-        <div className="relative">
-          <motion.div
-            className="w-16 h-16 border-4 border-blue-200 rounded-full"
-            animate={{
-              rotate: 360,
-              scale: [1, 1.1, 1],
-            }}
-            transition={{
-              rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-              scale: { duration: 3, repeat: Infinity },
-            }}
-          />
-          <motion.div
-            className="absolute inset-2 w-12 h-12 border-4 border-blue-600 rounded-full border-t-transparent"
-            animate={{
-              rotate: -360,
-            }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          />
-        </div>
-      </motion.div>
+      <div className="p-6">
+        <Alert className="border-red-200 bg-red-50">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertTitle className="text-red-800">Failed to load document analytics</AlertTitle>
+          <AlertDescription className="text-red-700">
+            {error.message || 'Unable to retrieve document intelligence data.'}
+            <div className="mt-4">
+              <Button 
+                onClick={() => retry()} 
+                disabled={isRetrying}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {isRetrying ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Retrying...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Try Again
+                  </>
+                )}
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      </div>
     );
   }
 
@@ -215,7 +218,16 @@ export default function OrganicDashboard({ orgId }: OrganicDashboardProps) {
             initial={{ x: 50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
+            className="flex items-center space-x-2"
           >
+            <Button
+              onClick={() => refetch()}
+              disabled={loading}
+              variant="outline"
+              className="px-4 py-3 rounded-xl"
+            >
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
             <Button
               onClick={() => setUploadModalOpen(true)}
               className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl shadow-lg"

@@ -1,6 +1,7 @@
 {
   "framework": "nextjs",
   "buildCommand": "npm run build",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./",
   "installCommand": "npm install --legacy-peer-deps",
   "outputDirectory": ".next",
   "regions": ["iad1"],

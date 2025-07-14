@@ -11,7 +11,11 @@ import {
   Users, 
   FileText, 
   Upload,
-  Zap
+  Zap,
+  Bot,
+  DollarSign,
+  ShoppingCart,
+  Truck
 } from 'lucide-react';
 import OrganicDashboard from './DocumentIntelligence/OrganicDashboard';
 
@@ -80,6 +84,134 @@ export default function MainDashboard() {
       {/* Document Intelligence Living Interface */}
       <OrganicDashboard orgId={organization.id} />
       
+      {/* Navigation Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <DollarSign className="h-6 w-6 mr-2 text-green-600" />
+              Finance Dashboard
+            </CardTitle>
+            <CardDescription>
+              Financial analytics and cash flow management
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => window.location.href = '/dashboard/finance'}
+            >
+              View Finance
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <ShoppingCart className="h-6 w-6 mr-2 text-blue-600" />
+              Sales Dashboard
+            </CardTitle>
+            <CardDescription>
+              Sales performance and customer analytics
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => window.location.href = '/dashboard/sales'}
+            >
+              View Sales
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Truck className="h-6 w-6 mr-2 text-purple-600" />
+              Procurement Dashboard
+            </CardTitle>
+            <CardDescription>
+              Supplier management and procurement analytics
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => window.location.href = '/dashboard/procurement'}
+            >
+              View Procurement
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Package className="h-6 w-6 mr-2 text-orange-600" />
+              Inventory Dashboard
+            </CardTitle>
+            <CardDescription>
+              Inventory levels and stock management
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => window.location.href = '/dashboard/inventory'}
+            >
+              View Inventory
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-blue-50 to-purple-50">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Bot className="h-6 w-6 mr-2 text-blue-600" />
+              Agent Management
+            </CardTitle>
+            <CardDescription>
+              AI agents for supply chain automation
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              onClick={() => window.location.href = '/dashboard/agents'}
+            >
+              Manage Agents
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Users className="h-6 w-6 mr-2 text-gray-600" />
+              Team Management
+            </CardTitle>
+            <CardDescription>
+              User roles and team collaboration
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => window.location.href = '/dashboard/team'}
+            >
+              Manage Team
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Quick Actions */}
       <Card>
         <CardHeader>
@@ -98,8 +230,8 @@ export default function MainDashboard() {
             <span>View Analytics</span>
           </Button>
           <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
-            <Users className="h-6 w-6" />
-            <span>Manage Team</span>
+            <Bot className="h-6 w-6" />
+            <span>Create Agent</span>
           </Button>
         </CardContent>
       </Card>

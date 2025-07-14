@@ -1,5 +1,11 @@
 'use client';
 
+import { useState } from 'react';
+import { FinanceDashboardSkeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
 interface FinanceDashboardProps {
   data: {
     summary: any;
@@ -8,21 +14,81 @@ interface FinanceDashboardProps {
     financial_insights: any;
     key_metrics: any;
     recommendations: string[];
-  };
+  } | null;
+  onDataUpdate?: () => void;
+  loading?: boolean;
+  error?: Error | null;
+  isRetrying?: boolean;
+  analytics?: any;
 }
 
-export default function FinanceDashboard({ data }: FinanceDashboardProps) {
-  const { financial_insights, product_performance, key_metrics } = data;
+export default function FinanceDashboard({ 
+  data, 
+  onDataUpdate, 
+  loading = false, 
+  error = null,
+  isRetrying = false,
+  analytics
+}: FinanceDashboardProps) {
+  // Show loading state
+  if (loading && !data) {
+    return <FinanceDashboardSkeleton />;
+  }
+  
+  // Show error state
+  if (error && !data) {
+    return (
+      <Alert className="border-red-200 bg-red-50">
+        <AlertCircle className="h-4 w-4 text-red-600" />
+        <AlertTitle className="text-red-800">Failed to load financial data</AlertTitle>
+        <AlertDescription className="text-red-700">
+          {error.message || 'Unable to retrieve financial analytics.'}
+          {onDataUpdate && (
+            <div className="mt-4">
+              <Button 
+                onClick={onDataUpdate} 
+                disabled={isRetrying}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {isRetrying ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Retrying...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Try Again
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  
+  // Use data with fallbacks
+  const financial_insights = data?.financial_insights || {};
+  const product_performance = data?.product_performance || [];
+  const key_metrics = data?.key_metrics || {};
 
-  // Calculate finance-specific metrics
-  const totalInventoryValue = financial_insights?.total_inventory_value || 0;
-  const monthlyBurnRate = financial_insights?.monthly_burn_rate || 0;
-  const workingCapitalEfficiency = financial_insights?.working_capital_efficiency || 0;
-  const inventoryToSalesRatio = financial_insights?.inventory_to_sales_ratio || 0;
+  // Use actual metrics from API data
+  const totalInventoryValue = financial_insights?.total_inventory_value || analytics?.total_inventory_value || 0;
+  const monthlyBurnRate = financial_insights?.monthly_burn_rate || analytics?.monthly_burn_rate || 0;
+  const workingCapitalEfficiency = financial_insights?.working_capital_efficiency || analytics?.working_capital_efficiency || 0;
+  const inventoryToSalesRatio = financial_insights?.inventory_to_sales_ratio || analytics?.inventory_to_sales_ratio || 0;
 
-  // Calculate cash flow metrics
-  const daysOfCashInInventory = monthlyBurnRate > 0 ? (totalInventoryValue / monthlyBurnRate) * 30 : 0;
-  const highValueProducts = product_performance.filter(p => (p.current_stock * 10) > 5000); // Assuming $10 avg cost
+  // Calculate derived metrics from API data
+  const daysOfCashInInventory = financial_insights?.days_cash_in_inventory || 
+    (monthlyBurnRate > 0 ? (totalInventoryValue / monthlyBurnRate) * 30 : 0);
+  
+  // Use actual cost data from API if available
+  const avgCostPerUnit = financial_insights?.avg_cost_per_unit || 10;
+  const highValueProducts = product_performance.filter(p => 
+    (p.current_stock * (p.unit_cost || avgCostPerUnit)) > 5000
+  );
   const lowTurnoverProducts = product_performance.filter(p => p.inventory_turnover < 2);
 
   const formatCurrency = (amount: number) => {
@@ -183,7 +249,8 @@ export default function FinanceDashboard({ data }: FinanceDashboardProps) {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {product_performance.slice(0, 10).map((product) => {
-                const inventoryValue = product.current_stock * 10; // Assuming $10 avg cost
+                const unitCost = product.unit_cost || financial_insights?.avg_cost_per_unit || 10;
+                const inventoryValue = product.current_stock * unitCost;
                 return (
                   <tr key={product.product_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -271,45 +338,48 @@ export default function FinanceDashboard({ data }: FinanceDashboardProps) {
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">📅 Payment Planning</h3>
           <div className="space-y-4">
-            {/* Mock payment schedule - in real implementation, this would come from supplier/payment data */}
-            <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Supplier ABC</p>
-                <p className="text-sm text-red-600">Due: Dec 15, 2024</p>
+            {/* Use payment schedule from API data if available */}
+            {financial_insights?.payment_schedule?.length > 0 ? (
+              financial_insights.payment_schedule.slice(0, 3).map((payment: any, index: number) => {
+                const daysUntilDue = payment.days_until_due || 0;
+                const statusColor = daysUntilDue < 0 ? 'red' : daysUntilDue <= 5 ? 'yellow' : 'green';
+                const statusText = daysUntilDue < 0 ? 'Overdue' : daysUntilDue <= 5 ? 'Due Soon' : 'On Track';
+                
+                return (
+                  <div key={index} className={`flex items-center justify-between p-3 bg-${statusColor}-50 rounded-lg`}>
+                    <div>
+                      <p className="font-medium text-gray-900">{payment.supplier_name}</p>
+                      <p className={`text-sm text-${statusColor}-600`}>
+                        Due: {new Date(payment.due_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatCurrency(payment.amount)}
+                      </p>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-${statusColor}-600 bg-${statusColor}-100`}>
+                        {statusText}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No payment schedule data available</p>
+                {onDataUpdate && (
+                  <Button
+                    onClick={onDataUpdate}
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Refresh Data
+                  </Button>
+                )}
               </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{formatCurrency(25000)}</p>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-red-600 bg-red-100">
-                  Overdue
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Global Supply Co</p>
-                <p className="text-sm text-yellow-600">Due: Dec 20, 2024</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{formatCurrency(18500)}</p>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-yellow-600 bg-yellow-100">
-                  Due Soon
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Premium Materials</p>
-                <p className="text-sm text-green-600">Due: Dec 30, 2024</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{formatCurrency(12000)}</p>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-green-600 bg-green-100">
-                  On Track
-                </span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

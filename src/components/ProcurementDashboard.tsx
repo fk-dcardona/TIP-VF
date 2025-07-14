@@ -1,5 +1,10 @@
 'use client';
 
+import { ProcurementDashboardSkeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
 interface ProcurementDashboardProps {
   data: {
     summary: any;
@@ -8,11 +13,69 @@ interface ProcurementDashboardProps {
     financial_insights: any;
     key_metrics: any;
     recommendations: string[];
-  };
+    supplier_performance?: any[];
+    purchase_orders?: any[];
+  } | null;
+  onDataUpdate?: () => void;
+  loading?: boolean;
+  error?: Error | null;
+  isRetrying?: boolean;
+  analytics?: any;
 }
 
-export default function ProcurementDashboard({ data }: ProcurementDashboardProps) {
-  const { product_performance, inventory_alerts, financial_insights, key_metrics } = data;
+export default function ProcurementDashboard({ 
+  data, 
+  onDataUpdate, 
+  loading = false, 
+  error = null,
+  isRetrying = false,
+  analytics
+}: ProcurementDashboardProps) {
+  // Show loading state
+  if (loading && !data) {
+    return <ProcurementDashboardSkeleton />;
+  }
+  
+  // Show error state
+  if (error && !data) {
+    return (
+      <Alert className="border-red-200 bg-red-50">
+        <AlertCircle className="h-4 w-4 text-red-600" />
+        <AlertTitle className="text-red-800">Failed to load procurement data</AlertTitle>
+        <AlertDescription className="text-red-700">
+          {error.message || 'Unable to retrieve procurement analytics.'}
+          {onDataUpdate && (
+            <div className="mt-4">
+              <Button 
+                onClick={onDataUpdate} 
+                disabled={isRetrying}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {isRetrying ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Retrying...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Try Again
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  
+  // Use data with fallbacks
+  const product_performance = data?.product_performance || [];
+  const inventory_alerts = data?.inventory_alerts || [];
+  const financial_insights = data?.financial_insights || {};
+  const key_metrics = data?.key_metrics || {};
+  const supplier_performance = data?.supplier_performance || analytics?.supplier_performance || [];
 
   // Calculate procurement-specific metrics
   const reorderNeeded = product_performance.filter(p => p.days_of_stock <= 14);
@@ -21,14 +84,21 @@ export default function ProcurementDashboard({ data }: ProcurementDashboardProps
   const totalInventoryValue = financial_insights?.total_inventory_value || 0;
 
   const calculateReorderQuantity = (product: any) => {
-    // Simple reorder calculation: 30 days of sales velocity
-    return Math.ceil(product.sales_velocity * 30);
+    // Use API-provided reorder quantity or calculate based on sales velocity
+    if (product.recommended_reorder_qty) {
+      return product.recommended_reorder_qty;
+    }
+    // Fallback calculation: safety stock days * sales velocity
+    const safetyStockDays = product.safety_stock_days || 30;
+    return Math.ceil(product.sales_velocity * safetyStockDays);
   };
 
   const calculateReorderValue = (product: any) => {
     const quantity = calculateReorderQuantity(product);
-    // Assuming cost_per_unit is available in product data
-    return quantity * 10; // Placeholder cost
+    // Use actual cost per unit from API data
+    const costPerUnit = product.unit_cost || product.cost_per_unit || 
+                       financial_insights?.avg_cost_per_unit || 10;
+    return quantity * costPerUnit;
   };
 
   const getPriorityColor = (daysOfStock: number) => {
@@ -194,42 +264,60 @@ export default function ProcurementDashboard({ data }: ProcurementDashboardProps
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">🏭 Supplier Performance</h3>
           <div className="space-y-4">
-            {/* Mock supplier data - in real implementation, this would come from supplier analysis */}
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Supplier ABC</p>
-                <p className="text-sm text-green-600">On-time delivery: 95%</p>
+            {supplier_performance.length > 0 ? (
+              supplier_performance.slice(0, 5).map((supplier: any, index: number) => {
+                const deliveryRate = supplier.on_time_delivery_rate || supplier.delivery_performance || 0;
+                const rating = supplier.overall_rating || supplier.performance_score || 0;
+                
+                // Determine performance level based on delivery rate
+                const performanceLevel = 
+                  deliveryRate >= 95 ? { color: 'green', text: 'Excellent' } :
+                  deliveryRate >= 85 ? { color: 'blue', text: 'Good' } :
+                  deliveryRate >= 75 ? { color: 'yellow', text: 'Needs Improvement' } :
+                  { color: 'red', text: 'Poor' };
+                
+                return (
+                  <div key={index} className={`flex items-center justify-between p-3 bg-${performanceLevel.color}-50 rounded-lg`}>
+                    <div>
+                      <p className="font-medium text-gray-900">{supplier.name || supplier.supplier_name}</p>
+                      <p className={`text-sm text-${performanceLevel.color}-600`}>
+                        On-time delivery: {deliveryRate.toFixed(1)}%
+                      </p>
+                      {supplier.total_orders && (
+                        <p className="text-xs text-gray-500">
+                          {supplier.total_orders} orders • Avg lead time: {supplier.avg_lead_time || 'N/A'} days
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-${performanceLevel.color}-600 bg-${performanceLevel.color}-100`}>
+                        {performanceLevel.text}
+                      </span>
+                      {rating > 0 && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Rating: {rating.toFixed(1)}/5
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No supplier performance data available</p>
+                {onDataUpdate && (
+                  <Button
+                    onClick={onDataUpdate}
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Refresh Data
+                  </Button>
+                )}
               </div>
-              <div className="text-right">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-green-600 bg-green-100">
-                  Excellent
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Supplier XYZ</p>
-                <p className="text-sm text-yellow-600">On-time delivery: 78%</p>
-              </div>
-              <div className="text-right">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-yellow-600 bg-yellow-100">
-                  Needs Improvement
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Global Supply Co</p>
-                <p className="text-sm text-blue-600">On-time delivery: 88%</p>
-              </div>
-              <div className="text-right">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-blue-600 bg-blue-100">
-                  Good
-                </span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -254,7 +342,7 @@ export default function ProcurementDashboard({ data }: ProcurementDashboardProps
             <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
               <p className="text-sm font-medium text-purple-800">Lead Time Analysis</p>
               <p className="text-xs text-purple-600 mt-1">
-                Average lead time: 14 days - plan accordingly
+                Average lead time: {analytics?.avg_lead_time || key_metrics?.avg_lead_time || 14} days - plan accordingly
               </p>
             </div>
           </div>

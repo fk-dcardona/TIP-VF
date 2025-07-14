@@ -1,5 +1,14 @@
 'use client';
 
+import { useState, useMemo } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import CustomerSegmentation from './CustomerSegmentation';
+import GeographicSalesMap from './GeographicSalesMap';
+import PricingOptimization from './PricingOptimization';
+import { Users, MapPin, DollarSign, TrendingUp, Package, Target } from 'lucide-react';
+
 interface SalesDashboardProps {
   data: {
     summary: any;
@@ -8,11 +17,89 @@ interface SalesDashboardProps {
     financial_insights: any;
     key_metrics: any;
     recommendations: string[];
-  };
+  } | null;
 }
 
 export default function SalesDashboard({ data }: SalesDashboardProps) {
-  const { product_performance, inventory_alerts, key_metrics } = data;
+  const [activeTab, setActiveTab] = useState('overview');
+  
+  // Handle null data
+  const product_performance = data?.product_performance || [];
+  const inventory_alerts = data?.inventory_alerts || [];
+  const key_metrics = data?.key_metrics || {};
+  
+  // Transform data for customer segmentation
+  const customerData = useMemo(() => {
+    if (!data?.product_performance) return [];
+    
+    // Group by assumed customer data from product performance
+    // In real implementation, this would come from customer API
+    const mockCustomers = [
+      { id: '1', name: 'Acme Corp', industry: 'Manufacturing', region: 'North America', 
+        revenue: 2500000, orderCount: 145, avgOrderValue: 17241, lastOrderDate: '2024-01-15',
+        growthRate: 23.5, segment: 'enterprise' as const },
+      { id: '2', name: 'Global Logistics', industry: 'Transportation', region: 'Europe',
+        revenue: 1800000, orderCount: 98, avgOrderValue: 18367, lastOrderDate: '2024-01-14',
+        growthRate: 15.2, segment: 'enterprise' as const },
+      { id: '3', name: 'TechStart Inc', industry: 'Technology', region: 'Asia Pacific',
+        revenue: 650000, orderCount: 67, avgOrderValue: 9701, lastOrderDate: '2024-01-13',
+        growthRate: 45.8, segment: 'mid-market' as const },
+      { id: '4', name: 'Retail Plus', industry: 'Retail', region: 'North America',
+        revenue: 420000, orderCount: 52, avgOrderValue: 8077, lastOrderDate: '2024-01-12',
+        growthRate: 12.3, segment: 'small-business' as const },
+      { id: '5', name: 'Supply Chain Pro', industry: 'Logistics', region: 'South America',
+        revenue: 980000, orderCount: 78, avgOrderValue: 12564, lastOrderDate: '2024-01-11',
+        growthRate: 28.9, segment: 'mid-market' as const }
+    ];
+    
+    return mockCustomers;
+  }, [data]);
+  
+  // Transform data for geographic visualization
+  const geographicData = useMemo(() => {
+    if (!data?.product_performance) return [];
+    
+    // Mock geographic data - would come from API
+    return [
+      { id: 'na', name: 'North America', coordinates: { x: 200, y: 150 },
+        sales: 4200000, customers: 142, growth: 18.5, 
+        topProducts: ['Widget A', 'Component B', 'Material C'],
+        marketShare: 35 },
+      { id: 'eu', name: 'Europe', coordinates: { x: 400, y: 120 },
+        sales: 3100000, customers: 98, growth: 12.3,
+        topProducts: ['Component B', 'Widget D', 'Supply Kit'],
+        marketShare: 28 },
+      { id: 'apac', name: 'Asia Pacific', coordinates: { x: 600, y: 200 },
+        sales: 2800000, customers: 115, growth: 32.7,
+        topProducts: ['Material C', 'Widget A', 'Tool Set'],
+        marketShare: 22 },
+      { id: 'sa', name: 'South America', coordinates: { x: 250, y: 280 },
+        sales: 980000, customers: 45, growth: 28.9,
+        topProducts: ['Supply Kit', 'Component B'],
+        marketShare: 15 },
+      { id: 'mea', name: 'Middle East', coordinates: { x: 450, y: 180 },
+        sales: 620000, customers: 28, growth: 15.4,
+        topProducts: ['Widget D', 'Material C'],
+        marketShare: 12 }
+    ];
+  }, [data]);
+  
+  // Transform data for pricing optimization
+  const pricingData = useMemo(() => {
+    if (!data?.product_performance) return [];
+    
+    return data.product_performance.slice(0, 10).map(product => ({
+      id: product.product_id,
+      name: product.product_name,
+      currentPrice: 100, // Mock current price
+      optimalPrice: 100 * (1 + (product.roi_percentage / 100) * 0.3), // Simple optimal price calc
+      elasticity: 1.2, // Mock elasticity
+      competitorPrice: 95, // Mock competitor price
+      margin: product.roi_percentage,
+      volume: product.current_stock,
+      revenueImpact: product.current_stock * 10 * (product.roi_percentage / 100)
+    }));
+  }, [data]);
 
   // Filter products for sales insights
   const availableProducts = product_performance.filter(p => p.days_of_stock > 7);
@@ -36,22 +123,64 @@ export default function SalesDashboard({ data }: SalesDashboardProps) {
 
   return (
     <div className="space-y-6">
-      {/* Sales Team Header */}
+      {/* Enhanced Sales Header with Business Question Metrics */}
       <div className="bg-gradient-to-r from-green-600 to-green-800 rounded-lg p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Sales Dashboard</h2>
-            <p className="text-green-100">Product performance and inventory availability for sales optimization</p>
+            <h2 className="text-2xl font-bold mb-2">Sales Intelligence Dashboard</h2>
+            <p className="text-green-100">Complete visibility into what you're selling, to whom, where, and for how much</p>
           </div>
           <div className="text-right">
             <div className="text-3xl font-bold">{availableProducts.length}</div>
             <div className="text-green-200">Products Available</div>
           </div>
         </div>
+        
+        {/* Business Question 1 Metrics */}
+        <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-green-500">
+          <div>
+            <p className="text-green-200 text-sm">What: Products</p>
+            <p className="text-xl font-semibold">{product_performance.length} SKUs</p>
+          </div>
+          <div>
+            <p className="text-green-200 text-sm">To Whom: Customers</p>
+            <p className="text-xl font-semibold">{customerData.length} Active</p>
+          </div>
+          <div>
+            <p className="text-green-200 text-sm">Where: Regions</p>
+            <p className="text-xl font-semibold">{geographicData.length} Markets</p>
+          </div>
+          <div>
+            <p className="text-green-200 text-sm">How Much: Optimization</p>
+            <p className="text-xl font-semibold">{pricingData.filter(p => Math.abs(p.optimalPrice - p.currentPrice) < 5).length} Optimal</p>
+          </div>
+        </div>
       </div>
 
-      {/* Sales KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Tabbed Interface for Business Question 1 */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview" className="flex items-center">
+            <Package className="h-4 w-4 mr-2" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="customers" className="flex items-center">
+            <Users className="h-4 w-4 mr-2" />
+            Customers
+          </TabsTrigger>
+          <TabsTrigger value="geography" className="flex items-center">
+            <MapPin className="h-4 w-4 mr-2" />
+            Geography
+          </TabsTrigger>
+          <TabsTrigger value="pricing" className="flex items-center">
+            <DollarSign className="h-4 w-4 mr-2" />
+            Pricing
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="overview" className="space-y-6">
+          {/* Original Sales KPIs */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -254,24 +383,47 @@ export default function SalesDashboard({ data }: SalesDashboardProps) {
         </div>
       </div>
 
-      {/* Quick Reference */}
-      <div className="bg-gradient-to-r from-purple-500 to-purple-700 rounded-lg p-6 text-white">
-        <h3 className="text-lg font-semibold mb-3">📋 Quick Sales Reference</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div>
-            <p className="font-medium mb-1">✅ Safe to Promise:</p>
-            <p className="text-purple-100">{availableProducts.length} products with 7+ days stock</p>
+          {/* Quick Reference */}
+          <div className="bg-gradient-to-r from-purple-500 to-purple-700 rounded-lg p-6 text-white">
+            <h3 className="text-lg font-semibold mb-3">📋 Quick Sales Reference</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <p className="font-medium mb-1">✅ Safe to Promise:</p>
+                <p className="text-purple-100">{availableProducts.length} products with 7+ days stock</p>
+              </div>
+              <div>
+                <p className="font-medium mb-1">⚠️ Sell with Caution:</p>
+                <p className="text-purple-100">{lowStockProducts.length} products with limited stock</p>
+              </div>
+              <div>
+                <p className="font-medium mb-1">🚫 Do Not Promise:</p>
+                <p className="text-purple-100">{outOfStockProducts.length} products out of stock</p>
+              </div>
+            </div>
           </div>
-          <div>
-            <p className="font-medium mb-1">⚠️ Sell with Caution:</p>
-            <p className="text-purple-100">{lowStockProducts.length} products with limited stock</p>
-          </div>
-          <div>
-            <p className="font-medium mb-1">🚫 Do Not Promise:</p>
-            <p className="text-purple-100">{outOfStockProducts.length} products out of stock</p>
-          </div>
-        </div>
-      </div>
+        </TabsContent>
+        
+        <TabsContent value="customers">
+          <CustomerSegmentation 
+            customers={customerData} 
+            loading={false}
+          />
+        </TabsContent>
+        
+        <TabsContent value="geography">
+          <GeographicSalesMap 
+            regionData={geographicData} 
+            loading={false}
+          />
+        </TabsContent>
+        
+        <TabsContent value="pricing">
+          <PricingOptimization 
+            products={pricingData} 
+            loading={false}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
