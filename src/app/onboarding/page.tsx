@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Users } from "lucide-react";
 
+// Force dynamic rendering for authenticated pages
+export const dynamic = 'force-dynamic';
+
 export default function OnboardingPage() {
   const router = useRouter();
   const { userId } = useAuth();
@@ -48,8 +51,14 @@ export default function OnboardingPage() {
   };
 
   if (!userId) {
-    router.push("/sign-in");
-    return null;
+    // Use a simple loading state instead of immediate redirect during SSR
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Redirecting to sign in...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

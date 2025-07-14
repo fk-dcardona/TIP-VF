@@ -1,170 +1,81 @@
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-});
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable React strict mode for better development experience
-  reactStrictMode: true,
-  
-  // Enable SWC minification for faster builds
-  swcMinify: true,
-  
-  // Optimize production builds
-  productionBrowserSourceMaps: false,
-  
-  // Enable experimental features for better performance
   experimental: {
-    // Disable optimizeCss due to webpack issues
-    // optimizeCss: true,
+    webpackBuildWorker: true,
   },
-  
-  // Configure image optimization
-  images: {
-    domains: ['supabase.co'],
-    formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  env: {
+    CUSTOM_KEY: 'my-value',
   },
-  
-  // Webpack configuration for bundle optimization
-  webpack: (config, { isServer }) => {
-    // Optimize bundle size
-    if (!isServer) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    config.resolve.alias.canvas = false;
+    config.resolve.alias.encoding = false;
+    
+    // Optimize chunks
+    if (!dev && !isServer) {
+      config.optimization.splitChunks.cacheGroups = {
+        ...config.optimization.splitChunks.cacheGroups,
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          priority: 10,
           chunks: 'all',
-          cacheGroups: {
-            default: false,
-            vendors: false,
-            commons: {
-              name: 'commons',
-              chunks: 'all',
-              minChunks: 2,
-            },
-            react: {
-              name: 'react',
-              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-              priority: 20,
-              reuseExistingChunk: true,
-            },
-            radixui: {
-              name: 'radixui',
-              test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
-              priority: 10,
-              reuseExistingChunk: true,
-            },
-            recharts: {
-              name: 'recharts',
-              test: /[\\/]node_modules[\\/](recharts|d3-.*)[\\/]/,
-              priority: 10,
-              reuseExistingChunk: true,
-            },
-            lib: {
-              test(module) {
-                return module.size() > 160000 && /node_modules/.test(module.identifier());
-              },
-              name(module) {
-                const packageName = module.identifier().match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1];
-                return `lib.${packageName.replace('@', '')}`;
-              },
-              priority: 15,
-              minChunks: 1,
-              reuseExistingChunk: true,
-            },
-          },
+        },
+        clerk: {
+          test: /[\\/]node_modules[\\/]@clerk[\\/]/,
+          name: 'clerk',
+          priority: 20,
+          chunks: 'all',
+        },
+        framer: {
+          test: /[\\/]node_modules[\\/]framer-motion[\\/]/,
+          name: 'framer-motion',
+          priority: 20,
+          chunks: 'all',
+        },
+        recharts: {
+          test: /[\\/]node_modules[\\/]recharts[\\/]/,
+          name: 'recharts',
+          priority: 20,
+          chunks: 'all',
         },
       };
-      
-      // Tree shake lucide-react icons
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        'lucide-react': 'lucide-react/dist/esm/icons',
-      };
     }
-    
+
     return config;
   },
-  
-  // Configure headers for better caching
+  // Force dynamic rendering for all routes that need authentication
+  async generateStaticParams() {
+    return [];
+  },
+  // Disable static optimization for dynamic routes
+  trailingSlash: false,
+  poweredByHeader: false,
+  // Security headers
   async headers() {
     return [
       {
-        source: '/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)',
+        source: '/(.*)',
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        source: '/_next/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on',
+            key: 'X-Frame-Options',
+            value: 'DENY',
           },
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
           },
           {
-            key: 'X-Frame-Options',
-            value: 'DENY',
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
           },
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
           },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-          {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
-          },
         ],
       },
     ];
   },
-  
-  // Redirect www to non-www
-  async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'www.finkargo-analytics.com',
-          },
-        ],
-        destination: 'https://finkargo-analytics.com/:path*',
-        permanent: true,
-      },
-    ];
-  },
-  
-  // Configure module transpilation
-  transpilePackages: ['lucide-react'],
-  
-  // Disable x-powered-by header
-  poweredByHeader: false,
-  
-  // Compress responses
-  compress: true,
 };
 
-module.exports = withBundleAnalyzer(nextConfig);
+module.exports = nextConfig;

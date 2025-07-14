@@ -129,26 +129,26 @@ class BaseAgent(ABC):
             with self.agent_logger.execution_context(
                 self.agent_id, self.agent_type, execution_id, user_id, org_id
             ):
-            # Update status
-            self._update_status(AgentStatus.INITIALIZING)
-            self.context.add_reasoning_step(f"Initializing {self.name} agent")
-            
-            # Validate input
-            if not self._validate_input(input_data):
-                raise ValueError("Invalid input data")
-            
-            # Pre-execution hook
-            self._pre_execute()
-            
-            # Execute core logic
-            self._update_status(AgentStatus.RUNNING)
-            self.context.add_reasoning_step("Executing core agent logic")
-            
-            result = self._execute_core_logic(self.context)
-            
-            # Post-execution hook
-            self._post_execute(result)
-            
+                # Update status
+                self._update_status(AgentStatus.INITIALIZING)
+                self.context.add_reasoning_step(f"Initializing {self.name} agent")
+                
+                # Validate input
+                if not self._validate_input(input_data):
+                    raise ValueError("Invalid input data")
+                
+                # Pre-execution hook
+                self._pre_execute()
+                
+                # Execute core logic
+                self._update_status(AgentStatus.RUNNING)
+                self.context.add_reasoning_step("Executing core agent logic")
+                
+                result = self._execute_core_logic(self.context)
+                
+                # Post-execution hook
+                self._post_execute(result)
+                
                 # Update execution metrics
                 execution_time = int((time.time() - start_time) * 1000)
                 result.execution_time_ms = execution_time
@@ -277,12 +277,50 @@ class BaseAgent(ABC):
             result = tool.execute(parameters, self.context)
             duration_ms = int((time.time() - start_time) * 1000)
             
+            # Log successful tool call
+            self.agent_logger.log_tool_call(tool_name, parameters, result)
+            
+            # Record metrics
+            self.metrics_collector.record_tool_call(
+                self.agent_id, self.agent_type, tool_name, True, duration_ms
+            )
+            
+            # Update execution monitor
+            if hasattr(self.context, 'execution_id'):
+                self.execution_monitor.record_tool_call(
+                    self.context.execution_id, tool_name, True
+                )
+            
             # Track tool usage
             if self.context:
                 self.context.track_tool_usage(tool_name, parameters, result, duration_ms)
             
             self.logger.debug(f"Tool '{tool_name}' executed in {duration_ms}ms")
             return result
+            
+        except Exception as e:
+            duration_ms = int((time.time() - start_time) * 1000)
+            
+            # Log failed tool call
+            self.agent_logger.log_tool_call(tool_name, parameters, error=e)
+            
+            # Record metrics
+            self.metrics_collector.record_tool_call(
+                self.agent_id, self.agent_type, tool_name, False, duration_ms
+            )
+            
+            # Update execution monitor
+            if hasattr(self.context, 'execution_id'):
+                self.execution_monitor.record_tool_call(
+                    self.context.execution_id, tool_name, False
+                )
+            
+            # Track failed tool usage
+            if self.context:
+                self.context.add_error(f"ToolError:{tool_name}", str(e))
+            
+            self.logger.error(f"Tool '{tool_name}' execution failed: {str(e)}")
+            raise
             
         finally:
             self._update_status(AgentStatus.RUNNING)

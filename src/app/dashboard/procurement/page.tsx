@@ -1,4 +1,9 @@
+'use client';
+
 import ProcurementDashboard from '@/components/ProcurementDashboard';
+
+// Force dynamic rendering for authenticated pages
+export const dynamic = 'force-dynamic';
 
 export default function ProcurementPage() {
   const mockData = {
