@@ -87,11 +87,32 @@ class SecurityContext:
                       level: PermissionLevel) -> bool:
         """Check if context has required permission."""
         for permission in self.permissions:
-            if (permission.resource_type == resource_type and
-                (permission.resource_id == resource_id or permission.resource_id == "*") and
-                permission.is_valid() and
-                permission.allows_level(level)):
+            if permission.resource_type != resource_type:
+                continue
+                
+            if not permission.is_valid():
+                continue
+                
+            if not permission.allows_level(level):
+                continue
+            
+            # Check resource ID match with wildcard support
+            perm_resource = permission.resource_id
+            if perm_resource == resource_id:
                 return True
+            elif perm_resource == "*":
+                return True
+            elif perm_resource.endswith("_*"):
+                # Check prefix match for org-scoped wildcards
+                prefix = perm_resource[:-2]  # Remove _*
+                if resource_id.startswith(prefix + "_"):
+                    return True
+            elif "*" in perm_resource:
+                # General wildcard matching
+                import fnmatch
+                if fnmatch.fnmatch(resource_id, perm_resource):
+                    return True
+        
         return False
     
     def to_dict(self) -> Dict[str, Any]:
@@ -126,23 +147,24 @@ class PermissionManager:
     
     def _initialize_default_roles(self):
         """Initialize default role-based permissions."""
+        # Note: These are templates. Actual permissions will be org-scoped when assigned
         default_roles = {
             "agent_operator": [
-                Permission(ResourceType.DATABASE, "*", PermissionLevel.READ),
-                Permission(ResourceType.API, "external_*", PermissionLevel.EXECUTE),
-                Permission(ResourceType.TOOL, "*", PermissionLevel.EXECUTE),
-                Permission(ResourceType.PROMPT, "*", PermissionLevel.READ),
+                Permission(ResourceType.DATABASE, "{{org_id}}_*", PermissionLevel.READ),
+                Permission(ResourceType.API, "external_{{org_id}}_*", PermissionLevel.EXECUTE),
+                Permission(ResourceType.TOOL, "agent_{{org_id}}_*", PermissionLevel.EXECUTE),
+                Permission(ResourceType.PROMPT, "{{org_id}}_*", PermissionLevel.READ),
             ],
             "agent_admin": [
-                Permission(ResourceType.DATABASE, "*", PermissionLevel.WRITE),
-                Permission(ResourceType.API, "*", PermissionLevel.EXECUTE),
-                Permission(ResourceType.TOOL, "*", PermissionLevel.ADMIN),
-                Permission(ResourceType.PROMPT, "*", PermissionLevel.WRITE),
-                Permission(ResourceType.SYSTEM, "*", PermissionLevel.READ),
+                Permission(ResourceType.DATABASE, "{{org_id}}_*", PermissionLevel.WRITE),
+                Permission(ResourceType.API, "{{org_id}}_*", PermissionLevel.EXECUTE),
+                Permission(ResourceType.TOOL, "agent_{{org_id}}_*", PermissionLevel.ADMIN),
+                Permission(ResourceType.PROMPT, "{{org_id}}_*", PermissionLevel.WRITE),
+                Permission(ResourceType.SYSTEM, "{{org_id}}_config", PermissionLevel.READ),
             ],
             "agent_viewer": [
-                Permission(ResourceType.DATABASE, "*", PermissionLevel.READ),
-                Permission(ResourceType.PROMPT, "*", PermissionLevel.READ),
+                Permission(ResourceType.DATABASE, "{{org_id}}_*", PermissionLevel.READ),
+                Permission(ResourceType.PROMPT, "{{org_id}}_*", PermissionLevel.READ),
             ]
         }
         
@@ -184,11 +206,24 @@ class PermissionManager:
     def create_security_context(self, agent_id: str, user_id: str, org_id: str,
                                session_id: str, role: str = "agent_operator") -> SecurityContext:
         """Create security context for agent execution."""
-        # Get role permissions
+        # Get role permissions and apply org-scoping
         role_permissions = []
         with self._lock:
             if role in self._role_permissions:
-                role_permissions = self._role_permissions[role].copy()
+                # Apply org-specific scoping to permissions
+                for perm_template in self._role_permissions[role]:
+                    # Replace {{org_id}} placeholder with actual org_id
+                    resource_id = perm_template.resource_id.replace("{{org_id}}", org_id)
+                    
+                    # Create org-scoped permission
+                    org_permission = Permission(
+                        resource_type=perm_template.resource_type,
+                        resource_id=resource_id,
+                        level=perm_template.level,
+                        conditions={"org_id": org_id},
+                        granted_by="system"
+                    )
+                    role_permissions.append(org_permission)
         
         # Create context
         context = SecurityContext(
