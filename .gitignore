@@ -16,3 +16,8 @@ uploads/
 !.env.example
 .vercel
 .env.test
+
+# Deployment and metrics logs
+DEPLOYMENT_SUCCESS_LOG.md
+metrics-*.json
+post-deployment-metrics.json
