@@ -10,7 +10,8 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/development-archive/'],
+  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/development-archive/', '/environment-snapshots/'],
+  modulePathIgnorePatterns: ['<rootDir>/environment-snapshots/'],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',

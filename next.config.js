@@ -44,9 +44,6 @@ const nextConfig = {
     return config;
   },
   // Force dynamic rendering for all routes that need authentication
-  async generateStaticParams() {
-    return [];
-  },
   // Disable static optimization for dynamic routes
   trailingSlash: false,
   poweredByHeader: false,
