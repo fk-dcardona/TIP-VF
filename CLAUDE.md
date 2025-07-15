@@ -1,4 +1,6 @@
-# CLAUDE.md - Supply Chain B2B SaaS MVP
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## 🚀 Project Status: **PRODUCTION LIVE** ✅
 
@@ -8,11 +10,57 @@
 **Deployment**: Production-ready with DevOps infrastructure  
 **Status**: Full-stack supply chain intelligence platform operational
 
+### Current Development Status
+- **Branch**: `clean-landing-page` (active development)
+- **Untracked Files**: `.github/` (GitHub Actions workflow), `DEPLOYMENT_CHECKLIST.md`
+- **Deployment Issue**: Interactive deployment script running in Vercel build environment
+
 ## Repository Overview
 
 Supply Chain B2B SaaS MVP - a comprehensive, AI-powered supply chain intelligence platform built with Next.js 14 and Flask. Features include 15 advanced business intelligence components covering sales, financial, and supply chain analytics with real-time visualizations, predictive modeling, interactive dashboards, and revolutionary "Living Interface" organic animations.
 
 **Live Platform**: `http://finkargo.ai` 🌐
+
+## High-Level Architecture
+
+### Three-Layer Architecture Pattern
+1. **Presentation Layer** (Next.js/React)
+   - Role-based dashboards (Sales, Finance, Procurement)
+   - 15 business intelligence components with organic animations
+   - Enhanced API client with retry logic and caching
+
+2. **Business Logic Layer** (Services & Utilities)
+   - Custom hooks for data fetching and state management
+   - Living Interface system with Framer Motion animations
+   - Multi-tenant organization scoping via Clerk
+
+3. **Data Layer** (Flask API + PostgreSQL)
+   - RESTful API endpoints with JWT authentication
+   - Supply Chain Triangle Engine for analytics
+   - Agent Astra integration for document intelligence
+
+### Key Architectural Decisions
+- **Multi-tenant**: Organization-scoped data isolation using Clerk
+- **API Proxy**: Vercel rewrites `/api/*` to Railway backend
+- **Living Interface**: Organic animations respecting accessibility
+- **Enhanced API Client**: Automatic retry, caching, and deduplication
+- **TypeScript**: Relaxed strictness for faster development
+
+### Environment Configuration
+All projects use `.env` files with these critical variables:
+```bash
+# Frontend (.env.local)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_API_URL=http://localhost:5000/api  # Development
+# Production: Set in Vercel dashboard
+
+# Backend (.env)
+DATABASE_URL=postgresql://...  # or sqlite:///
+AGENT_ASTRA_API_KEY=aa_...
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+```
 
 ## 🎯 Business Intelligence Coverage - COMPLETE
 
@@ -99,7 +147,7 @@ src/components/
     └── lib/ (Enhanced API client with retry logic)
 ```
 
-## 🚀 Quick Start Commands
+## 🚀 Common Development Commands
 
 ### Frontend Development
 ```bash
@@ -117,6 +165,11 @@ npm run type-check
 
 # Linting
 npm run lint
+
+# Testing (when available)
+npm run test
+npm run test:watch
+npm run test:coverage
 ```
 
 ### Backend Development
@@ -131,18 +184,53 @@ pip install -r requirements.txt
 python main.py
 
 # API endpoints served at http://localhost:5000
+
+# Run tests (when available)
+python -m pytest
 ```
 
 ### Production Deployment
+
+#### Vercel (Frontend) - Manual Deployment
 ```bash
-# Execute deployment (all infrastructure included)
-./scripts/deploy-production.sh
+# Option 1: Use local deployment script (interactive)
+./scripts/deploy-vercel.sh
+# Choose option 2 for production
 
-# Monitor system health
-python monitoring/health-monitor.py
+# Option 2: Direct Vercel CLI
+vercel --prod
 
-# Emergency procedures if needed
-./scripts/rollback-procedures.sh emergency-rollback
+# Note: Do NOT run the deployment script in Vercel's build environment
+```
+
+#### Automatic Deployment (GitHub Actions)
+```bash
+# Setup required - Add these secrets to GitHub:
+# - VERCEL_TOKEN (from https://vercel.com/account/tokens)
+# - VERCEL_ORG_ID (from `vercel project ls`)
+# - VERCEL_PROJECT_ID (from `vercel project ls`)
+
+# Then push to main branch:
+git push origin main
+```
+
+#### Railway (Backend)
+```bash
+# Deploy backend
+railway login
+railway up
+railway domain
+```
+
+### Monitoring & Health Checks
+```bash
+# Check production health
+curl http://finkargo.ai/api/health
+curl http://finkargo.ai/api/health/detailed
+
+# Local development health checks
+curl http://localhost:5000/api/health
+curl http://localhost:3000/api-test
 ```
 
 ## 🎯 Production Success Metrics - ACHIEVED
@@ -250,6 +338,35 @@ The **Supply Chain B2B SaaS MVP** is now **LIVE IN PRODUCTION** with:
 
 **Platform Status**: **PRODUCTION READY** - Operational and serving users  
 **Next Phase**: User onboarding, performance optimization, and feature enhancement based on user feedback
+
+---
+
+## 🔧 Common Issues & Solutions
+
+### Vercel Deployment Error
+**Issue**: "Error: 🚀 Supply Chain B2B SaaS - Vercel Deployment Script" in Vercel logs
+**Cause**: The interactive deployment script (`scripts/deploy-vercel.sh`) is being run in Vercel's build environment
+**Solution**: 
+- Remove any reference to this script from Vercel's build command
+- Use the script only for local deployments
+- Let Vercel handle the build with its default Next.js configuration
+
+### Environment Variables
+**Issue**: API calls failing in production
+**Solution**: Ensure all environment variables are set in Vercel dashboard:
+- `NEXT_PUBLIC_API_URL` = `https://tip-vf-production.up.railway.app/api`
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` = Your Clerk public key
+- `CLERK_SECRET_KEY` = Your Clerk secret key
+
+### Build Warnings
+**Issue**: ESLint warnings about React Hook dependencies
+**Status**: Non-critical - these are minor optimization suggestions
+**Solution**: Can be addressed later; they don't affect functionality
+
+### Next.js Version Warning
+**Issue**: Clerk warning about Next.js 14.0.0 deprecation
+**Status**: Non-critical - application works fine
+**Solution**: Update to Next.js 14.1.0+ when convenient
 
 ---
 

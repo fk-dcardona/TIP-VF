@@ -1,6 +1,8 @@
-  # Supply Chain B2B SaaS MVP
+# Supply Chain B2B SaaS MVP
 
-## 🎯 Project Status: **FEATURE COMPLETE & PRODUCTION READY** ✅
+## 🎯 Project Status: **LIVE IN PRODUCTION** ✅
+
+**Live at**: `http://finkargo.ai` 🌐
 
 A comprehensive, AI-powered supply chain intelligence platform with advanced business analytics. Features 15 sophisticated business intelligence components covering sales, financial, and supply chain optimization with 85%+ coverage of critical business questions.
 
@@ -312,14 +314,17 @@ curl http://localhost:5000/api/live
 
 #### Frontend Deployment (Vercel)
 ```bash
-# Build and deploy frontend
-npm run build
+# Option 1: Use deployment script (interactive - run locally)
+./scripts/deploy-vercel.sh
+# Choose option 2 for production
+
+# Option 2: Direct Vercel CLI
 vercel --prod
 
 # Environment variables in Vercel Dashboard:
 # NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 # CLERK_SECRET_KEY=sk_live_...
-# NEXT_PUBLIC_API_URL=https://your-backend-url.railway.app
+# NEXT_PUBLIC_API_URL=https://tip-vf-production.up.railway.app/api
 ```
 
 #### Backend Deployment (Railway)
@@ -505,7 +510,7 @@ curl http://localhost:5000/api/analytics/triangle/org_123
 
 ## 🎉 Project Status Summary
 
-The **Supply Chain B2B SaaS MVP** is now **FEATURE COMPLETE** and **PRODUCTION READY**.
+The **Supply Chain B2B SaaS MVP** is now **LIVE IN PRODUCTION** at `http://finkargo.ai`.
 
 ### **What's Been Delivered**
 ✅ **15 Advanced Business Intelligence Components**  
