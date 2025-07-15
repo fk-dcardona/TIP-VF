@@ -1,0 +1,9 @@
+{
+  "timestamp": "2025-07-14T19:33:19Z",
+  "hostname": "Mandalore.local",
+  "user": "helpdesk",
+  "working_directory": "/Users/helpdesk/Cursor/TIP - Mannus",
+  "snapshot_version": "1.0",
+  "git_commit": "e172fa4e2613a8638aa4a73e2df52ab4f4fbf2d0",
+  "git_branch": "refactor/archaeological-cleanup-execution"
+}

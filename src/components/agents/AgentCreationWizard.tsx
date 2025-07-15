@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Bot, Clock, Settings, CheckCircle, AlertCircle } from 'lucide-react';
+import { useOrganization } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -149,6 +150,7 @@ const AGENT_TEMPLATES: AgentTemplate[] = [
 ];
 
 export function AgentCreationWizard({ onClose, onAgentCreated }: AgentCreationWizardProps) {
+  const { organization } = useOrganization();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTemplate, setSelectedTemplate] = useState<AgentTemplate | null>(null);
   const [formData, setFormData] = useState({
@@ -221,7 +223,7 @@ export function AgentCreationWizard({ onClose, onAgentCreated }: AgentCreationWi
         name: formData.name,
         type: selectedTemplate.type,
         description: formData.description,
-        org_id: 'default-org', // TODO: Get from context
+        org_id: organization?.id || 'default-org',
         configuration: formData.configuration,
         template_id: selectedTemplate.id
       };

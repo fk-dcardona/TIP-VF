@@ -1,0 +1,6 @@
+  backup/pre-refactor-complete-state
+  main
+* refactor/archaeological-cleanup-execution
+  remotes/origin/ai-agents
+  remotes/origin/feature/production-deployment-and-auth-fixes
+  remotes/origin/main

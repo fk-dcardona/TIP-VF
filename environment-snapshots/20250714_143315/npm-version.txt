@@ -1,0 +1,2 @@
+10.9.2
+/Users/helpdesk/.nvm/versions/node/v22.14.0/bin/npm
