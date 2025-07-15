@@ -1,6 +1,21 @@
 // Jest setup file
 import '@testing-library/jest-dom';
 
+// Mock window.location using Object.defineProperty
+Object.defineProperty(window, 'location', {
+  writable: true,
+  value: {
+    href: '',
+    origin: 'http://localhost',
+    pathname: '/',
+    search: '',
+    hash: '',
+    assign: jest.fn(),
+    replace: jest.fn(),
+    reload: jest.fn(),
+  }
+});
+
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
