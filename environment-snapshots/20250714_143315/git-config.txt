@@ -1,0 +1,20 @@
+credential.helper=osxkeychain
+init.defaultbranch=main
+filter.lfs.clean=git-lfs clean -- %f
+filter.lfs.smudge=git-lfs smudge -- %f
+filter.lfs.process=git-lfs filter-process
+filter.lfs.required=true
+alias.sync=git init fetch origin && git pull origin main
+alias.new-wave=!f() { git checkout -b feature/$(date +%Y%m%d)-$1; }; f
+alias.push-wave=!git push origin $(git branch --show-current)
+alias.harmony=log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+alias.merge-prep=!git checkout main && git pull origin main && git checkout - && git rebase main
+core.editor=nano
+core.repositoryformatversion=0
+core.filemode=true
+core.bare=false
+core.logallrefupdates=true
+core.ignorecase=true
+core.precomposeunicode=true
+remote.origin.url=https://github.com/fk-dcardona/TIP-VF.git
+remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*

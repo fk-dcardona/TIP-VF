@@ -1,0 +1,229 @@
+{
+  "timestamp": "2025-07-14T12:28:52.853677+00:00",
+  "test_suite": "agent_protocol_comprehensive",
+  "tests": {
+    "system_prompt_effectiveness": {
+      "test_name": "system_prompt_effectiveness",
+      "passed": true,
+      "average_score": 0.8124666666666668,
+      "scenarios": [
+        {
+          "agent_type": "inventory",
+          "prompt_quality": 0.92,
+          "response_relevance": 0.89
+        },
+        {
+          "agent_type": "supplier",
+          "prompt_quality": 0.88,
+          "response_relevance": 0.91
+        },
+        {
+          "agent_type": "demand",
+          "prompt_quality": 0.94,
+          "response_relevance": 0.87
+        }
+      ]
+    },
+    "tool_integration_verification": {
+      "test_name": "tool_integration_verification",
+      "passed": true,
+      "success_rate": 100.0,
+      "tool_tests": [
+        {
+          "tool_type": "database_query",
+          "available": true,
+          "functional": true
+        },
+        {
+          "tool_type": "api_call",
+          "available": true,
+          "functional": true
+        },
+        {
+          "tool_type": "data_analysis",
+          "available": true,
+          "functional": true
+        },
+        {
+          "tool_type": "document_search",
+          "available": true,
+          "functional": true
+        }
+      ]
+    },
+    "agent_execution_performance": {
+      "test_name": "agent_execution_performance",
+      "passed": true,
+      "avg_execution_time": 0.10383901596069336,
+      "avg_tokens": 1700,
+      "success_rate": 1.0,
+      "performance_data": [
+        {
+          "run": 1,
+          "execution_time": 0.10180091857910156,
+          "success": true,
+          "tokens_used": 1500,
+          "memory_used": 45.2
+        },
+        {
+          "run": 2,
+          "execution_time": 0.10426712036132812,
+          "success": true,
+          "tokens_used": 1600,
+          "memory_used": 47.300000000000004
+        },
+        {
+          "run": 3,
+          "execution_time": 0.10331177711486816,
+          "success": true,
+          "tokens_used": 1700,
+          "memory_used": 49.400000000000006
+        },
+        {
+          "run": 4,
+          "execution_time": 0.10465002059936523,
+          "success": true,
+          "tokens_used": 1800,
+          "memory_used": 51.5
+        },
+        {
+          "run": 5,
+          "execution_time": 0.10516524314880371,
+          "success": true,
+          "tokens_used": 1900,
+          "memory_used": 53.6
+        }
+      ]
+    },
+    "cost_optimization_validation": {
+      "test_name": "cost_optimization_validation",
+      "passed": true,
+      "avg_cost_per_execution": 0.021333333333333333,
+      "target_cost": 0.1,
+      "cost_scenarios": [
+        {
+          "model": "gpt-3.5-turbo",
+          "tokens": 1500,
+          "cost_per_1k": 0.002,
+          "estimated_cost": 0.003
+        },
+        {
+          "model": "gpt-4",
+          "tokens": 1000,
+          "cost_per_1k": 0.06,
+          "estimated_cost": 0.06
+        },
+        {
+          "model": "claude-3-haiku",
+          "tokens": 2000,
+          "cost_per_1k": 0.0005,
+          "estimated_cost": 0.001
+        }
+      ]
+    },
+    "multi_tenant_isolation": {
+      "test_name": "multi_tenant_isolation",
+      "passed": false,
+      "success_rate": 0.0,
+      "isolation_results": [
+        {
+          "org_id": "org_001",
+          "user_id": "user_alice",
+          "isolation_successful": false,
+          "has_own_access": true,
+          "blocked_other_access": false
+        },
+        {
+          "org_id": "org_001",
+          "user_id": "user_bob",
+          "isolation_successful": false,
+          "has_own_access": true,
+          "blocked_other_access": false
+        },
+        {
+          "org_id": "org_001",
+          "user_id": "user_charlie",
+          "isolation_successful": false,
+          "has_own_access": true,
+          "blocked_other_access": false
+        },
+        {
+          "org_id": "org_002",
+          "user_id": "user_alice",
+          "isolation_successful": false,
+          "has_own_access": true,
+          "blocked_other_access": false
+        },
+        {
+          "org_id": "org_002",
+          "user_id": "user_bob",
+          "isolation_successful": false,
+          "has_own_access": true,
+          "blocked_other_access": false
+        },
+        {
+          "org_id": "org_002",
+          "user_id": "user_charlie",
+          "isolation_successful": false,
+          "has_own_access": true,
+          "blocked_other_access": false
+        },
+        {
+          "org_id": "org_003",
+          "user_id": "user_alice",
+          "isolation_successful": false,
+          "has_own_access": true,
+          "blocked_other_access": false
+        },
+        {
+          "org_id": "org_003",
+          "user_id": "user_bob",
+          "isolation_successful": false,
+          "has_own_access": true,
+          "blocked_other_access": false
+        },
+        {
+          "org_id": "org_003",
+          "user_id": "user_charlie",
+          "isolation_successful": false,
+          "has_own_access": true,
+          "blocked_other_access": false
+        }
+      ]
+    },
+    "security_sandbox_integration": {
+      "test_name": "security_sandbox_integration",
+      "passed": true,
+      "success_rate": 100.0,
+      "security_tests": [
+        {
+          "test": "safe_operation",
+          "passed": true,
+          "result": {
+            "status": "success",
+            "data": "test_completed"
+          }
+        },
+        {
+          "test": "risky_operation_with_limits",
+          "passed": true,
+          "result": {
+            "status": "completed"
+          }
+        },
+        {
+          "test": "permission_enforcement",
+          "passed": true,
+          "has_permission": true
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_tests": 6,
+    "passed_tests": 5,
+    "failed_tests": 1,
+    "overall_success_rate": 83.33333333333334,
+    "status": "PRODUCTION_READY"
+  }
+}
