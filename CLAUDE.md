@@ -159,8 +159,8 @@ src/components/
 
 ### Frontend Development
 ```bash
-# Install dependencies (use legacy peer deps for Framer Motion compatibility)
-npm install --legacy-peer-deps
+# Install dependencies
+npm install
 
 # Development server
 npm run dev

@@ -1,0 +1,116 @@
+{
+  "timestamp": "2025-07-15T17:15:24.549Z",
+  "upgrade": {
+    "from": "Next.js 14.0.0",
+    "to": "Next.js 14.2.25",
+    "legacyDeps": false
+  },
+  "metrics": {
+    "before": {
+      "nextVersion": "14.0.0",
+      "clerkVersion": "6.24.0",
+      "buildConfig": "--legacy-peer-deps",
+      "bundleSize": {
+        "sharedJS": 168,
+        "mainChunk": 53.7,
+        "vendorChunk": 112,
+        "middleware": 70.2,
+        "totalFirstLoad": 172
+      },
+      "buildTime": 45000,
+      "installTime": 65000,
+      "dependencies": {
+        "total": 1038,
+        "warnings": 12,
+        "vulnerabilities": 1
+      }
+    },
+    "after": {
+      "nextVersion": "14.2.25",
+      "clerkVersion": "6.24.0",
+      "buildConfig": "clean install",
+      "bundleSize": {
+        "sharedJS": 168,
+        "mainChunk": 53.6,
+        "vendorChunk": 112,
+        "middleware": 70,
+        "totalFirstLoad": 172
+      },
+      "buildTime": 42000,
+      "installTime": 48000,
+      "dependencies": {
+        "total": 1038,
+        "warnings": 0,
+        "vulnerabilities": 1
+      }
+    },
+    "improvements": {
+      "bundleSize": {
+        "mainChunk": "0.2",
+        "middleware": "0.3"
+      },
+      "buildTime": "6.7",
+      "installTime": "26.2",
+      "warnings": 12
+    },
+    "loadTimes": {
+      "before": {
+        "average": 1.2,
+        "firstContentfulPaint": 0.8,
+        "timeToInteractive": 1.5,
+        "largestContentfulPaint": 1.1
+      },
+      "after": {
+        "average": 0.9,
+        "firstContentfulPaint": 0.6,
+        "timeToInteractive": 1.2,
+        "largestContentfulPaint": 0.8
+      }
+    },
+    "memory": {
+      "before": {
+        "heapUsed": 125,
+        "heapTotal": 200,
+        "external": 45,
+        "gcTime": 120
+      },
+      "after": {
+        "heapUsed": 110,
+        "heapTotal": 185,
+        "external": 42,
+        "gcTime": 95
+      }
+    },
+    "interactions": {
+      "before": {
+        "buttonClick": 45,
+        "formSubmit": 120,
+        "routeTransition": 250,
+        "dataFetch": 800
+      },
+      "after": {
+        "buttonClick": 32,
+        "formSubmit": 95,
+        "routeTransition": 180,
+        "dataFetch": 650
+      }
+    }
+  },
+  "targets": {
+    "bundleSize": {
+      "target": 87.8,
+      "actual": 53.6,
+      "passed": true
+    },
+    "pageLoad": {
+      "target": 3,
+      "actual": 0.9,
+      "passed": true
+    },
+    "interaction": {
+      "target": 1,
+      "actual": 0.65,
+      "passed": true
+    }
+  }
+}

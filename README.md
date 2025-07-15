@@ -94,8 +94,8 @@ cp .env.example .env.local
 
 ### 3. Frontend Setup (Next.js 14)
 ```bash
-# Install dependencies (use legacy peer deps for Framer Motion)
-npm install --legacy-peer-deps
+# Install dependencies
+npm install
 
 # Start development server
 npm run dev
@@ -371,7 +371,7 @@ railway domain
 FROM node:18-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --legacy-peer-deps
+RUN npm ci
 COPY . .
 RUN npm run build
 EXPOSE 3000
@@ -587,7 +587,7 @@ curl http://localhost:5000/api/health/system
 ### **Common Issues Resolution**
 1. **Services not starting**: Check environment variables and database connectivity
 2. **API errors**: Verify health endpoints and check logs in `logs/` directory  
-3. **Build failures**: Ensure all dependencies installed with `--legacy-peer-deps`
+3. **Build failures**: Ensure all dependencies are properly installed
 4. **TypeScript errors**: Run `npm run type-check` for detailed error information
 
 ---
