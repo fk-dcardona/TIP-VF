@@ -121,8 +121,19 @@ def get_org_uploads(org_id):
 def get_upload_details(upload_id):
     """Get details for a specific upload"""
     try:
-        # TODO: Add organization check here for security
+        # Get organization ID from request headers or query params
+        org_id = request.headers.get('X-Organization-ID') or request.args.get('org_id')
+        
+        if not org_id:
+            return jsonify({'error': 'Organization ID is required'}), 401
+        
+        # Fetch upload and verify organization access
         upload = Upload.query.get_or_404(upload_id)
+        
+        # Security check: Ensure the upload belongs to the requesting organization
+        if upload.org_id != org_id:
+            return jsonify({'error': 'Access denied: Upload belongs to different organization'}), 403
+        
         return jsonify({
             'upload': upload.to_dict()
         }), 200

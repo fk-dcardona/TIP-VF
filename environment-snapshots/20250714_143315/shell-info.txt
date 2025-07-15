@@ -1,0 +1,2 @@
+/bin/zsh
+zsh 5.9 (x86_64-apple-darwin22.0)
