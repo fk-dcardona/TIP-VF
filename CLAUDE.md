@@ -4,22 +4,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 🚀 Project Status: **PRODUCTION LIVE** ✅
 
-**Platform**: Live at `http://finkargo.ai` (HTTPS pending SSL provisioning)  
+**Platform**: Live at `https://finkargo.ai` (SSL Active)  
 **Frontend**: Next.js 14 with complete business intelligence suite  
 **Backend**: Flask API with comprehensive analytics endpoints  
 **Deployment**: Production-ready with DevOps infrastructure  
 **Status**: Full-stack supply chain intelligence platform operational
 
+**Latest Update**: January 15, 2025 - Complete CI/CD automation and branch consolidation
+
 ### Current Development Status
-- **Branch**: `clean-landing-page` (active development)
-- **Untracked Files**: `.github/` (GitHub Actions workflow), `DEPLOYMENT_CHECKLIST.md`
-- **Deployment Issue**: Interactive deployment script running in Vercel build environment
+- **Branch**: `main` (production-ready with all features consolidated)
+- **Active Development**: `clean-landing-page` (separate branch for debugging)
+- **CI/CD**: GitHub Actions workflows configured and operational
+- **Deployment**: Automated deployments on push to main branch
 
 ## Repository Overview
 
 Supply Chain B2B SaaS MVP - a comprehensive, AI-powered supply chain intelligence platform built with Next.js 14 and Flask. Features include 15 advanced business intelligence components covering sales, financial, and supply chain analytics with real-time visualizations, predictive modeling, interactive dashboards, and revolutionary "Living Interface" organic animations.
 
-**Live Platform**: `http://finkargo.ai` 🌐
+**Live Platform**: `https://finkargo.ai` 🌐 (SSL Active)
+**Vercel Domain**: `https://tip-vf-daniel-cardonas-projects-6f697727.vercel.app`
+**Backend API**: `https://tip-vf-production.up.railway.app/api`
 
 ## High-Level Architecture
 
@@ -111,7 +116,10 @@ ANTHROPIC_API_KEY=sk-ant-...
 - **Monitoring System**: Real-time health monitoring with multi-channel alerts
 - **Backup Strategy**: Encrypted backups with cloud storage and retention
 - **Rollback Procedures**: Emergency recovery and disaster protocols
-- **Domain**: Custom domain `finkargo.ai` with SSL certificate provisioning
+- **Domain**: Custom domain `finkargo.ai` with SSL certificate active
+- **CI/CD**: GitHub Actions for automated deployments
+- **Environment Management**: All production variables configured
+- **Branch Strategy**: Consolidated main branch with feature isolation
 
 ## 📦 Complete Component Architecture
 
@@ -203,15 +211,16 @@ vercel --prod
 # Note: Do NOT run the deployment script in Vercel's build environment
 ```
 
-#### Automatic Deployment (GitHub Actions)
+#### Automatic Deployment (GitHub Actions) ✅ CONFIGURED
 ```bash
-# Setup required - Add these secrets to GitHub:
-# - VERCEL_TOKEN (from https://vercel.com/account/tokens)
-# - VERCEL_ORG_ID (from `vercel project ls`)
-# - VERCEL_PROJECT_ID (from `vercel project ls`)
+# GitHub Secrets configured:
+# - VERCEL_TOKEN ✅ (from https://vercel.com/account/tokens)
+# - VERCEL_ORG_ID ✅ = team_KAR4vDpF7QTRcRjAwunvMZa3
+# - VERCEL_PROJECT_ID ✅ = prj_MA2bVMsxNL3EnohEmbRUhLBO8Cp5
 
-# Then push to main branch:
+# Automated deployment on push to main:
 git push origin main
+# GitHub Actions will automatically deploy to Vercel
 ```
 
 #### Railway (Backend)
@@ -315,20 +324,32 @@ curl http://localhost:3000/api-test
 ## 🌐 Production Platform Access
 
 ### **Live Application**
-- **URL**: `http://finkargo.ai`
+- **URL**: `https://finkargo.ai`
 - **Status**: **LIVE AND OPERATIONAL** ✅
-- **HTTPS**: SSL certificate provisioning in progress (24-48 hours)
+- **HTTPS**: SSL certificate active and secure ✅
 - **Features**: Complete business intelligence suite accessible
+- **Vercel Domain**: `https://tip-vf-daniel-cardonas-projects-6f697727.vercel.app`
+- **Backend API**: `https://tip-vf-production.up.railway.app/api`
 
 ### **API Endpoints**
-- **Health Check**: `http://finkargo.ai/api/health`
-- **Analytics**: `http://finkargo.ai/api/analytics/*`
-- **Documents**: `http://finkargo.ai/api/documents/*`
+- **Health Check**: `https://finkargo.ai/api/health`
+- **Analytics**: `https://finkargo.ai/api/analytics/*`
+- **Documents**: `https://finkargo.ai/api/documents/*`
 - **Authentication**: Clerk-powered with organization scoping
 
 ## 🎉 Production Launch Summary
 
 The **Supply Chain B2B SaaS MVP** is now **LIVE IN PRODUCTION** with:
+
+### **🔄 Recent Infrastructure Updates (January 15, 2025):**
+- ✅ **Branch Consolidation**: Merged `ai-agents`, `feature/production-deployment-and-auth-fixes`, and `refactor/archaeological-cleanup` into main
+- ✅ **CI/CD Automation**: Complete GitHub Actions workflow for automated deployments
+- ✅ **Environment Configuration**: All production variables configured in Vercel and Railway
+- ✅ **SSL Certificate**: Active and secure for custom domain `finkargo.ai`
+- ✅ **CORS Configuration**: Multi-domain support for both custom and Vercel domains
+- ✅ **Database**: PostgreSQL with optimized connection pooling and monitoring
+- ✅ **Monitoring**: Real-time health checks and performance monitoring
+- ✅ **Security**: Enhanced security headers and authentication flow
 
 ✅ **Complete Feature Set**: All 15 business intelligence components operational  
 ✅ **Production Infrastructure**: Zero-downtime deployment with monitoring  
