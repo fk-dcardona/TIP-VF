@@ -263,7 +263,7 @@ export default function BreathingContainer({
           transformStyle: 'preserve-3d',
         }}
         transition={{
-          transform: { duration: 0.2, ease: 'out' }
+          transform: { duration: 0.2, ease: 'easeOut' }
         }}
       >
         {children}

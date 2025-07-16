@@ -140,7 +140,7 @@ export default function ConfidenceFinanceDashboard({
         transition={{
           duration: theme.animations.pulse.duration / 1000,
           repeat: Infinity,
-          ease: theme.animations.pulse.easing
+          ease: 'easeInOut'
         }}
       >
         {/* Flowing overlay */}

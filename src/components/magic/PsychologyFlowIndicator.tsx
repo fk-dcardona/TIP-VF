@@ -309,7 +309,7 @@ export default function PsychologyFlowIndicator({
                     transition={{
                       duration: flow.animation.timing.breath / 1000,
                       repeat: Infinity,
-                      ease: flow.animation.easing.primary
+                      ease: 'easeInOut'
                     }}
                   />
                 </div>

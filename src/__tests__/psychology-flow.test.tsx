@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { PsychologyDashboard } from '@/components/psychology/PsychologyDashboard';
+import PsychologyDashboard from '@/components/psychology/PsychologyDashboard';
 import KPIEvolutionCard from '@/components/psychology/KPIEvolutionCard';
 import { PsychologyFlow } from '@/design-system/psychology-flow';
 import { FileText } from 'lucide-react';
