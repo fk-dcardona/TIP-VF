@@ -2,20 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', sans-serif;
-  background: #f9f9f9;
-  color: #222;
-}
-
-html, body, #__next {
-  height: 100%;
-}
-
-* {
-  box-sizing: border-box;
+@layer base {
+  :root {
+    /* Brand Colors */
+    --primary-50: #E6F2FF;
+    --primary-100: #CCE5FF;
+    --primary-200: #99CCFF;
+    --primary-300: #66B2FF;
+    --primary-400: #3399FF;
+    --primary-500: #0066CC;
+    --primary-600: #0052A3;
+    --primary-700: #003D7A;
+    --primary-800: #002952;
+    --primary-900: #001429;
+    
+    --secondary-50: #E6F7F0;
+    --secondary-100: #CCEFE1;
+    --secondary-200: #99DFC3;
+    --secondary-300: #66CFA5;
+    --secondary-400: #33BF87;
+    --secondary-500: #00AA44;
+    --secondary-600: #008836;
+    --secondary-700: #006628;
+    --secondary-800: #00441B;
+    --secondary-900: #00220D;
+    
+    /* UI Colors */
+    --background: #FFFFFF;
+    --background-secondary: #F8FAFB;
+    --background-tertiary: #F0F4F7;
+    --foreground: #1A202C;
+    --foreground-secondary: #4A5568;
+    --foreground-tertiary: #718096;
+    
+    /* Borders */
+    --border: #E2E8F0;
+    --border-hover: #CBD5E0;
+    --border-focus: #0066CC;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    
+    /* Animation Durations */
+    --duration-fast: 150ms;
+    --duration-normal: 300ms;
+    --duration-slow: 500ms;
+    --duration-breathing: 4s;
+    --duration-water-flow: 20s;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+  
+  body {
+    @apply font-sans bg-background text-foreground;
+    font-feature-settings: "cv11", "salt", "ss01", "ss03";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Focus styles */
+  *:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+  
+  *:focus-visible {
+    @apply outline-primary-500 outline-2 outline-offset-2;
+  }
+  
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-background-secondary;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+    transition: background-color 0.2s;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-border-hover;
+  }
 }
 
 /* Custom animations for the landing page */
@@ -80,4 +163,126 @@ html, body, #__next {
 
 .animate-slide-up-delay-4 {
   animation: slideUp 0.6s ease-out 0.8s both;
+}
+
+/* Component Layer - Reusable patterns */
+@layer components {
+  /* Cards */
+  .card {
+    @apply bg-background rounded-lg border border-border p-6 transition-all duration-300;
+  }
+  
+  .card-elevated {
+    @apply bg-background-elevated rounded-lg shadow-lg p-6 transition-all duration-300 hover:shadow-xl;
+  }
+  
+  .card-gradient {
+    @apply bg-gradient-to-br from-primary-50 to-secondary-50 rounded-lg p-6 transition-all duration-300;
+  }
+  
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary-500 text-white hover:bg-primary-600 focus-visible:ring-primary-500;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-secondary-500 text-white hover:bg-secondary-600 focus-visible:ring-secondary-500;
+  }
+  
+  .btn-outline {
+    @apply btn border border-border bg-transparent hover:bg-background-secondary;
+  }
+  
+  .btn-ghost {
+    @apply btn hover:bg-background-secondary;
+  }
+  
+  /* Input fields */
+  .input {
+    @apply flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  /* KPI Cards */
+  .kpi-card {
+    @apply card-elevated flex flex-col gap-2;
+  }
+  
+  .kpi-title {
+    @apply text-sm font-medium text-text-secondary;
+  }
+  
+  .kpi-value {
+    @apply text-2xl font-bold text-text-primary;
+  }
+  
+  .kpi-change {
+    @apply flex items-center text-sm font-medium;
+  }
+  
+  .kpi-change-positive {
+    @apply text-success;
+  }
+  
+  .kpi-change-negative {
+    @apply text-error;
+  }
+  
+  /* Dashboard Grid */
+  .dashboard-grid {
+    @apply grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+  
+  /* Chart Container */
+  .chart-container {
+    @apply card-elevated h-[400px] flex flex-col;
+  }
+  
+  .chart-header {
+    @apply flex items-center justify-between mb-4;
+  }
+  
+  .chart-title {
+    @apply text-lg font-semibold text-text-primary;
+  }
+  
+  /* Living Interface Elements */
+  .breathing {
+    animation: breathing var(--duration-breathing) ease-in-out infinite;
+  }
+  
+  .floating {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  /* Text Gradients */
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-brand {
+    @apply bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent;
+  }
+  
+  /* Utility classes for Living Interface */
+  .organic-hover {
+    @apply transition-all duration-500 hover:scale-105;
+  }
+  
+  .water-bg {
+    background: linear-gradient(135deg, var(--primary-50) 0%, var(--secondary-50) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .water-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+    animation: water-flow var(--duration-water-flow) linear infinite;
+  }
 } 

@@ -26,10 +26,10 @@ export default function DemoPage() {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl font-bold text-gradient-brand mb-4">
             Living Document Intelligence
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-text-secondary max-w-2xl mx-auto">
             Experience interfaces that breathe, flow like water, and grow like plants. 
             This is the future of human-computer interaction.
           </p>
@@ -73,7 +73,7 @@ export default function DemoPage() {
           ].map((feature, index) => (
             <motion.div
               key={feature.title}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 text-center relative overflow-hidden"
+              className="card-elevated backdrop-blur-sm text-center relative overflow-hidden organic-hover"
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.6, delay: 1.0 + index * 0.2 }}
@@ -97,10 +97,10 @@ export default function DemoPage() {
               >
                 {feature.emoji}
               </motion.div>
-              <h3 className="text-xl font-semibold mb-2" style={{ color: feature.color }}>
+              <h3 className="text-xl font-semibold mb-2 text-text-primary">
                 {feature.title}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-text-secondary">
                 {feature.description}
               </p>
               
@@ -132,7 +132,7 @@ export default function DemoPage() {
           transition={{ duration: 1, delay: 1.5 }}
         >
           <motion.button
-            className="bg-gradient-to-r from-blue-600 to-green-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold relative overflow-hidden"
+            className="btn-primary bg-gradient-to-r from-primary-600 to-secondary-600 px-8 py-4 rounded-xl text-lg font-semibold relative overflow-hidden"
             whileHover={{
               scale: 1.05,
               boxShadow: "0 20px 40px rgba(0, 102, 204, 0.3)",
@@ -143,7 +143,7 @@ export default function DemoPage() {
             
             {/* Flowing background */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-green-600 to-blue-600"
+              className="absolute inset-0 bg-gradient-to-r from-secondary-600 to-primary-600"
               initial={{ x: "-100%" }}
               whileHover={{ x: "0%" }}
               transition={{ duration: 0.6 }}
