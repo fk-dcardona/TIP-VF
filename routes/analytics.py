@@ -1,10 +1,28 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
+from flask_cors import cross_origin
+from functools import wraps
 import json
 import pandas as pd
 from datetime import datetime, timedelta
 from models import db, Upload, ProcessedData
 
-analytics_bp = Blueprint('analytics', __name__)
+def require_auth(f):
+    """Decorator to require authentication and extract user/org info."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Extract auth info from headers (would integrate with Clerk in production)
+        auth_header = request.headers.get('Authorization', '')
+        
+        # For testing/demo, extract from custom headers or URL params
+        g.user_id = request.headers.get('X-User-Id') or request.args.get('user_id', 'anonymous')
+        g.org_id = request.headers.get('X-Organization-Id') or request.args.get('org_id', 'default_org')
+        
+        # In production, this would validate JWT and extract claims
+        if not g.user_id or not g.org_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        return f(*args, **kwargs)
+    return decorated_function
 
 @analytics_bp.route('/dashboard/<org_id>', methods=['GET'])
 def get_dashboard_data(org_id):
@@ -344,4 +362,116 @@ def generate_shipment_charts(records):
         status_counts[status] = status_counts.get(status, 0) + 1
     
     return [{'status': k, 'count': v} for k, v in status_counts.items()]
+
+
+# Enhanced Analytics Endpoints for Frontend Integration
+
+@analytics_bp.route('/triangle/<org_id>', methods=['GET'])
+@require_auth
+@cross_origin()
+def get_triangle_analytics(org_id: str):
+    """Get 4D triangle analytics including document intelligence"""
+    try:
+        # Use enhanced cross-reference engine
+        from services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
+        engine = DocumentEnhancedCrossReferenceEngine()
+        
+        # Get comprehensive 4D analysis
+        analysis = engine.process_with_documents(org_id)
+        
+        return jsonify({
+            'success': True,
+            'triangle_4d_score': analysis.get('triangle_4d_score', {}),
+            'traditional_intelligence': analysis.get('traditional_intelligence', {}),
+            'document_intelligence': analysis.get('document_intelligence', {}),
+            'inventory_intelligence': analysis.get('inventory_intelligence', {}),
+            'cost_intelligence': analysis.get('cost_intelligence', {}),
+            'timeline_intelligence': analysis.get('timeline_intelligence', {}),
+            'predictive_intelligence': analysis.get('predictive_intelligence', {}),
+            'timestamp': datetime.utcnow().isoformat()
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@analytics_bp.route('/cross-reference/<org_id>', methods=['GET'])
+@require_auth
+@cross_origin()
+def get_cross_reference_analytics(org_id: str):
+    """Get cross-reference intelligence with document validation"""
+    try:
+        from services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
+        engine = DocumentEnhancedCrossReferenceEngine()
+        
+        analysis = engine.process_with_documents(org_id)
+        
+        return jsonify({
+            'success': True,
+            'cross_reference_results': analysis.get('cross_reference_results', {}),
+            'compromised_inventory': analysis.get('inventory_intelligence', {}),
+            'cost_variances': analysis.get('cost_intelligence', {}),
+            'timeline_analysis': analysis.get('timeline_intelligence', {}),
+            'real_time_alerts': analysis.get('real_time_alerts', []),
+            'timestamp': datetime.utcnow().isoformat()
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@analytics_bp.route('/supplier-performance/<org_id>', methods=['GET'])
+@require_auth
+@cross_origin()
+def get_supplier_performance_analytics(org_id: str):
+    """Get supplier performance analytics with document validation"""
+    try:
+        from services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
+        engine = DocumentEnhancedCrossReferenceEngine()
+        
+        analysis = engine.process_with_documents(org_id)
+        
+        # Extract supplier-specific data
+        supplier_data = {
+            'performance_scores': analysis.get('traditional_intelligence', {}).get('supplier_metrics', {}),
+            'cost_variances': analysis.get('cost_intelligence', {}).get('variance_by_supplier', {}),
+            'timeline_performance': analysis.get('timeline_intelligence', {}).get('timeline_variance_by_supplier', {}),
+            'compromised_items': analysis.get('inventory_intelligence', {}).get('compromised_by_supplier', {}),
+            'recommendations': analysis.get('enhanced_recommendations', [])
+        }
+        
+        return jsonify({
+            'success': True,
+            'supplier_performance': supplier_data,
+            'timestamp': datetime.utcnow().isoformat()
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@analytics_bp.route('/market-intelligence/<org_id>', methods=['GET'])
+@require_auth
+@cross_origin()
+def get_market_intelligence_analytics(org_id: str):
+    """Get market intelligence with document-enhanced insights"""
+    try:
+        from services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
+        engine = DocumentEnhancedCrossReferenceEngine()
+        
+        analysis = engine.process_with_documents(org_id)
+        
+        # Extract market intelligence data
+        market_data = {
+            'demand_trends': analysis.get('predictive_intelligence', {}).get('demand_forecast', {}),
+            'pricing_trends': analysis.get('cost_intelligence', {}).get('cost_trend_analysis', {}),
+            'supplier_landscape': analysis.get('traditional_intelligence', {}).get('supplier_metrics', {}),
+            'competitive_insights': analysis.get('predictive_intelligence', {}).get('market_analysis', {}),
+            'risk_assessment': analysis.get('inventory_intelligence', {}).get('risk_analysis', {})
+        }
+        
+        return jsonify({
+            'success': True,
+            'market_intelligence': market_data,
+            'timestamp': datetime.utcnow().isoformat()
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
