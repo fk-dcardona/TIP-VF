@@ -31,9 +31,9 @@ export default function AnalyticsDisplay({ analytics, agentInsights }: Analytics
       case 'critical':
         return 'destructive';
       case 'high':
-        return 'warning';
+        return 'destructive';
       case 'medium':
-        return 'secondary';
+        return 'default';
       default:
         return 'default';
     }
