@@ -150,7 +150,7 @@ fi
 print_status "Phase 6: Deployment readiness check..."
 
 print_status "Checking multi-tenant isolation..."
-ISOLATION_CHECK=$(grep -r "filter_by.*org_id" routes/agent_api.py | wc -l)
+ISOLATION_CHECK=$(grep -r "org_id=g.org_id" routes/agent_api.py | wc -l)
 
 if [ $ISOLATION_CHECK -ge 5 ]; then
     print_success "Multi-tenant isolation properly implemented"

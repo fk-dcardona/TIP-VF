@@ -48,14 +48,7 @@ CREATE TABLE IF NOT EXISTS unified_transactions (
     country VARCHAR(100),
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    INDEX idx_org_id (org_id),
-    INDEX idx_sku (sku),
-    INDEX idx_transaction_type (transaction_type),
-    INDEX idx_inventory_status (inventory_status),
-    INDEX idx_supplier_name (supplier_name),
-    INDEX idx_transaction_date (transaction_date)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Document-Inventory Cross-Reference Model
@@ -94,13 +87,7 @@ CREATE TABLE IF NOT EXISTS document_inventory_links (
     received_date DATE,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    INDEX idx_org_id (org_id),
-    INDEX idx_sku (sku),
-    INDEX idx_inventory_status (inventory_status),
-    INDEX idx_po_date (po_date),
-    INDEX idx_received_date (received_date)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Enhanced Trade Finance Transaction Model
@@ -151,13 +138,7 @@ CREATE TABLE IF NOT EXISTS trade_finance_transactions (
     financing_cost FLOAT,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    INDEX idx_org_id (org_id),
-    INDEX idx_transaction_type (transaction_type),
-    INDEX idx_transaction_date (transaction_date),
-    INDEX idx_supplier_name (supplier_name),
-    INDEX idx_product_category (product_category)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Customer Intelligence Model
@@ -207,12 +188,7 @@ CREATE TABLE IF NOT EXISTS customer_intelligence (
     lifetime_value_estimate FLOAT,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    INDEX idx_org_id (org_id),
-    INDEX idx_customer_type (customer_type),
-    INDEX idx_industry_sector (industry_sector),
-    INDEX idx_company_size (company_size)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Market Intelligence Model
@@ -266,12 +242,9 @@ CREATE TABLE IF NOT EXISTS market_intelligence (
     confidence_score FLOAT, -- Statistical confidence
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    UNIQUE KEY unique_market_scope (product_category, geographic_region, time_period, country),
-    INDEX idx_product_category (product_category),
-    INDEX idx_geographic_region (geographic_region),
-    INDEX idx_time_period (time_period)
+    UNIQUE (product_category, geographic_region, time_period, country)
 );
 
 -- Marketplace Intelligence Model
@@ -324,11 +297,7 @@ CREATE TABLE IF NOT EXISTS marketplace_intelligence (
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    UNIQUE KEY unique_marketplace_scope (intelligence_type, product_category, geographic_region, time_period),
-    INDEX idx_intelligence_type (intelligence_type),
-    INDEX idx_product_category (product_category),
-    INDEX idx_geographic_region (geographic_region),
-    INDEX idx_time_period (time_period)
+    UNIQUE (intelligence_type, product_category, geographic_region, time_period)
 );
 
 -- Feedback Collection Model
@@ -365,13 +334,7 @@ CREATE TABLE IF NOT EXISTS feedback_collection (
     resolution TEXT,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    INDEX idx_org_id (org_id),
-    INDEX idx_feedback_type (feedback_type),
-    INDEX idx_status (status),
-    INDEX idx_priority (priority),
-    INDEX idx_created_at (created_at)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- API Integration Model
@@ -410,12 +373,7 @@ CREATE TABLE IF NOT EXISTS api_integrations (
     error_count INTEGER DEFAULT 0,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    INDEX idx_org_id (org_id),
-    INDEX idx_integration_type (integration_type),
-    INDEX idx_provider_name (provider_name),
-    INDEX idx_status (status)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Competitor Intelligence Model
@@ -455,11 +413,7 @@ CREATE TABLE IF NOT EXISTS competitor_intelligence (
     confidence_level FLOAT,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    INDEX idx_competitor_name (competitor_name),
-    INDEX idx_competitor_type (competitor_type),
-    INDEX idx_market_focus (market_focus)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Data Quality Metrics Model
@@ -490,13 +444,61 @@ CREATE TABLE IF NOT EXISTS data_quality_metrics (
     
     period_start DATE,
     period_end DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    INDEX idx_org_id (org_id),
-    INDEX idx_quality_tier (quality_tier),
-    INDEX idx_period_start (period_start),
-    INDEX idx_period_end (period_end)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_unified_transactions_org_id ON unified_transactions (org_id);
+CREATE INDEX IF NOT EXISTS idx_unified_transactions_sku ON unified_transactions (sku);
+CREATE INDEX IF NOT EXISTS idx_unified_transactions_type ON unified_transactions (transaction_type);
+CREATE INDEX IF NOT EXISTS idx_unified_transactions_status ON unified_transactions (inventory_status);
+CREATE INDEX IF NOT EXISTS idx_unified_transactions_supplier ON unified_transactions (supplier_name);
+CREATE INDEX IF NOT EXISTS idx_unified_transactions_date ON unified_transactions (transaction_date);
+
+CREATE INDEX IF NOT EXISTS idx_document_inventory_links_org_id ON document_inventory_links (org_id);
+CREATE INDEX IF NOT EXISTS idx_document_inventory_links_sku ON document_inventory_links (sku);
+CREATE INDEX IF NOT EXISTS idx_document_inventory_links_status ON document_inventory_links (inventory_status);
+CREATE INDEX IF NOT EXISTS idx_document_inventory_links_po_date ON document_inventory_links (po_date);
+CREATE INDEX IF NOT EXISTS idx_document_inventory_links_received_date ON document_inventory_links (received_date);
+
+CREATE INDEX IF NOT EXISTS idx_trade_finance_transactions_org_id ON trade_finance_transactions (org_id);
+CREATE INDEX IF NOT EXISTS idx_trade_finance_transactions_type ON trade_finance_transactions (transaction_type);
+CREATE INDEX IF NOT EXISTS idx_trade_finance_transactions_date ON trade_finance_transactions (transaction_date);
+CREATE INDEX IF NOT EXISTS idx_trade_finance_transactions_supplier ON trade_finance_transactions (supplier_name);
+CREATE INDEX IF NOT EXISTS idx_trade_finance_transactions_category ON trade_finance_transactions (product_category);
+
+CREATE INDEX IF NOT EXISTS idx_customer_intelligence_org_id ON customer_intelligence (org_id);
+CREATE INDEX IF NOT EXISTS idx_customer_intelligence_type ON customer_intelligence (customer_type);
+CREATE INDEX IF NOT EXISTS idx_customer_intelligence_sector ON customer_intelligence (industry_sector);
+CREATE INDEX IF NOT EXISTS idx_customer_intelligence_size ON customer_intelligence (company_size);
+
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_category ON market_intelligence (product_category);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_region ON market_intelligence (geographic_region);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_period ON market_intelligence (time_period);
+
+CREATE INDEX IF NOT EXISTS idx_marketplace_intelligence_type ON marketplace_intelligence (intelligence_type);
+CREATE INDEX IF NOT EXISTS idx_marketplace_intelligence_category ON marketplace_intelligence (product_category);
+CREATE INDEX IF NOT EXISTS idx_marketplace_intelligence_region ON marketplace_intelligence (geographic_region);
+CREATE INDEX IF NOT EXISTS idx_marketplace_intelligence_period ON marketplace_intelligence (time_period);
+
+CREATE INDEX IF NOT EXISTS idx_feedback_collection_org_id ON feedback_collection (org_id);
+CREATE INDEX IF NOT EXISTS idx_feedback_collection_type ON feedback_collection (feedback_type);
+CREATE INDEX IF NOT EXISTS idx_feedback_collection_status ON feedback_collection (status);
+CREATE INDEX IF NOT EXISTS idx_feedback_collection_priority ON feedback_collection (priority);
+CREATE INDEX IF NOT EXISTS idx_feedback_collection_created_at ON feedback_collection (created_at);
+
+CREATE INDEX IF NOT EXISTS idx_api_integrations_org_id ON api_integrations (org_id);
+CREATE INDEX IF NOT EXISTS idx_api_integrations_type ON api_integrations (integration_type);
+CREATE INDEX IF NOT EXISTS idx_api_integrations_provider ON api_integrations (provider_name);
+CREATE INDEX IF NOT EXISTS idx_api_integrations_status ON api_integrations (status);
+
+CREATE INDEX IF NOT EXISTS idx_competitor_intelligence_name ON competitor_intelligence (competitor_name);
+CREATE INDEX IF NOT EXISTS idx_competitor_intelligence_type ON competitor_intelligence (competitor_type);
+CREATE INDEX IF NOT EXISTS idx_competitor_intelligence_focus ON competitor_intelligence (market_focus);
+
+CREATE INDEX IF NOT EXISTS idx_data_quality_metrics_org_id ON data_quality_metrics (org_id);
+CREATE INDEX IF NOT EXISTS idx_data_quality_metrics_tier ON data_quality_metrics (quality_tier);
+CREATE INDEX IF NOT EXISTS idx_data_quality_metrics_period ON data_quality_metrics (period_start, period_end);
 
 -- Add comments for documentation
 COMMENT ON TABLE unified_transactions IS 'Enhanced transaction model with document intelligence and cross-referencing capabilities';
