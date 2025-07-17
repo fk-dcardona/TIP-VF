@@ -11,7 +11,7 @@ def get_dashboard_data(org_id):
     """Get dashboard analytics data for an organization"""
     try:
         # Get all completed uploads for the organization
-        uploads = Upload.query.filter_by(org_id=org_id, status='completed').all()
+        uploads = Upload.query.filter_by(org_id=org_id, status='completed').order_by(Upload.upload_date.desc()).all()
         
         if not uploads:
             return jsonify({
@@ -25,8 +25,28 @@ def get_dashboard_data(org_id):
                     'inventory_trends': [],
                     'supplier_performance': []
                 },
-                'recent_activity': []
+                'recent_activity': [],
+                'analytics': None,
+                'agent_insights': None
             })
+        
+        # Get the latest analytics and agent insights
+        latest_upload = uploads[0]
+        
+        # Get processed data for the latest upload
+        analytics_data = ProcessedData.query.filter_by(
+            upload_id=latest_upload.id,
+            data_type='supply_chain_analytics'
+        ).first()
+        
+        agent_data = ProcessedData.query.filter_by(
+            upload_id=latest_upload.id,
+            data_type='agent_insights'
+        ).first()
+        
+        # Parse analytics and agent insights
+        analytics = json.loads(analytics_data.processed_data) if analytics_data else None
+        agent_insights = json.loads(agent_data.processed_data) if agent_data else None
         
         # Calculate aggregate metrics
         metrics = calculate_aggregate_metrics(uploads)
@@ -37,10 +57,26 @@ def get_dashboard_data(org_id):
         # Get recent activity
         recent_activity = get_recent_activity(uploads)
         
+        # If we have analytics, use them to enhance the response
+        if analytics:
+            # Update metrics with real data
+            if 'key_metrics' in analytics:
+                metrics['total_inventory_value'] = analytics['key_metrics'].get('total_inventory_value', metrics['total_inventory'])
+                metrics['critical_alerts'] = len([a for a in analytics.get('inventory_alerts', []) if a.get('alert_level') == 'critical'])
+            
+            # Add insights to response
+            insights = analytics.get('recommendations', [])[:5]
+        else:
+            insights = []
+        
         return jsonify({
             'metrics': metrics,
             'charts': charts,
-            'recent_activity': recent_activity
+            'recent_activity': recent_activity,
+            'analytics': analytics,
+            'agent_insights': agent_insights,
+            'insights': insights,
+            'latest_upload_id': latest_upload.id if latest_upload else None
         })
         
     except Exception as e:

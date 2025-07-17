@@ -86,6 +86,26 @@ export default function MainDashboard() {
       
       {/* Navigation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-green-50 to-blue-50">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Upload className="h-6 w-6 mr-2 text-green-600" />
+              Upload CSV Data
+            </CardTitle>
+            <CardDescription>
+              Upload inventory and sales data for instant analysis
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              className="w-full bg-green-600 hover:bg-green-700"
+              onClick={() => window.location.href = '/dashboard/upload'}
+            >
+              Upload Data
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card className="hover:shadow-lg transition-shadow cursor-pointer">
           <CardHeader>
             <CardTitle className="flex items-center">

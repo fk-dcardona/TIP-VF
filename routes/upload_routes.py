@@ -4,7 +4,11 @@ import os
 import pandas as pd
 from datetime import datetime
 import json
-from models import db, Upload
+from models import db, Upload, ProcessedData
+from supply_chain_engine import SupplyChainAnalyticsEngine
+from agent_protocol.executors.agent_executor import AgentExecutor
+from agent_protocol.agents.inventory_agent import InventoryMonitorAgent
+from agent_protocol.core.agent_types import AgentType
 
 upload_bp = Blueprint('upload', __name__)
 
@@ -70,7 +74,7 @@ def upload_file():
         db.session.add(upload)
         db.session.commit()
         
-        # Process file (basic processing for now)
+        # Process file with Supply Chain Engine
         try:
             if upload.file_type == 'csv':
                 df = pd.read_csv(filepath)
@@ -80,7 +84,6 @@ def upload_file():
             # Update upload record with file info
             upload.row_count = len(df)
             upload.column_count = len(df.columns)
-            upload.status = 'completed'
             
             # Generate basic summary
             summary = {
@@ -90,12 +93,84 @@ def upload_file():
             }
             upload.data_summary = json.dumps(summary)
             
-            db.session.commit()
-            
-            return jsonify({
-                'success': True,
-                'upload': upload.to_dict()
-            }), 200
+            # Process with Supply Chain Analytics Engine
+            try:
+                engine = SupplyChainAnalyticsEngine()
+                analytics = engine.process_inventory_sales_csv(df)
+                
+                # Store analytics results
+                processed_data = ProcessedData(
+                    upload_id=upload.id,
+                    org_id=org_id,
+                    data_type='supply_chain_analytics',
+                    processed_data=json.dumps(analytics)
+                )
+                db.session.add(processed_data)
+                
+                # Initialize and run AI Agent
+                executor = AgentExecutor(max_workers=3, default_timeout=120)
+                executor.register_agent_class(AgentType.INVENTORY_MONITOR, InventoryMonitorAgent)
+                
+                # Create agent instance
+                agent = executor.create_agent(
+                    agent_id=f"inv_agent_{upload.id}",
+                    agent_type=AgentType.INVENTORY_MONITOR,
+                    name="Inventory Monitor",
+                    description="Monitors inventory and generates recommendations",
+                    config={}
+                )
+                
+                # Run the agent with analytics as input
+                agent_result = executor.execute_agent(
+                    agent_id=agent.agent_id,
+                    input_data={
+                        "action": "analyze_inventory",
+                        "analytics": analytics,
+                        "summary": analytics.get('summary', {}),
+                        "alerts": analytics.get('inventory_alerts', [])
+                    },
+                    org_id=org_id,
+                    user_id=user_id
+                )
+                
+                # Store agent results
+                agent_data = ProcessedData(
+                    upload_id=upload.id,
+                    org_id=org_id,
+                    data_type='agent_insights',
+                    processed_data=json.dumps(agent_result.to_dict())
+                )
+                db.session.add(agent_data)
+                
+                upload.status = 'completed'
+                db.session.commit()
+                
+                return jsonify({
+                    'success': True,
+                    'upload': upload.to_dict(),
+                    'analytics': analytics,
+                    'agent_result': agent_result.to_dict(),
+                    'insights': {
+                        'total_alerts': len(analytics.get('inventory_alerts', [])),
+                        'critical_items': len([a for a in analytics.get('inventory_alerts', []) if a.get('alert_level') == 'critical']),
+                        'key_recommendations': analytics.get('recommendations', [])[:3],
+                        'agent_confidence': agent_result.confidence if hasattr(agent_result, 'confidence') else 0.85
+                    }
+                }), 200
+                
+            except Exception as analytics_error:
+                # If analytics fail, still save the upload but mark as partial
+                upload.status = 'partial'
+                upload.error_message = f"Analytics processing error: {str(analytics_error)}"
+                db.session.commit()
+                
+                return jsonify({
+                    'success': True,
+                    'upload': upload.to_dict(),
+                    'warning': f'File uploaded but analytics failed: {str(analytics_error)}',
+                    'analytics': None,
+                    'agent_result': None
+                }), 200
             
         except Exception as e:
             upload.status = 'error'

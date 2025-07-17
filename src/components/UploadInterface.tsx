@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { uploadFile, getUploads, downloadTemplate } from '@/lib/api';
 import type { Upload } from '@/types/api';
+import AnalyticsDisplay from './AnalyticsDisplay';
 
 interface UploadInterfaceProps {
   orgId: string;
@@ -13,6 +14,8 @@ export default function UploadInterface({ orgId }: UploadInterfaceProps) {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>('');
+  const [latestAnalytics, setLatestAnalytics] = useState<any>(null);
+  const [latestAgentInsights, setLatestAgentInsights] = useState<any>(null);
 
   const loadUploads = useCallback(async () => {
     try {
@@ -62,6 +65,14 @@ export default function UploadInterface({ orgId }: UploadInterfaceProps) {
     try {
       const response = await uploadFile(file, orgId);
       setUploadProgress('Processing complete!');
+      
+      // Set analytics and agent insights if available
+      if (response.analytics) {
+        setLatestAnalytics(response.analytics);
+      }
+      if (response.agent_result) {
+        setLatestAgentInsights(response.agent_result);
+      }
       
       // Reload uploads to show the new one
       await loadUploads();
@@ -123,6 +134,17 @@ export default function UploadInterface({ orgId }: UploadInterfaceProps) {
 
   return (
     <>
+      {/* Show Analytics Results if Available */}
+      {(latestAnalytics || latestAgentInsights) && (
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4">Analysis Results</h2>
+          <AnalyticsDisplay 
+            analytics={latestAnalytics} 
+            agentInsights={latestAgentInsights} 
+          />
+        </div>
+      )}
+
       {/* Upload Area */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
         <div 

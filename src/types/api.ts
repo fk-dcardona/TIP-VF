@@ -30,6 +30,15 @@ export interface ProcessedData {
 export interface UploadResponse {
   success: boolean;
   upload: Upload;
+  analytics?: any;
+  agent_result?: any;
+  insights?: {
+    total_alerts: number;
+    critical_items: number;
+    key_recommendations: string[];
+    agent_confidence: number;
+  };
+  warning?: string;
 }
 
 export interface UploadsListResponse {

@@ -49,8 +49,8 @@ from routes.agent_routes import agent_routes
 from routes.agent_api import agent_api
 
 # Register blueprints
-app.register_blueprint(upload_bp)
-app.register_blueprint(analytics_bp)
+app.register_blueprint(upload_bp, url_prefix='/api')
+app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
 app.register_blueprint(insights_bp)
 app.register_blueprint(documents_bp)
 app.register_blueprint(health_bp, url_prefix='/api')
