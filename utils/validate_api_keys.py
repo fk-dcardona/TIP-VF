@@ -3,55 +3,56 @@
 
 import os
 import sys
+import logging
 from pathlib import Path
+from typing import Dict, List, Optional
 
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from config.llm_config import LLMConfig
 
+# Configure logging
+logger = logging.getLogger(__name__)
 
-def validate_api_keys():
-    """Validate that all API keys are configured."""
-    print("🔐 Validating API Keys Configuration")
-    print("=" * 50)
+
+def validate_api_keys() -> Dict[str, bool]:
+    """Validate that all required API keys are configured."""
+    logger.info("🔐 Validating API Keys Configuration")
     
-    # Check each provider
-    validation = LLMConfig.validate_config()
+    # Define required API keys
+    required_keys = {
+        'ANTHROPIC_API_KEY': 'Anthropic Claude API key for LLM operations',
+        'OPENAI_API_KEY': 'OpenAI API key for alternative LLM operations',
+        'SUPABASE_URL': 'Supabase project URL',
+        'SUPABASE_KEY': 'Supabase service role key',
+        'CLERK_SECRET_KEY': 'Clerk authentication secret key'
+    }
     
-    all_valid = True
-    for provider, is_valid in validation.items():
-        status = "✅ Configured" if is_valid else "❌ Missing"
-        print(f"{provider.upper()}: {status}")
-        
-        if is_valid and provider != 'agent_astra':
-            # Show partial key for verification (first 10 chars only)
-            key = LLMConfig.get_api_key(provider)
-            if key:
-                masked_key = key[:10] + "..." + key[-4:] if len(key) > 14 else "***"
-                print(f"  → Key: {masked_key}")
-        
-        all_valid = all_valid and is_valid
+    validation_results = {}
     
-    print("\n" + "=" * 50)
+    for key, description in required_keys.items():
+        value = os.getenv(key)
+        if value:
+            # Mask the key for logging (show first 4 and last 4 characters)
+            masked_key = f"{value[:4]}...{value[-4:]}" if len(value) > 8 else "***"
+            logger.info(f"  → Key: {masked_key}")
+            validation_results[key] = True
+        else:
+            logger.warning(f"  → Missing: {key} ({description})")
+            validation_results[key] = False
     
-    if all_valid:
-        print("✅ All API keys are configured!")
-        print("\n📋 Available Models:")
-        for provider in ['anthropic', 'openai', 'google']:
-            if validation.get(provider):
-                models = LLMConfig.MODELS.get(provider, {})
-                print(f"\n{provider.upper()}:")
-                for model_type, model_name in models.items():
-                    print(f"  - {model_type}: {model_name}")
+    # Check overall status
+    all_configured = all(validation_results.values())
+    if all_configured:
+        logger.info("✅ All API keys are configured!")
     else:
-        print("❌ Some API keys are missing!")
-        print("\nTo configure missing keys:")
-        print("1. Copy .env.example to .env.local")
-        print("2. Add your API keys to .env.local")
-        print("3. Never commit .env.local to version control")
+        logger.error("❌ Some API keys are missing!")
+        logger.info("\nTo configure missing keys:")
+        logger.info("1. Copy .env.example to .env.local")
+        logger.info("2. Add your API keys to .env.local")
     
-    return all_valid
+    return validation_results
 
 
 def test_agent_config():
