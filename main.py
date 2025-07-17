@@ -1,5 +1,9 @@
 import os
 import sys
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add current directory to path for imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -13,6 +17,7 @@ from models import (
     FinancialMetrics, AlertRule, AlertInstance,
     TradeDocument, DocumentAnalytics, ShipmentTracking
 )
+from models_enhanced import UnifiedTransaction, DocumentInventoryLink
 
 # Import configuration and utilities
 from config.settings import settings
@@ -58,9 +63,9 @@ app.register_blueprint(agent_routes)
 app.register_blueprint(agent_api, url_prefix='/api')
 
 # Create database tables
-with app.app_context():
-    db.create_all()
-    logger.info("Database tables created successfully")
+# with app.app_context():
+#     db.create_all()
+#     logger.info("Database tables created successfully")
 
 @app.route('/')
 def index():

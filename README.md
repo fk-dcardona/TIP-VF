@@ -599,3 +599,20 @@ curl http://localhost:5000/api/health/system
 
 **🎯 Status**: ✅ **IMPLEMENTATION COMPLETE** - Ready for production deployment and user testing.
 
+## ⚠️ Database Migration Best Practices (2025-07-16)
+
+- For **local development** (SQLite), you may use `db.create_all()` for quick schema setup.
+- For **production** (PostgreSQL/Railway), always use a migration tool (e.g., Alembic) to manage schema changes. Never rely on `db.create_all()` in production.
+- See `CLAUDE.md` for detailed migration workflow.
+
+---
+
+### 🆕 Unified Document Intelligence Models (2025-07-16)
+
+- **UnifiedTransaction**: Central model for unified document intelligence, linking transactions, documents, inventory, and financials. Enables real-time analytics, anomaly detection, and 4D triangle scoring.
+- **DocumentInventoryLink**: Cross-reference model connecting PO, Invoice, and BOL documents to inventory records for compromised inventory analysis and real-time alerts.
+
+These models are foundational for the platform's advanced analytics and document processing capabilities.
+
+---
+

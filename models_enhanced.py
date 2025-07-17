@@ -704,3 +704,189 @@ class DataQualityMetrics(db.Model):
             scores.append(doc_intelligence['risk_detection'])
         
         return np.mean(scores) if scores else 0.0
+
+
+# Phase 2: Unified Document Intelligence Models
+
+class UnifiedTransaction(db.Model):
+    """Enhanced unified transaction model with document intelligence and cross-referencing capabilities"""
+    __tablename__ = 'unified_transactions'
+    
+    # Core identification
+    transaction_id = db.Column(db.String(50), primary_key=True)
+    org_id = db.Column(db.String(100), db.ForeignKey('organizations.id'), nullable=False)
+    transaction_type = db.Column(db.String(20))  # SALE, PURCHASE, INVENTORY, DOCUMENT
+    
+    # Document linkage
+    source_document_id = db.Column(db.String(36), db.ForeignKey('trade_documents.id'))
+    document_confidence = db.Column(db.Float)  # Confidence from document extraction
+    
+    # Product identification
+    sku = db.Column(db.String(100))
+    product_description = db.Column(db.String(500))
+    product_category = db.Column(db.String(100))
+    product_subcategory = db.Column(db.String(100))
+    brand = db.Column(db.String(100))
+    
+    # Enhanced financial tracking
+    unit_cost = db.Column(db.Float)
+    total_cost = db.Column(db.Float)
+    actual_cost = db.Column(db.Float)  # From invoices
+    planned_cost = db.Column(db.Float)  # From POs
+    cost_variance = db.Column(db.Float)  # Calculated difference
+    cost_variance_percentage = db.Column(db.Float)
+    
+    # Enhanced inventory tracking
+    quantity = db.Column(db.Float)
+    committed_quantity = db.Column(db.Float)  # From POs
+    received_quantity = db.Column(db.Float)  # From receipts
+    available_stock = db.Column(db.Float)
+    in_transit_stock = db.Column(db.Float)
+    inventory_status = db.Column(db.String(50))  # available, committed, in_transit, compromised
+    
+    # Supply chain timeline
+    transaction_date = db.Column(db.Date)
+    po_date = db.Column(db.Date)  # From PO documents
+    ship_date = db.Column(db.Date)  # From BOL
+    eta_date = db.Column(db.Date)  # Expected arrival
+    received_date = db.Column(db.Date)  # Actual receipt
+    
+    # Risk and compliance
+    compliance_status = db.Column(db.String(50))  # compliant, at_risk, violated
+    risk_score = db.Column(db.Float)  # 0-100
+    anomaly_flags = db.Column(db.JSON)  # List of detected anomalies
+    
+    # Supplier/Customer info
+    supplier_name = db.Column(db.String(255))
+    supplier_id = db.Column(db.String(100))
+    customer_name = db.Column(db.String(255))
+    customer_id = db.Column(db.String(100))
+    
+    # Location data
+    city = db.Column(db.String(100))
+    country = db.Column(db.String(100))
+    region = db.Column(db.String(100))
+    warehouse_code = db.Column(db.String(50))
+    
+    # Currency
+    currency = db.Column(db.String(3), default='USD')
+    
+    # Metadata
+    upload_id = db.Column(db.Integer, db.ForeignKey('uploads.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    organization = db.relationship('Organization', backref=db.backref('unified_transactions', lazy=True))
+    source_document = db.relationship('TradeDocument', backref='unified_transactions')
+    upload = db.relationship('Upload', backref='unified_transactions')
+    
+    def to_dict(self):
+        return {
+            'transaction_id': self.transaction_id,
+            'org_id': self.org_id,
+            'transaction_type': self.transaction_type,
+            'source_document_id': self.source_document_id,
+            'document_confidence': self.document_confidence,
+            'sku': self.sku,
+            'product_description': self.product_description,
+            'product_category': self.product_category,
+            'unit_cost': self.unit_cost,
+            'total_cost': self.total_cost,
+            'actual_cost': self.actual_cost,
+            'planned_cost': self.planned_cost,
+            'cost_variance': self.cost_variance,
+            'cost_variance_percentage': self.cost_variance_percentage,
+            'quantity': self.quantity,
+            'committed_quantity': self.committed_quantity,
+            'received_quantity': self.received_quantity,
+            'available_stock': self.available_stock,
+            'in_transit_stock': self.in_transit_stock,
+            'inventory_status': self.inventory_status,
+            'transaction_date': self.transaction_date.isoformat() if self.transaction_date else None,
+            'po_date': self.po_date.isoformat() if self.po_date else None,
+            'ship_date': self.ship_date.isoformat() if self.ship_date else None,
+            'eta_date': self.eta_date.isoformat() if self.eta_date else None,
+            'received_date': self.received_date.isoformat() if self.received_date else None,
+            'compliance_status': self.compliance_status,
+            'risk_score': self.risk_score,
+            'anomaly_flags': self.anomaly_flags,
+            'supplier_name': self.supplier_name,
+            'customer_name': self.customer_name,
+            'city': self.city,
+            'country': self.country,
+            'currency': self.currency,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+
+class DocumentInventoryLink(db.Model):
+    """Cross-reference model linking documents to inventory for compromise detection"""
+    __tablename__ = 'document_inventory_links'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    org_id = db.Column(db.String(100), db.ForeignKey('organizations.id'), nullable=False)
+    
+    # Document linkage
+    po_document_id = db.Column(db.String(36), db.ForeignKey('trade_documents.id'))
+    invoice_document_id = db.Column(db.String(36), db.ForeignKey('trade_documents.id'))
+    bol_document_id = db.Column(db.String(36), db.ForeignKey('trade_documents.id'))
+    
+    # Product identification
+    sku = db.Column(db.String(100), nullable=False)
+    product_description = db.Column(db.String(500))
+    
+    # Quantity tracking
+    po_quantity = db.Column(db.Float)  # Ordered
+    shipped_quantity = db.Column(db.Float)  # Shipped per BOL
+    received_quantity = db.Column(db.Float)  # Actually received
+    available_inventory = db.Column(db.Float)  # Current available
+    
+    # Cost tracking
+    po_unit_cost = db.Column(db.Float)  # Agreed price
+    invoice_unit_cost = db.Column(db.Float)  # Billed price
+    landed_cost = db.Column(db.Float)  # Total cost including shipping/duties
+    
+    # Status and alerts
+    inventory_status = db.Column(db.String(50), default='normal')  # normal, compromised, at_risk
+    compromise_reasons = db.Column(db.JSON)  # List of issues
+    
+    # Timeline
+    po_date = db.Column(db.Date)
+    ship_date = db.Column(db.Date)
+    eta_date = db.Column(db.Date)
+    received_date = db.Column(db.Date)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    organization = db.relationship('Organization', backref=db.backref('document_inventory_links', lazy=True))
+    po_document = db.relationship('TradeDocument', foreign_keys=[po_document_id], backref='po_links')
+    invoice_document = db.relationship('TradeDocument', foreign_keys=[invoice_document_id], backref='invoice_links')
+    bol_document = db.relationship('TradeDocument', foreign_keys=[bol_document_id], backref='bol_links')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'org_id': self.org_id,
+            'po_document_id': self.po_document_id,
+            'invoice_document_id': self.invoice_document_id,
+            'bol_document_id': self.bol_document_id,
+            'sku': self.sku,
+            'product_description': self.product_description,
+            'po_quantity': self.po_quantity,
+            'shipped_quantity': self.shipped_quantity,
+            'received_quantity': self.received_quantity,
+            'available_inventory': self.available_inventory,
+            'po_unit_cost': self.po_unit_cost,
+            'invoice_unit_cost': self.invoice_unit_cost,
+            'landed_cost': self.landed_cost,
+            'inventory_status': self.inventory_status,
+            'compromise_reasons': self.compromise_reasons,
+            'po_date': self.po_date.isoformat() if self.po_date else None,
+            'ship_date': self.ship_date.isoformat() if self.ship_date else None,
+            'eta_date': self.eta_date.isoformat() if self.eta_date else None,
+            'received_date': self.received_date.isoformat() if self.received_date else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }

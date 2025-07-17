@@ -447,3 +447,22 @@ The **Supply Chain B2B SaaS MVP** is now **LIVE IN PRODUCTION** with:
 **🚀 The Supply Chain Intelligence Platform is LIVE at `finkargo.ai`** 
 
 *Complete business intelligence for modern supply chain management*
+
+## 🛠️ Model Migration Best Practices (Added 2025-07-16)
+
+### Local Development (SQLite)
+- You may use `db.create_all()` for rapid prototyping and local testing.
+- Always ensure your local `.env` has `DATABASE_URL=sqlite:///database/app.db` or similar.
+
+### Production (PostgreSQL on Railway)
+- **Never** use `db.create_all()` in production. This can cause data loss or schema drift.
+- Use a migration tool (e.g., Alembic) to generate and apply schema changes:
+  - `alembic revision --autogenerate -m "Add UnifiedTransaction and DocumentInventoryLink"`
+  - `alembic upgrade head`
+- Always test migrations in a staging environment before applying to production.
+
+### New Models (2025-07-16)
+- **UnifiedTransaction**: Enhanced transaction model for unified document intelligence, cross-referencing documents, inventory, and financials for analytics and anomaly detection.
+- **DocumentInventoryLink**: Cross-reference model linking documents (PO, Invoice, BOL) to inventory for compromise detection and real-time analytics.
+
+These models power the unified document intelligence flow, enabling real-time analytics, 4D triangle scoring, and compromised inventory detection as described in the platform architecture.
