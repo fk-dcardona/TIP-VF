@@ -35,7 +35,7 @@ class DocumentIntelligenceInventoryAgent(InventoryMonitorAgent):
         intelligence = self.cross_ref_engine.process_with_documents(org_id)
         
         # Traditional inventory analysis
-        inventory_analysis = super().analyze_inventory(input_data)
+        inventory_analysis = self._analyze_inventory_traditional(input_data)
         
         # Enhanced recommendations with document intelligence
         enhanced_recommendations = self._generate_document_aware_recommendations(
@@ -60,6 +60,43 @@ class DocumentIntelligenceInventoryAgent(InventoryMonitorAgent):
             'triangle_4d_score': intelligence['triangle_4d_score'],
             'compromised_analysis': compromised_analysis
         }
+    
+    def _analyze_inventory_traditional(self, input_data: Dict) -> Dict:
+        """Traditional inventory analysis using base agent capabilities"""
+        
+        # Create a context for the base agent
+        from agent_protocol.core.agent_context import AgentContext
+        
+        context = AgentContext(
+            org_id=input_data.get('org_id'),
+            input_data=input_data,
+            current_state="analyzing_inventory"
+        )
+        
+        # Execute base agent logic
+        result = self._execute_core_logic(context)
+        
+        if result.success:
+            return {
+                'summary': result.data.get('summary', {}),
+                'metrics': result.data.get('metrics', {}),
+                'stockout_risks': result.data.get('stockout_risks', []),
+                'overstock_items': result.data.get('overstock_items', []),
+                'insights': result.data.get('insights', []),
+                'actions': [action.__dict__ for action in result.actions],
+                'recommendations': [rec.__dict__ for rec in result.recommendations]
+            }
+        else:
+            return {
+                'summary': {'message': 'Traditional analysis failed'},
+                'metrics': {},
+                'stockout_risks': [],
+                'overstock_items': [],
+                'insights': [],
+                'actions': [],
+                'recommendations': [],
+                'error': result.message
+            }
     
     def _generate_document_aware_recommendations(self, inventory_analysis: Dict, 
                                                intelligence: Dict) -> List[Dict]:

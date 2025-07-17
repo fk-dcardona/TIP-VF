@@ -53,6 +53,25 @@ class DocumentEnhancedCrossReferenceEngine(SupplyChainAnalyticsEngine):
         
         return analysis
     
+    def _cross_reference_all_data(self, df: pd.DataFrame, org_id: str) -> Dict[str, Any]:
+        """Cross-reference all data sources for traditional intelligence"""
+        
+        # Convert DataFrame to traditional format for base class processing
+        if df.empty:
+            return {
+                'summary': {'message': 'No data available for analysis'},
+                'product_performance': [],
+                'inventory_alerts': [],
+                'financial_insights': {},
+                'key_metrics': {},
+                'recommendations': [],
+                'processed_at': datetime.now().isoformat(),
+                'data_quality_score': 0.0
+            }
+        
+        # Use base class method for traditional analytics
+        return self.process_inventory_sales_csv(df)
+    
     def _analyze_document_compliance(self, documents: List[TradeDocument]) -> Dict:
         """Analyze document compliance and processing quality"""
         
