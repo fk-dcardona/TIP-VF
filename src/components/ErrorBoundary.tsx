@@ -14,6 +14,7 @@ interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  isHydrationError: boolean;
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -22,16 +23,23 @@ class ErrorBoundary extends Component<Props, State> {
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
+      isHydrationError: false
     };
   }
 
   static getDerivedStateFromError(error: Error): State {
+    // Check if this is a hydration error
+    const isHydrationError = error.message.includes('hydration') || 
+                            error.message.includes('originalFactory.call') ||
+                            error.message.includes('react-server-dom');
+    
     // Update state so the next render will show the fallback UI
     return {
       hasError: true,
       error,
-      errorInfo: null
+      errorInfo: null,
+      isHydrationError
     };
   }
 
@@ -42,7 +50,10 @@ class ErrorBoundary extends Component<Props, State> {
     // Update state with error details
     this.setState({
       error,
-      errorInfo
+      errorInfo,
+      isHydrationError: error.message.includes('hydration') || 
+                       error.message.includes('originalFactory.call') ||
+                       error.message.includes('react-server-dom')
     });
     
     // In production, send to error tracking service (e.g., Sentry)
@@ -56,8 +67,14 @@ class ErrorBoundary extends Component<Props, State> {
     this.setState({
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
+      isHydrationError: false
     });
+  };
+
+  handleHardRefresh = () => {
+    // Force a complete page refresh for hydration errors
+    window.location.reload();
   };
 
   render() {
@@ -65,6 +82,46 @@ class ErrorBoundary extends Component<Props, State> {
       // Custom fallback UI
       if (this.props.fallback) {
         return <>{this.props.fallback}</>;
+      }
+
+      // Special handling for hydration errors
+      if (this.state.isHydrationError) {
+        return (
+          <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="max-w-2xl w-full space-y-8">
+              <Alert className="border-orange-200 bg-orange-50">
+                <AlertCircle className="h-4 w-4 text-orange-600" />
+                <AlertTitle className="text-orange-800 text-lg">
+                  Page Loading Issue
+                </AlertTitle>
+                <AlertDescription className="text-orange-700 mt-4">
+                  <p className="mb-4">
+                    We detected a loading issue with this page. This is usually a temporary problem that can be resolved by refreshing.
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                    <Button
+                      onClick={this.handleHardRefresh}
+                      className="bg-orange-600 hover:bg-orange-700 text-white"
+                    >
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Refresh Page
+                    </Button>
+                    
+                    <Button
+                      onClick={() => window.location.href = '/'}
+                      variant="outline"
+                      className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                    >
+                      <Home className="mr-2 h-4 w-4" />
+                      Go to Home
+                    </Button>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            </div>
+          </div>
+        );
       }
 
       // Default error UI

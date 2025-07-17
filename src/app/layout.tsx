@@ -33,8 +33,8 @@ export default function RootLayout({
       afterSignInUrl="/dashboard"
       afterSignUpUrl="/onboarding"
     >
-      <html lang="en">
-        <body className={`${inter.variable} antialiased`}>
+      <html lang="en" suppressHydrationWarning>
+        <body className={`${inter.variable} antialiased`} suppressHydrationWarning>
           <ErrorBoundary>
             {children}
           </ErrorBoundary>

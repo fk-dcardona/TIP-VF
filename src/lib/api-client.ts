@@ -5,7 +5,7 @@ import type {
   UploadDetailsResponse 
 } from '@/types/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 // Error types for better error handling
 export class APIError extends Error {
@@ -228,10 +228,10 @@ export class APIClient {
   }
   
   // Get dashboard data
-  async getDashboardData(userId: string, role?: string): Promise<any> {
+  async getDashboardData(orgId: string, role?: string): Promise<any> {
     const endpoint = role 
-      ? `/dashboard/${userId}?role=${role}`
-      : `/dashboard/${userId}`;
+      ? `/dashboard/${orgId}?role=${role}`
+      : `/dashboard/${orgId}`;
     return this.get(endpoint);
   }
   

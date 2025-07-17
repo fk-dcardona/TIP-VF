@@ -20,7 +20,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @upload_bp.route('/upload', methods=['POST'])
-async def upload_file():
+def upload_file():
     """Handle file upload"""
     try:
         # Check if file is in request
@@ -136,13 +136,13 @@ async def upload_file():
                 from services.enhanced_document_processor import EnhancedDocumentProcessor
                 enhanced_processor = EnhancedDocumentProcessor()
                 
-                unified_results = await enhanced_processor.process_and_link_document(
+                unified_results = enhanced_processor.process_and_link_document(
                     filepath, org_id, doc_type='auto'
                 )
                 
                 # Add document-specific analytics
                 unified_results['document_analytics'] = {
-                    'document_type': doc_type if doc_type != 'auto' else 'auto_detected',
+                    'document_type': 'auto_detected',
                     'file_size_mb': round(file_size / (1024 * 1024), 2),
                     'processing_type': 'document_intelligence',
                     'extraction_confidence': unified_results.get('extracted_data', {}).get('confidence', 0)

@@ -146,6 +146,61 @@ const AGENT_TEMPLATES: AgentTemplate[] = [
         slack: false
       }
     }
+  },
+  {
+    id: 'document-intelligence-advanced',
+    name: 'Document Intelligence Agent',
+    type: AgentType.DOCUMENT_INTELLIGENCE,
+    description: 'Advanced document analysis with 4D triangle scoring and enhanced cross-reference engine',
+    icon: '📄',
+    category: 'document',
+    difficulty: 'advanced',
+    estimated_setup_time: 20,
+    features: [
+      '4D triangle scoring analysis',
+      'Enhanced cross-reference engine',
+      'Compliance monitoring',
+      'Risk assessment',
+      'Predictive insights',
+      'Document intelligence processing'
+    ],
+    use_cases: [
+      'Document compliance analysis',
+      'Risk pattern detection',
+      'Cross-reference validation',
+      'Predictive document insights',
+      'Cost optimization analysis',
+      'Service quality assessment'
+    ],
+    requirements: [
+      'Document data access',
+      'Compliance framework definition',
+      'Risk assessment criteria',
+      'Enhanced engine configuration'
+    ],
+    default_configuration: {
+      parameters: {
+        analysis_depth: 'comprehensive',
+        enable_predictive_insights: true,
+        enable_risk_assessment: true,
+        enable_cost_optimization: true,
+        max_conversation_length: 4000
+      },
+      schedule: {
+        frequency: 'daily',
+        time: '08:00',
+        timezone: 'UTC'
+      },
+      notifications: {
+        email: true,
+        slack: true
+      },
+      enhanced_engine_settings: {
+        cross_reference_enabled: true,
+        compliance_monitoring: true,
+        risk_pattern_detection: true
+      }
+    }
   }
 ];
 

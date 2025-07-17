@@ -3,6 +3,7 @@ Health monitoring endpoints for production deployment.
 Comprehensive health checks for all system components.
 """
 
+import os
 from flask import Blueprint, jsonify, request
 from flask_cors import cross_origin
 import json
@@ -155,7 +156,7 @@ def liveness_check():
             'alive': True,
             'timestamp': datetime.now(timezone.utc).isoformat(),
             'uptime_seconds': time.time() - get_system_start_time(),
-            'pid': os.getpid() if 'os' in globals() else None
+            'pid': os.getpid()
         })
     except Exception as e:
         return jsonify({

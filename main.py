@@ -52,6 +52,7 @@ from routes.insights import insights_bp
 from routes.documents import documents_bp
 from routes.agent_routes import agent_routes
 from routes.agent_api import agent_api
+from routes.dashboard_routes import dashboard_bp
 
 # Register blueprints
 app.register_blueprint(upload_bp, url_prefix='/api')
@@ -61,6 +62,7 @@ app.register_blueprint(documents_bp)
 app.register_blueprint(health_bp, url_prefix='/api')
 app.register_blueprint(agent_routes)
 app.register_blueprint(agent_api, url_prefix='/api')
+app.register_blueprint(dashboard_bp)
 
 # Create database tables
 # with app.app_context():
@@ -111,4 +113,5 @@ if __name__ == '__main__':
         port=settings.PORT,
         debug=settings.DEBUG
     )
+
 

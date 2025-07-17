@@ -1,0 +1,23 @@
+{
+  "test_org_123_document_intelligence_f3043e8c": {
+    "agent_id": "test_org_123_document_intelligence_f3043e8c",
+    "agent_type": "document_intelligence",
+    "total_executions": 0,
+    "successful_executions": 0,
+    "failed_executions": 2,
+    "success_rate": 0.0,
+    "avg_execution_time_ms": 0.0,
+    "total_llm_calls": 0,
+    "total_tokens_used": 0,
+    "total_llm_cost": 0.0,
+    "avg_llm_latency_ms": 0.0,
+    "avg_cost_per_execution": 0.0,
+    "total_tool_calls": 0,
+    "tool_success_rate": 0.0,
+    "avg_confidence_score": 0.0,
+    "quality_score": 0.0,
+    "executions_per_hour": 0.0,
+    "peak_usage_hour": null,
+    "last_updated": "2025-07-17T14:54:39.956558+00:00"
+  }
+}

@@ -3,6 +3,7 @@ Error Tracking and Debugging System - Comprehensive error monitoring for agent s
 Tracks, categorizes, and analyzes errors across all system components.
 """
 
+import os
 import threading
 import time
 import json

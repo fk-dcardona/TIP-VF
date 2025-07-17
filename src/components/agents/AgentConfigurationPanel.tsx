@@ -145,6 +145,16 @@ export function AgentConfigurationPanel({ agent, onUpdate, onClose }: AgentConfi
     }));
   };
 
+  const updateEnhancedEngineSettings = (updates: Partial<AgentConfiguration['enhanced_engine_settings']>) => {
+    setConfig(prev => ({
+      ...prev,
+      enhanced_engine_settings: {
+        ...prev.enhanced_engine_settings,
+        ...updates
+      }
+    }));
+  };
+
   const addTrigger = () => {
     const newTrigger: AgentTrigger = {
       type: 'threshold',
@@ -179,6 +189,7 @@ export function AgentConfigurationPanel({ agent, onUpdate, onClose }: AgentConfi
       case 'inventory_monitor': return '📦';
       case 'supplier_evaluator': return '🏢';
       case 'demand_forecaster': return '📈';
+      case 'document_intelligence': return '📄';
       default: return '🤖';
     }
   };
@@ -399,6 +410,58 @@ export function AgentConfigurationPanel({ agent, onUpdate, onClose }: AgentConfi
               ))}
             </CardContent>
           </Card>
+
+          {/* Enhanced Engine Settings - Document Intelligence Agent */}
+          {agent.type === 'document_intelligence' && config.enhanced_engine_settings && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Zap className="h-5 w-5 mr-2" />
+                  Enhanced Engine Settings
+                </CardTitle>
+                <CardDescription>
+                  Advanced configuration for Document Intelligence Agent
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Settings className="h-4 w-4 text-gray-500" />
+                    <Label htmlFor="cross_reference">Cross-Reference Engine</Label>
+                  </div>
+                  <Switch
+                    id="cross_reference"
+                    checked={config.enhanced_engine_settings.cross_reference_enabled || false}
+                    onCheckedChange={(checked) => updateEnhancedEngineSettings({ cross_reference_enabled: checked })}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="h-4 w-4 text-gray-500" />
+                    <Label htmlFor="compliance_monitoring">Compliance Monitoring</Label>
+                  </div>
+                  <Switch
+                    id="compliance_monitoring"
+                    checked={config.enhanced_engine_settings.compliance_monitoring || false}
+                    onCheckedChange={(checked) => updateEnhancedEngineSettings({ compliance_monitoring: checked })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="h-4 w-4 text-gray-500" />
+                    <Label htmlFor="risk_pattern_detection">Risk Pattern Detection</Label>
+                  </div>
+                  <Switch
+                    id="risk_pattern_detection"
+                    checked={config.enhanced_engine_settings.risk_pattern_detection || false}
+                    onCheckedChange={(checked) => updateEnhancedEngineSettings({ risk_pattern_detection: checked })}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Thresholds */}
           {config.thresholds && Object.keys(config.thresholds).length > 0 && (

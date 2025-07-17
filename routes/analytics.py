@@ -6,6 +6,9 @@ import pandas as pd
 from datetime import datetime, timedelta
 from models import db, Upload, ProcessedData
 
+# Create analytics blueprint
+analytics_bp = Blueprint('analytics', __name__)
+
 def require_auth(f):
     """Decorator to require authentication and extract user/org info."""
     @wraps(f)

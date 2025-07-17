@@ -21,7 +21,8 @@ export interface Agent {
 export enum AgentType {
   INVENTORY_MONITOR = 'inventory_monitor',
   SUPPLIER_EVALUATOR = 'supplier_evaluator',
-  DEMAND_FORECASTER = 'demand_forecaster'
+  DEMAND_FORECASTER = 'demand_forecaster',
+  DOCUMENT_INTELLIGENCE = 'document_intelligence'
 }
 
 export enum AgentStatus {
@@ -36,6 +37,11 @@ export interface AgentConfiguration {
   notifications?: NotificationSettings;
   schedule?: ScheduleSettings;
   thresholds?: Record<string, number>;
+  enhanced_engine_settings?: {
+    cross_reference_enabled?: boolean;
+    compliance_monitoring?: boolean;
+    risk_pattern_detection?: boolean;
+  };
 }
 
 export interface AgentTrigger {
@@ -124,13 +130,70 @@ export interface AgentTemplate {
   type: AgentType;
   description: string;
   icon: string;
-  category: 'inventory' | 'supplier' | 'demand' | 'finance';
+  category: 'inventory' | 'supplier' | 'demand' | 'finance' | 'document';
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   estimated_setup_time: number;
   default_configuration: AgentConfiguration;
   features: string[];
   use_cases: string[];
   requirements: string[];
+}
+
+// Document Intelligence specific types
+export interface DocumentIntelligenceConfig {
+  analysis_depth: 'basic' | 'comprehensive';
+  enable_predictive_insights: boolean;
+  enable_risk_assessment: boolean;
+  enable_cost_optimization: boolean;
+  max_conversation_length: number;
+  enhanced_engine_settings?: {
+    cross_reference_enabled: boolean;
+    compliance_monitoring: boolean;
+    risk_pattern_detection: boolean;
+  };
+}
+
+export interface FourDTriangleScore {
+  service_score: number;
+  cost_score: number;
+  capital_score: number;
+  document_score: number;
+  overall_score: number;
+  analysis_date: string;
+  confidence_level: number;
+}
+
+export interface DocumentIntelligenceResult {
+  four_d_score: FourDTriangleScore;
+  compliance_issues: Array<{
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    category: string;
+    description: string;
+    recommendation: string;
+  }>;
+  risk_assessment: {
+    overall_risk_level: 'low' | 'medium' | 'high' | 'critical';
+    risk_factors: Array<{
+      factor: string;
+      impact: number;
+      probability: number;
+      mitigation: string;
+    }>;
+  };
+  enhanced_analysis: {
+    cross_references: Array<{
+      source: string;
+      target: string;
+      relevance_score: number;
+      relationship_type: string;
+    }>;
+    predictive_insights: Array<{
+      insight_type: string;
+      confidence: number;
+      description: string;
+      impact: string;
+    }>;
+  };
 }
 
 export interface AgentCreationRequest {

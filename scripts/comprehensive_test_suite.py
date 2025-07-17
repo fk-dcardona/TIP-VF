@@ -260,7 +260,7 @@ class ComprehensiveTestSuite:
             
             # Test Python linting
             result = subprocess.run(
-                ["python", "-m", "flake8", "--max-line-length=100", "--ignore=E501,W503"],
+                ["python", "-m", "flake8", ".", "--exclude=venv311,node_modules,dist,build,.git", "--max-line-length=100", "--ignore=E501,W503"],
                 capture_output=True,
                 text=True,
                 timeout=60
