@@ -1,0 +1,66 @@
+{
+  "timestamp": "2025-07-17T10:00:45.103215",
+  "summary": {
+    "total": 9,
+    "passed": 5,
+    "failed": 4,
+    "skipped": 0,
+    "total_time": 81.5780119895935
+  },
+  "results": [
+    {
+      "name": "Supabase Database Connection",
+      "status": "\u274c FAILED",
+      "duration": 1.142014980316162,
+      "error": "Test returned False"
+    },
+    {
+      "name": "Flask App Startup",
+      "status": "\u2705 PASSED",
+      "duration": 0.0017032623291015625,
+      "error": null
+    },
+    {
+      "name": "Database Models & Relationships",
+      "status": "\u274c FAILED",
+      "duration": 0.0002739429473876953,
+      "error": "Test returned False"
+    },
+    {
+      "name": "API Endpoints",
+      "status": "\u2705 PASSED",
+      "duration": 1.0128002166748047,
+      "error": null
+    },
+    {
+      "name": "File Upload Endpoint",
+      "status": "\u274c FAILED",
+      "duration": 0.0050601959228515625,
+      "error": "Test returned False"
+    },
+    {
+      "name": "Frontend Build Process",
+      "status": "\u2705 PASSED",
+      "duration": 19.967694997787476,
+      "error": null
+    },
+    {
+      "name": "TypeScript Type Checking",
+      "status": "\u2705 PASSED",
+      "duration": 1.5772347450256348,
+      "error": null
+    },
+    {
+      "name": "Code Linting",
+      "status": "\u274c FAILED",
+      "duration": 56.483811140060425,
+      "error": "Test returned False"
+    },
+    {
+      "name": "Security Vulnerability Scan",
+      "status": "\u2705 PASSED",
+      "duration": 1.386965036392212,
+      "error": null
+    }
+  ]
+}
