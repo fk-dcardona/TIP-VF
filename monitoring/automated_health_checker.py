@@ -18,6 +18,7 @@ import logging
 import sqlite3
 import requests
 from pathlib import Path
+import os
 
 from ..agent_protocol.monitoring.agent_logger import get_agent_logger
 from .performance_metrics_collector import get_performance_metrics_collector
@@ -602,12 +603,12 @@ class AutomatedHealthChecker:
         try:
             # Determine endpoint URL
             if config.component_id == "api_health_endpoint":
-                url = "http://localhost:5000/api/health"
+                url = os.getenv('API_HEALTH_URL', 'http://localhost:5000/api/health')
             elif config.component_id == "agent_api_endpoints":
-                url = "http://localhost:5000/api/agents/health"
+                url = os.getenv('AGENT_API_HEALTH_URL', 'http://localhost:5000/api/agents/health')
             else:
                 # Custom endpoint from metadata
-                url = config.metadata.get('url', 'http://localhost:5000/api/health')
+                url = config.metadata.get('url', os.getenv('API_HEALTH_URL', 'http://localhost:5000/api/health'))
             
             start_time = time.time()
             response = requests.get(url, timeout=config.timeout)
