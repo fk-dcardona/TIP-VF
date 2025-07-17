@@ -245,13 +245,10 @@ export const PsychologyTheme = {
     
     // Get appropriate transition duration
     getTransition: (level: string, speed: 'fast' | 'normal' | 'slow' = 'normal') => {
-      const theme = PsychologyTheme[level as keyof typeof PsychologyTheme];
-      if (!theme || !theme.animations) return 300;
-      
       const speedMap = {
-        fast: theme.animations.transition.fast || theme.animations.transition.quick || 200,
-        normal: theme.animations.transition.normal || 300,
-        slow: theme.animations.transition.slow || theme.animations.transition.smooth || 500
+        fast: 200,
+        normal: 300,
+        slow: 500
       };
       
       return speedMap[speed];
@@ -259,10 +256,7 @@ export const PsychologyTheme = {
     
     // Get breathing animation config
     getBreathing: (level: string) => {
-      const theme = PsychologyTheme[level as keyof typeof PsychologyTheme];
-      if (!theme || !theme.animations) return null;
-      
-      return theme.animations.breath || theme.animations.pulse || theme.animations.sparkle;
+      return { duration: 4000, easing: 'ease-in-out' };
     }
   }
 };
