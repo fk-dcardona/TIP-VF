@@ -10,6 +10,7 @@ class AgentType(Enum):
     SUPPLIER_EVALUATOR = "supplier_evaluator"
     DEMAND_FORECASTER = "demand_forecaster"
     DOCUMENT_ANALYZER = "document_analyzer"
+    DOCUMENT_INTELLIGENCE = "document_intelligence"
     RISK_ASSESSOR = "risk_assessor"
     OPTIMIZATION_AGENT = "optimization_agent"
 
@@ -62,6 +63,13 @@ AGENT_CAPABILITIES: Dict[AgentType, list[AgentCapability]] = {
         AgentCapability.CALL_EXTERNAL_API,
         AgentCapability.EXECUTE_ANALYSIS,
         AgentCapability.WRITE_DATABASE
+    ],
+    AgentType.DOCUMENT_INTELLIGENCE: [
+        AgentCapability.READ_DATABASE,
+        AgentCapability.CALL_EXTERNAL_API,
+        AgentCapability.EXECUTE_ANALYSIS,
+        AgentCapability.WRITE_DATABASE,
+        AgentCapability.GENERATE_REPORTS
     ],
     AgentType.RISK_ASSESSOR: [
         AgentCapability.READ_DATABASE,

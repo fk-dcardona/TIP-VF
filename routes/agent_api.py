@@ -12,6 +12,7 @@ import uuid
 from agent_protocol.agents.inventory_agent import InventoryMonitorAgent
 from agent_protocol.agents.supplier_agent import SupplierEvaluatorAgent
 from agent_protocol.agents.demand_agent import DemandForecasterAgent
+from agent_protocol.agents.document_intelligence_agent import DocumentIntelligenceAgent
 from agent_protocol.executors.agent_executor import AgentExecutor
 from agent_protocol.monitoring.metrics_collector import get_metrics_collector
 from agent_protocol.monitoring.agent_logger import get_agent_logger
@@ -26,6 +27,13 @@ agent_executor = AgentExecutor()
 metrics_collector = get_metrics_collector()
 agent_logger = get_agent_logger()
 permission_manager = get_permission_manager()
+
+# Register agent classes
+from agent_protocol.core.agent_types import AgentType
+agent_executor.register_agent_class(AgentType.INVENTORY_MONITOR, InventoryMonitorAgent)
+agent_executor.register_agent_class(AgentType.SUPPLIER_EVALUATOR, SupplierEvaluatorAgent)
+agent_executor.register_agent_class(AgentType.DEMAND_FORECASTER, DemandForecasterAgent)
+agent_executor.register_agent_class(AgentType.DOCUMENT_INTELLIGENCE, DocumentIntelligenceAgent)
 
 
 def require_auth(f):
@@ -80,7 +88,7 @@ def list_agents():
     try:
         # Query agents for this organization only
         agents = AgentModel.query.filter_by(
-            organization_id=g.org_id
+            org_id=g.org_id
         ).all()
         
         agent_list = []
@@ -91,12 +99,12 @@ def list_agents():
             agent_data = {
                 'id': agent.id,
                 'name': agent.name,
-                'type': agent.type,
+                'type': agent.agent_type,
                 'status': agent.status,
                 'created_at': agent.created_at.isoformat(),
                 'updated_at': agent.updated_at.isoformat(),
                 'description': agent.description,
-                'config': json.loads(agent.config) if agent.config else {},
+                'config': json.loads(agent.configuration) if agent.configuration else {},
                 'metrics': {
                     'total_executions': metrics.total_executions if metrics else 0,
                     'success_rate': (
@@ -139,7 +147,7 @@ def create_agent():
                 return jsonify({'error': f'Missing required field: {field}'}), 400
         
         # Validate agent type
-        valid_types = ['inventory', 'supplier', 'demand']
+        valid_types = ['inventory', 'supplier', 'demand', 'document_intelligence']
         if data['type'] not in valid_types:
             return jsonify({'error': f'Invalid agent type. Must be one of: {valid_types}'}), 400
         
@@ -150,11 +158,11 @@ def create_agent():
         agent_model = AgentModel(
             id=agent_id,
             name=data['name'],
-            type=data['type'],
+            agent_type=data['type'],
             description=data['description'],
-            organization_id=g.org_id,
-            created_by=g.user_id,
-            config=json.dumps(data.get('config', {})),
+            org_id=g.org_id,
+            user_id=g.user_id,
+            configuration=json.dumps(data.get('config', {})),
             status='active'
         )
         
@@ -164,15 +172,18 @@ def create_agent():
         # Create actual agent instance
         config = data.get('config', {})
         
-        if data['type'] == 'inventory':
-            agent = InventoryMonitorAgent(agent_id, config)
-        elif data['type'] == 'supplier':
-            agent = SupplierEvaluatorAgent(agent_id, config)
-        else:  # demand
-            agent = DemandForecasterAgent(agent_id, config)
+        # Convert string agent type to enum
+        from agent_protocol.core.agent_types import AgentType
+        agent_type_enum = AgentType(data['type'])
         
-        # Register with executor
-        agent_executor.register_agent(agent)
+        # Use the executor's create_agent method which handles registration
+        agent = agent_executor.create_agent(
+            agent_id=agent_id,
+            agent_type=agent_type_enum,
+            name=data['name'],
+            description=data['description'],
+            config=config
+        )
         
         # Log agent creation
         agent_logger.log_custom_event(
@@ -194,15 +205,15 @@ def create_agent():
                 'type': data['type'],
                 'description': data['description'],
                 'status': 'active',
-                'created_at': agent_model.created_at.isoformat()
+                'created_at': agent_model.created_date.isoformat()
             }
         }), 201
         
     except Exception as e:
-        agent_logger.log_error(
-            "API error creating agent",
-            error=str(e),
-            error_type="api_error"
+        agent_logger.log_custom_event(
+            "api_error",
+            f"API error creating agent: {str(e)}",
+            {"error_type": "api_error", "user_id": g.user_id}
         )
         return jsonify({'error': 'Failed to create agent', 'details': str(e)}), 500
 
@@ -216,7 +227,7 @@ def get_agent(agent_id: str):
         # Verify agent belongs to organization
         agent = AgentModel.query.filter_by(
             id=agent_id,
-            organization_id=g.org_id
+            org_id=g.org_id
         ).first()
         
         if not agent:
@@ -238,10 +249,10 @@ def get_agent(agent_id: str):
         agent_data = {
             'id': agent.id,
             'name': agent.name,
-            'type': agent.type,
+            'type': agent.agent_type,
             'status': agent.status,
             'description': agent.description,
-            'config': json.loads(agent.config) if agent.config else {},
+            'config': json.loads(agent.configuration) if agent.configuration else {},
             'created_at': agent.created_at.isoformat(),
             'updated_at': agent.updated_at.isoformat(),
             'created_by': agent.created_by,
@@ -263,10 +274,10 @@ def get_agent(agent_id: str):
         })
         
     except Exception as e:
-        agent_logger.log_error(
-            "API error getting agent",
-            error=str(e),
-            error_type="api_error"
+        agent_logger.log_custom_event(
+            "api_error",
+            f"API error getting agent: {str(e)}",
+            {"error_type": "api_error", "user_id": g.user_id}
         )
         return jsonify({'error': 'Failed to get agent', 'details': str(e)}), 500
 
@@ -280,7 +291,7 @@ def update_agent(agent_id: str):
         # Verify agent belongs to organization
         agent = AgentModel.query.filter_by(
             id=agent_id,
-            organization_id=g.org_id
+            org_id=g.org_id
         ).first()
         
         if not agent:
@@ -298,7 +309,7 @@ def update_agent(agent_id: str):
         if 'description' in data:
             agent.description = data['description']
         if 'config' in data:
-            agent.config = json.dumps(data['config'])
+            agent.configuration = json.dumps(data['config'])
         if 'status' in data and data['status'] in ['active', 'paused', 'disabled']:
             agent.status = data['status']
         
@@ -332,10 +343,10 @@ def update_agent(agent_id: str):
         })
         
     except Exception as e:
-        agent_logger.log_error(
-            "API error updating agent",
-            error=str(e),
-            error_type="api_error"
+        agent_logger.log_custom_event(
+            "api_error",
+            f"API error updating agent: {str(e)}",
+            {"error_type": "api_error", "user_id": g.user_id}
         )
         return jsonify({'error': 'Failed to update agent', 'details': str(e)}), 500
 
@@ -349,7 +360,7 @@ def delete_agent(agent_id: str):
         # Verify agent belongs to organization
         agent = AgentModel.query.filter_by(
             id=agent_id,
-            organization_id=g.org_id
+            org_id=g.org_id
         ).first()
         
         if not agent:
@@ -359,8 +370,8 @@ def delete_agent(agent_id: str):
         if not check_agent_permission(agent_id, PermissionLevel.ADMIN):
             return jsonify({'error': 'Permission denied'}), 403
         
-        # Unregister from executor
-        agent_executor.unregister_agent(agent_id)
+        # Remove from executor registry
+        agent_executor.registry.remove_agent(agent_id)
         
         # Delete from database
         db.session.delete(agent)
@@ -381,10 +392,10 @@ def delete_agent(agent_id: str):
         })
         
     except Exception as e:
-        agent_logger.log_error(
-            "API error deleting agent",
-            error=str(e),
-            error_type="api_error"
+        agent_logger.log_custom_event(
+            "api_error",
+            f"API error deleting agent: {str(e)}",
+            {"error_type": "api_error", "user_id": g.user_id}
         )
         return jsonify({'error': 'Failed to delete agent', 'details': str(e)}), 500
 
@@ -398,7 +409,7 @@ def execute_agent(agent_id: str):
         # Verify agent belongs to organization
         agent = AgentModel.query.filter_by(
             id=agent_id,
-            organization_id=g.org_id
+            org_id=g.org_id
         ).first()
         
         if not agent:
@@ -468,7 +479,7 @@ def get_agent_metrics(agent_id: str):
         # Verify agent belongs to organization
         agent = AgentModel.query.filter_by(
             id=agent_id,
-            organization_id=g.org_id
+            org_id=g.org_id
         ).first()
         
         if not agent:
@@ -529,7 +540,7 @@ def get_agent_config(agent_id: str):
         # Verify agent belongs to organization
         agent = AgentModel.query.filter_by(
             id=agent_id,
-            organization_id=g.org_id
+            org_id=g.org_id
         ).first()
         
         if not agent:
@@ -539,7 +550,7 @@ def get_agent_config(agent_id: str):
         if not check_agent_permission(agent_id, PermissionLevel.READ):
             return jsonify({'error': 'Permission denied'}), 403
         
-        config = json.loads(agent.config) if agent.config else {}
+        config = json.loads(agent.configuration) if agent.configuration else {}
         
         # Get runtime config from agent instance
         agent_instance = agent_executor.get_agent(agent_id)
@@ -558,7 +569,7 @@ def get_agent_config(agent_id: str):
             'config': {
                 'stored': config,
                 'runtime': runtime_config,
-                'agent_type': agent.type,
+                'agent_type': agent.agent_type,
                 'agent_id': agent_id
             }
         })
@@ -581,7 +592,7 @@ def update_agent_config(agent_id: str):
         # Verify agent belongs to organization
         agent = AgentModel.query.filter_by(
             id=agent_id,
-            organization_id=g.org_id
+            org_id=g.org_id
         ).first()
         
         if not agent:
@@ -595,20 +606,23 @@ def update_agent_config(agent_id: str):
         new_config = data.get('config', {})
         
         # Validate config based on agent type
-        if agent.type == 'inventory':
+        if agent.agent_type == 'inventory':
             # Validate inventory-specific config
             valid_keys = ['reorder_threshold', 'safety_stock_days', 'forecast_horizon']
-        elif agent.type == 'supplier':
+        elif agent.agent_type == 'supplier':
             # Validate supplier-specific config
             valid_keys = ['evaluation_weights', 'min_score_threshold', 'review_frequency']
+        elif agent.agent_type == 'document_intelligence':
+            # Validate document intelligence-specific config
+            valid_keys = ['model_name', 'max_tokens', 'temperature']
         else:  # demand
             # Validate demand-specific config
             valid_keys = ['forecast_methods', 'seasonality_detection', 'confidence_threshold']
         
         # Update config
-        current_config = json.loads(agent.config) if agent.config else {}
+        current_config = json.loads(agent.configuration) if agent.configuration else {}
         current_config.update(new_config)
-        agent.config = json.dumps(current_config)
+        agent.configuration = json.dumps(current_config)
         agent.updated_at = datetime.now(timezone.utc)
         db.session.commit()
         
@@ -651,7 +665,7 @@ def get_agent_logs(agent_id: str):
         # Verify agent belongs to organization
         agent = AgentModel.query.filter_by(
             id=agent_id,
-            organization_id=g.org_id
+            org_id=g.org_id
         ).first()
         
         if not agent:
@@ -721,7 +735,7 @@ def get_organization_metrics():
     try:
         # Get all agents for organization
         agents = AgentModel.query.filter_by(
-            organization_id=g.org_id
+            org_id=g.org_id
         ).all()
         
         # Aggregate metrics
@@ -740,7 +754,7 @@ def get_organization_metrics():
                 agent_metrics.append({
                     'agent_id': agent.id,
                     'agent_name': agent.name,
-                    'agent_type': agent.type,
+                    'agent_type': agent.agent_type,
                     'metrics': metrics.to_dict()
                 })
                 total_executions += metrics.total_executions

@@ -8,6 +8,22 @@ CREATE TABLE IF NOT EXISTS "public"."organizations" (
     CONSTRAINT "organizations_pkey" PRIMARY KEY ("id")
 );
 
+-- Create agents table
+CREATE TABLE IF NOT EXISTS "public"."agents" (
+    "id" character varying(100) NOT NULL,
+    "org_id" character varying(100) NOT NULL,
+    "user_id" character varying(100) NOT NULL,
+    "name" character varying(255) NOT NULL,
+    "description" text,
+    "agent_type" character varying(50) NOT NULL,
+    "configuration" text,
+    "status" character varying(50) DEFAULT 'active'::character varying,
+    "created_date" timestamp with time zone DEFAULT now(),
+    "updated_date" timestamp with time zone DEFAULT now(),
+    "last_run" timestamp with time zone,
+    CONSTRAINT "agents_pkey" PRIMARY KEY ("id")
+);
+
 -- Create uploads table
 CREATE TABLE IF NOT EXISTS "public"."uploads" (
     "id" SERIAL PRIMARY KEY,
@@ -120,6 +136,8 @@ ALTER TABLE "public"."uploads" ADD CONSTRAINT "uploads_org_id_fkey" FOREIGN KEY 
 ALTER TABLE "public"."trade_documents" ADD CONSTRAINT "trade_documents_org_id_fkey" FOREIGN KEY ("org_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."trade_documents" ADD CONSTRAINT "trade_documents_upload_id_fkey" FOREIGN KEY ("upload_id") REFERENCES "public"."uploads"("id") ON DELETE SET NULL;
 
+ALTER TABLE "public"."agents" ADD CONSTRAINT "agents_org_id_fkey" FOREIGN KEY ("org_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
 ALTER TABLE "public"."unified_transactions" ADD CONSTRAINT "unified_transactions_org_id_fkey" FOREIGN KEY ("org_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
 ALTER TABLE "public"."unified_transactions" ADD CONSTRAINT "unified_transactions_source_document_id_fkey" FOREIGN KEY ("source_document_id") REFERENCES "public"."trade_documents"("id") ON DELETE SET NULL;
 ALTER TABLE "public"."unified_transactions" ADD CONSTRAINT "unified_transactions_upload_id_fkey" FOREIGN KEY ("upload_id") REFERENCES "public"."uploads"("id") ON DELETE SET NULL;
@@ -151,6 +169,7 @@ CREATE INDEX IF NOT EXISTS "idx_document_inventory_links_inventory_status" ON "p
 ALTER TABLE "public"."organizations" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."uploads" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."trade_documents" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."agents" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."unified_transactions" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."document_inventory_links" ENABLE ROW LEVEL SECURITY;
 
@@ -169,6 +188,18 @@ CREATE POLICY "Users can view their organization's trade documents" ON "public".
 
 CREATE POLICY "Users can insert their organization's trade documents" ON "public"."trade_documents"
     FOR INSERT WITH CHECK (auth.jwt() ->> 'org_id' = org_id);
+
+CREATE POLICY "Users can view their organization's agents" ON "public"."agents"
+    FOR SELECT USING (auth.jwt() ->> 'org_id' = org_id);
+
+CREATE POLICY "Users can insert their organization's agents" ON "public"."agents"
+    FOR INSERT WITH CHECK (auth.jwt() ->> 'org_id' = org_id);
+
+CREATE POLICY "Users can update their organization's agents" ON "public"."agents"
+    FOR UPDATE USING (auth.jwt() ->> 'org_id' = org_id);
+
+CREATE POLICY "Users can delete their organization's agents" ON "public"."agents"
+    FOR DELETE USING (auth.jwt() ->> 'org_id' = org_id);
 
 CREATE POLICY "Users can view their organization's unified transactions" ON "public"."unified_transactions"
     FOR SELECT USING (auth.jwt() ->> 'org_id' = org_id);

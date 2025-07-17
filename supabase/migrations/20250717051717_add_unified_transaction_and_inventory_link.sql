@@ -72,16 +72,6 @@ CREATE TABLE IF NOT EXISTS "public"."document_inventory_links" (
     CONSTRAINT "document_inventory_links_pkey" PRIMARY KEY ("id")
 );
 
--- Add foreign key constraints
-ALTER TABLE "public"."unified_transactions" ADD CONSTRAINT "unified_transactions_org_id_fkey" FOREIGN KEY ("org_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
-ALTER TABLE "public"."unified_transactions" ADD CONSTRAINT "unified_transactions_source_document_id_fkey" FOREIGN KEY ("source_document_id") REFERENCES "public"."trade_documents"("id") ON DELETE SET NULL;
-ALTER TABLE "public"."unified_transactions" ADD CONSTRAINT "unified_transactions_upload_id_fkey" FOREIGN KEY ("upload_id") REFERENCES "public"."uploads"("id") ON DELETE SET NULL;
-
-ALTER TABLE "public"."document_inventory_links" ADD CONSTRAINT "document_inventory_links_org_id_fkey" FOREIGN KEY ("org_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
-ALTER TABLE "public"."document_inventory_links" ADD CONSTRAINT "document_inventory_links_po_document_id_fkey" FOREIGN KEY ("po_document_id") REFERENCES "public"."trade_documents"("id") ON DELETE SET NULL;
-ALTER TABLE "public"."document_inventory_links" ADD CONSTRAINT "document_inventory_links_invoice_document_id_fkey" FOREIGN KEY ("invoice_document_id") REFERENCES "public"."trade_documents"("id") ON DELETE SET NULL;
-ALTER TABLE "public"."document_inventory_links" ADD CONSTRAINT "document_inventory_links_bol_document_id_fkey" FOREIGN KEY ("bol_document_id") REFERENCES "public"."trade_documents"("id") ON DELETE SET NULL;
-
 -- Add indexes for better performance
 CREATE INDEX IF NOT EXISTS "idx_unified_transactions_org_id" ON "public"."unified_transactions" ("org_id");
 CREATE INDEX IF NOT EXISTS "idx_unified_transactions_sku" ON "public"."unified_transactions" ("sku");
@@ -91,26 +81,3 @@ CREATE INDEX IF NOT EXISTS "idx_unified_transactions_inventory_status" ON "publi
 CREATE INDEX IF NOT EXISTS "idx_document_inventory_links_org_id" ON "public"."document_inventory_links" ("org_id");
 CREATE INDEX IF NOT EXISTS "idx_document_inventory_links_sku" ON "public"."document_inventory_links" ("sku");
 CREATE INDEX IF NOT EXISTS "idx_document_inventory_links_inventory_status" ON "public"."document_inventory_links" ("inventory_status");
-
--- Add RLS (Row Level Security) policies
-ALTER TABLE "public"."unified_transactions" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "public"."document_inventory_links" ENABLE ROW LEVEL SECURITY;
-
--- Create policies for authenticated users to access their organization's data
-CREATE POLICY "Users can view their organization's unified transactions" ON "public"."unified_transactions"
-    FOR SELECT USING (auth.jwt() ->> 'org_id' = org_id);
-
-CREATE POLICY "Users can insert their organization's unified transactions" ON "public"."unified_transactions"
-    FOR INSERT WITH CHECK (auth.jwt() ->> 'org_id' = org_id);
-
-CREATE POLICY "Users can update their organization's unified transactions" ON "public"."unified_transactions"
-    FOR UPDATE USING (auth.jwt() ->> 'org_id' = org_id);
-
-CREATE POLICY "Users can view their organization's document inventory links" ON "public"."document_inventory_links"
-    FOR SELECT USING (auth.jwt() ->> 'org_id' = org_id);
-
-CREATE POLICY "Users can insert their organization's document inventory links" ON "public"."document_inventory_links"
-    FOR INSERT WITH CHECK (auth.jwt() ->> 'org_id' = org_id);
-
-CREATE POLICY "Users can update their organization's document inventory links" ON "public"."document_inventory_links"
-    FOR UPDATE USING (auth.jwt() ->> 'org_id' = org_id);

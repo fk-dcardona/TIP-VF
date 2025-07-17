@@ -10,6 +10,7 @@ from agent_protocol.agents import (
     SupplierEvaluatorAgent, 
     DemandForecasterAgent
 )
+from agent_protocol.agents.document_intelligence_agent import DocumentIntelligenceAgent
 from agent_protocol.core.agent_types import AgentType
 from utils.llm_cost_tracker import get_cost_tracker
 from models import db, Agent as AgentModel
@@ -25,6 +26,7 @@ executor = get_global_executor()
 executor.register_agent_class(AgentType.INVENTORY_MONITOR, InventoryMonitorAgent)
 executor.register_agent_class(AgentType.SUPPLIER_EVALUATOR, SupplierEvaluatorAgent)
 executor.register_agent_class(AgentType.DEMAND_FORECASTER, DemandForecasterAgent)
+executor.register_agent_class(AgentType.DOCUMENT_INTELLIGENCE, DocumentIntelligenceAgent)
 
 
 @agent_routes.route('', methods=['GET'])

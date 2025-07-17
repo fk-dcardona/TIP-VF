@@ -14,6 +14,10 @@ class Settings:
         f"sqlite:///{os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'database', 'app.db'))}"
     )
     
+    # For local testing, force SQLite if Supabase is not accessible
+    if 'supabase' in DATABASE_URL and not os.getenv('FORCE_SUPABASE', 'false').lower() == 'true':
+        DATABASE_URL = f"sqlite:///{os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'database', 'app.db'))}"
+    
     # Security Configuration
     SECRET_KEY: str = os.getenv('SECRET_KEY', '')
     

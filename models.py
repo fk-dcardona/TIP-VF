@@ -90,7 +90,7 @@ class Agent(db.Model):
     """AI Agent model for organization-specific automation"""
     __tablename__ = 'agents'
     
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(100), primary_key=True)
     org_id = db.Column(db.String(100), db.ForeignKey('organizations.id'), nullable=False)
     user_id = db.Column(db.String(100), nullable=False)  # Creator's Clerk user ID
     name = db.Column(db.String(255), nullable=False)
