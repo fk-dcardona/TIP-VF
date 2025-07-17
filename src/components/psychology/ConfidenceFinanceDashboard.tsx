@@ -358,7 +358,7 @@ export default function ConfidenceFinanceDashboard({
           {/* Flow metrics overlay */}
           <div className="relative z-10 h-full flex items-center justify-around px-6">
             {[
-              { label: 'Inflow', value: formatCurrency(monthlyBurnRate * 1.2), color: theme.semantic.success.main },
+              { label: 'Inflow', value: formatCurrency(monthlyBurnRate * 1.2), color: '#10b981' },
               { label: 'Current', value: formatCurrency(totalInventoryValue), color: theme.colors.primary },
               { label: 'Outflow', value: formatCurrency(monthlyBurnRate), color: theme.colors.accent }
             ].map((metric, index) => (
@@ -411,9 +411,9 @@ export default function ConfidenceFinanceDashboard({
               <div 
                 className="font-semibold mt-1"
                 style={{ 
-                  color: indicator.status === 'excellent' ? theme.semantic.success.main : 
+                  color: indicator.status === 'excellent' ? '#10b981' : 
                          indicator.status === 'good' ? theme.colors.primary : 
-                         theme.semantic.warning.main
+                         '#f59e0b'
                 }}
               >
                 {indicator.value}

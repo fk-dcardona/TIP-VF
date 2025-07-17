@@ -11,7 +11,7 @@ class Settings:
     )
     
     # Security Configuration
-    SECRET_KEY: str = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+    SECRET_KEY: str = os.getenv('SECRET_KEY', '')
     
     # CORS Configuration
     CORS_ORIGINS: list = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:3001').split(',')
@@ -37,7 +37,7 @@ class Settings:
     ANALYTICS_CACHE_TTL: int = int(os.getenv('ANALYTICS_CACHE_TTL', '300'))  # 5 minutes
     
     # Agent Astra API Configuration
-    AGENT_ASTRA_API_KEY: str = os.getenv('AGENT_ASTRA_API_KEY', 'aa_UFMDHMpOdW0bSy8SuGF0NpOu6I8iy4gu0G049xcIhFk')
+    AGENT_ASTRA_API_KEY: str = os.getenv('AGENT_ASTRA_API_KEY', '')
     AGENT_ASTRA_BASE_URL: str = os.getenv('AGENT_ASTRA_BASE_URL', 'https://api.agentastra.ai/v2')
     
     # LLM Provider API Keys
