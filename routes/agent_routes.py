@@ -3,6 +3,8 @@
 from flask import Blueprint, request, jsonify, current_app
 from datetime import datetime
 import logging
+import json
+import uuid
 
 from agent_protocol.executors.agent_executor import get_global_executor
 from agent_protocol.agents import (
@@ -103,14 +105,18 @@ def create_agent():
                 "error": f"Invalid agent type: {data['type']}"
             }), 400
         
+        # Generate agent ID
+        agent_id = f"{data['org_id']}_{data['type']}_{uuid.uuid4().hex[:8]}"
+        
         # Create database record
         db_agent = AgentModel(
+            id=agent_id,
             org_id=data['org_id'],
             user_id=data.get('user_id'),
             name=data['name'],
             description=data['description'],
             agent_type=data['type'],
-            configuration=data.get('configuration', {}),
+            configuration=json.dumps(data.get('configuration', {})),
             status='active'
         )
         
@@ -133,7 +139,7 @@ def create_agent():
                 "name": db_agent.name,
                 "type": db_agent.agent_type,
                 "status": db_agent.status,
-                "created_at": db_agent.created_at.isoformat()
+                "created_at": db_agent.created_date.isoformat()
             }
         }), 201
         
