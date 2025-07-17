@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { uploadFile, getUploads, downloadTemplate } from '@/lib/api';
 import type { Upload } from '@/types/api';
 import AnalyticsDisplay from './AnalyticsDisplay';
+import UnifiedIntelligenceDisplay from './UnifiedIntelligenceDisplay';
 
 interface UploadInterfaceProps {
   orgId: string;
@@ -16,6 +17,8 @@ export default function UploadInterface({ orgId }: UploadInterfaceProps) {
   const [uploadProgress, setUploadProgress] = useState<string>('');
   const [latestAnalytics, setLatestAnalytics] = useState<any>(null);
   const [latestAgentInsights, setLatestAgentInsights] = useState<any>(null);
+  const [unifiedIntelligence, setUnifiedIntelligence] = useState<any>(null);
+  const [processingSteps, setProcessingSteps] = useState<string[]>([]);
 
   const loadUploads = useCallback(async () => {
     try {
@@ -60,11 +63,33 @@ export default function UploadInterface({ orgId }: UploadInterfaceProps) {
     if (!file) return;
 
     setUploading(true);
+    setProcessingSteps([]);
     setUploadProgress('Uploading file...');
+    setProcessingSteps(prev => [...prev, '📤 File uploaded successfully']);
 
     try {
       const response = await uploadFile(file, orgId);
-      setUploadProgress('Processing complete!');
+      
+      // Update processing steps based on file type
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      if (fileExtension === 'csv' || fileExtension === 'xlsx' || fileExtension === 'xls') {
+        setProcessingSteps(prev => [...prev, '📊 Processing CSV/Excel data']);
+        setUploadProgress('Analyzing supply chain data...');
+      } else if (fileExtension === 'pdf' || fileExtension === 'png' || fileExtension === 'jpg' || fileExtension === 'jpeg') {
+        setProcessingSteps(prev => [...prev, '📄 Processing document with Agent Astra']);
+        setUploadProgress('Extracting document intelligence...');
+      }
+      
+      setProcessingSteps(prev => [...prev, '🔍 Cross-referencing data sources']);
+      setUploadProgress('Generating unified intelligence...');
+      
+      setProcessingSteps(prev => [...prev, '✅ Processing complete!']);
+      setUploadProgress('Unified intelligence ready!');
+      
+      // Set unified intelligence results
+      if (response.unified_intelligence) {
+        setUnifiedIntelligence(response.unified_intelligence);
+      }
       
       // Set analytics and agent insights if available
       if (response.analytics) {
@@ -80,13 +105,16 @@ export default function UploadInterface({ orgId }: UploadInterfaceProps) {
       setTimeout(() => {
         setUploadProgress('');
         setUploading(false);
-      }, 2000);
+        setProcessingSteps([]);
+      }, 3000);
     } catch (error) {
       console.error('Upload failed:', error);
       setUploadProgress(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setProcessingSteps(prev => [...prev, '❌ Processing failed']);
       setTimeout(() => {
         setUploadProgress('');
         setUploading(false);
+        setProcessingSteps([]);
       }, 3000);
     }
   };
@@ -134,13 +162,20 @@ export default function UploadInterface({ orgId }: UploadInterfaceProps) {
 
   return (
     <>
-      {/* Show Analytics Results if Available */}
-      {(latestAnalytics || latestAgentInsights) && (
+      {/* Show Unified Intelligence Results if Available */}
+      {(unifiedIntelligence || latestAnalytics || latestAgentInsights) && (
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">Analysis Results</h2>
-          <AnalyticsDisplay 
+          <h2 className="text-2xl font-bold mb-4">Unified Intelligence Results</h2>
+          <UnifiedIntelligenceDisplay 
+            unifiedIntelligence={unifiedIntelligence}
             analytics={latestAnalytics} 
-            agentInsights={latestAgentInsights} 
+            compromisedInventory={unifiedIntelligence?.compromised_inventory}
+            triangle4dScore={unifiedIntelligence?.triangle_4d_score}
+            realTimeAlerts={unifiedIntelligence?.real_time_alerts || []}
+            onAlertAction={(alertId, action) => {
+              console.log(`Alert action: ${action} for alert ${alertId}`);
+              // TODO: Implement alert actions
+            }}
           />
         </div>
       )}
@@ -161,23 +196,36 @@ export default function UploadInterface({ orgId }: UploadInterfaceProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Drop your CSV files here</h3>
-          <p className="text-gray-500 mb-4">or click to browse and select files</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Upload your supply chain files</h3>
+          <p className="text-gray-500 mb-4">CSV/Excel for analytics, PDFs/Images for trade documents</p>
           <label className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors cursor-pointer inline-block">
             Choose Files
             <input
               type="file"
               className="hidden"
-              accept=".csv,.xlsx,.xls"
+              accept=".csv,.xlsx,.xls,.pdf,.png,.jpg,.jpeg"
               onChange={handleFileSelect}
               disabled={uploading}
             />
           </label>
-          <p className="text-sm text-gray-400 mt-4">Supports CSV and Excel files up to 50MB</p>
+          <div className="text-sm text-gray-500 mt-4 space-y-1">
+            <p><strong>📊 Analytics:</strong> CSV, Excel files → Supply chain insights</p>
+            <p><strong>📄 Documents:</strong> PDF, Images → AI trade document analysis</p>
+            <p className="text-gray-400">Maximum file size: 50MB</p>
+          </div>
           
           {uploadProgress && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-              <p className="text-blue-800">{uploadProgress}</p>
+              <p className="text-blue-800 font-medium mb-2">{uploadProgress}</p>
+              {processingSteps.length > 0 && (
+                <div className="space-y-1">
+                  {processingSteps.map((step, index) => (
+                    <div key={index} className="flex items-center text-sm text-blue-700">
+                      <span className="mr-2">{step}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

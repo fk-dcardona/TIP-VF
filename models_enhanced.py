@@ -7,6 +7,8 @@ from models import db
 from datetime import datetime
 import uuid
 import json
+from typing import List, Dict
+import numpy as np
 
 # Phase 1: Enhanced Data Capture Models
 
@@ -419,3 +421,286 @@ class DataQualityMetrics(db.Model):
     
     # Relationships
     organization = db.relationship('Organization', backref=db.backref('data_quality_metrics', lazy=True))
+
+    def _analyze_demand_trends(self, market_data: List[MarketIntelligence]) -> Dict:
+        """Analyze demand trends across markets"""
+        if not market_data:
+            return {}
+        
+        # Calculate overall demand growth
+        total_demand = sum(m.total_market_demand for m in market_data if m.total_market_demand)
+        avg_growth = np.mean([m.demand_growth_rate for m in market_data if m.demand_growth_rate])
+        
+        return {
+            'total_demand': total_demand,
+            'average_growth_rate': avg_growth,
+            'growth_trend': 'increasing' if avg_growth > 0 else 'decreasing'
+        }
+    
+    def _analyze_price_trends(self, market_data: List[MarketIntelligence]) -> Dict:
+        """Analyze price trends across markets"""
+        if not market_data:
+            return {}
+        
+        avg_price = np.mean([m.average_unit_price for m in market_data if m.average_unit_price])
+        avg_volatility = np.mean([m.price_volatility for m in market_data if m.price_volatility])
+        
+        return {
+            'average_price': avg_price,
+            'price_volatility': avg_volatility,
+            'price_stability': 'stable' if avg_volatility < 0.1 else 'volatile'
+        }
+    
+    def _analyze_supply_trends(self, market_data: List[MarketIntelligence]) -> Dict:
+        """Analyze supply trends across markets"""
+        if not market_data:
+            return {}
+        
+        total_suppliers = sum(m.total_suppliers for m in market_data if m.total_suppliers)
+        avg_lead_time = np.mean([m.average_lead_time for m in market_data if m.average_lead_time])
+        
+        return {
+            'total_suppliers': total_suppliers,
+            'average_lead_time': avg_lead_time,
+            'supply_efficiency': 'efficient' if avg_lead_time < 30 else 'slow'
+        }
+    
+    def _analyze_risk_trends(self, market_data: List[MarketIntelligence]) -> Dict:
+        """Analyze risk trends across markets"""
+        if not market_data:
+            return {}
+        
+        avg_risk = np.mean([m.supply_chain_risk_score for m in market_data if m.supply_chain_risk_score])
+        
+        return {
+            'average_risk_score': avg_risk,
+            'risk_level': 'low' if avg_risk < 0.3 else 'medium' if avg_risk < 0.7 else 'high'
+        }
+    
+    def _calculate_market_concentration(self, market_data: List[MarketIntelligence]) -> float:
+        """Calculate market concentration using Herfindahl index"""
+        if not market_data:
+            return 0.0
+        
+        # Calculate concentration based on supplier distribution
+        total_suppliers = sum(m.total_suppliers for m in market_data if m.total_suppliers)
+        if total_suppliers == 0:
+            return 0.0
+        
+        # Simplified Herfindahl calculation
+        market_shares = [m.total_suppliers / total_suppliers for m in market_data if m.total_suppliers]
+        herfindahl = sum(share ** 2 for share in market_shares)
+        
+        return herfindahl
+    
+    def _calculate_competitive_intensity(self, market_data: List[MarketIntelligence]) -> float:
+        """Calculate competitive intensity score"""
+        if not market_data:
+            return 0.0
+        
+        # Factors: number of suppliers, new entrants, market maturity
+        avg_suppliers = np.mean([m.total_suppliers for m in market_data if m.total_suppliers])
+        total_new_entrants = sum(m.new_entrants for m in market_data if m.new_entrants)
+        
+        # Normalize to 0-1 scale
+        supplier_intensity = min(avg_suppliers / 100, 1.0)  # Cap at 100 suppliers
+        new_entrant_intensity = min(total_new_entrants / 50, 1.0)  # Cap at 50 new entrants
+        
+        return (supplier_intensity + new_entrant_intensity) / 2
+    
+    def _identify_market_opportunities(self, market_data: List[MarketIntelligence]) -> List[Dict]:
+        """Identify market opportunities based on intelligence"""
+        opportunities = []
+        
+        for market in market_data:
+            # High growth, low competition opportunity
+            if (market.demand_growth_rate and market.demand_growth_rate > 0.15 and
+                market.total_suppliers and market.total_suppliers < 20):
+                opportunities.append({
+                    'market': f"{market.product_category} - {market.geographic_region}",
+                    'type': 'high_growth_low_competition',
+                    'growth_rate': market.demand_growth_rate,
+                    'supplier_count': market.total_suppliers,
+                    'opportunity_score': market.demand_growth_rate * (1 / market.total_suppliers)
+                })
+            
+            # Supply chain optimization opportunity
+            if (market.average_lead_time and market.average_lead_time > 45 and
+                market.supply_chain_risk_score and market.supply_chain_risk_score > 0.6):
+                opportunities.append({
+                    'market': f"{market.product_category} - {market.geographic_region}",
+                    'type': 'supply_chain_optimization',
+                    'current_lead_time': market.average_lead_time,
+                    'risk_score': market.supply_chain_risk_score,
+                    'opportunity_score': market.average_lead_time * market.supply_chain_risk_score
+                })
+        
+        # Sort by opportunity score
+        opportunities.sort(key=lambda x: x['opportunity_score'], reverse=True)
+        return opportunities[:5]  # Top 5 opportunities
+    
+    def _calculate_market_intelligence_score(self, market_data: List[MarketIntelligence]) -> float:
+        """Calculate market intelligence score"""
+        if not market_data:
+            return 0.0
+        
+        # Score based on data completeness and quality
+        scores = []
+        for market in market_data:
+            score = 0.0
+            
+            # Data completeness
+            if market.total_market_demand:
+                score += 20
+            if market.demand_growth_rate is not None:
+                score += 15
+            if market.average_unit_price:
+                score += 15
+            if market.total_suppliers:
+                score += 15
+            if market.average_lead_time:
+                score += 15
+            if market.supply_chain_risk_score is not None:
+                score += 20
+            
+            # Quality bonus
+            if market.confidence_score:
+                score *= market.confidence_score
+            
+            scores.append(score)
+        
+        return np.mean(scores) if scores else 0.0
+    
+    def _calculate_compliance_score(self, document_results: List[Dict]) -> float:
+        """Calculate compliance score from document processing"""
+        if not document_results:
+            return 0.0
+        
+        compliance_scores = []
+        for doc in document_results:
+            if 'compliance_status' in doc:
+                status = doc['compliance_status']
+                if status == 'compliant':
+                    compliance_scores.append(1.0)
+                elif status == 'at_risk':
+                    compliance_scores.append(0.5)
+                else:
+                    compliance_scores.append(0.0)
+        
+        return np.mean(compliance_scores) * 100 if compliance_scores else 0.0
+    
+    def _calculate_cost_accuracy(self, document_results: List[Dict]) -> float:
+        """Calculate cost accuracy from document processing"""
+        if not document_results:
+            return 0.0
+        
+        accuracy_scores = []
+        for doc in document_results:
+            if 'cost_variance_percentage' in doc:
+                variance = abs(doc['cost_variance_percentage'])
+                # Lower variance = higher accuracy
+                accuracy = max(0, 100 - variance)
+                accuracy_scores.append(accuracy)
+        
+        return np.mean(accuracy_scores) if accuracy_scores else 0.0
+    
+    def _calculate_timeline_efficiency(self, document_results: List[Dict]) -> float:
+        """Calculate timeline efficiency from document processing"""
+        if not document_results:
+            return 0.0
+        
+        efficiency_scores = []
+        for doc in document_results:
+            if 'timeline_variance' in doc:
+                variance = doc['timeline_variance']
+                # Lower variance = higher efficiency
+                efficiency = max(0, 100 - abs(variance))
+                efficiency_scores.append(efficiency)
+        
+        return np.mean(efficiency_scores) if efficiency_scores else 0.0
+    
+    def _calculate_risk_detection(self, document_results: List[Dict]) -> float:
+        """Calculate risk detection effectiveness"""
+        if not document_results:
+            return 0.0
+        
+        risk_detected = 0
+        total_docs = len(document_results)
+        
+        for doc in document_results:
+            if doc.get('anomaly_flags') or doc.get('risk_score', 0) > 0.5:
+                risk_detected += 1
+        
+        return (risk_detected / total_docs) * 100 if total_docs > 0 else 0.0
+    
+    def _calculate_processing_efficiency(self, document_results: List[Dict]) -> float:
+        """Calculate document processing efficiency"""
+        if not document_results:
+            return 0.0
+        
+        # Calculate average processing time and accuracy
+        processing_times = []
+        confidence_scores = []
+        
+        for doc in document_results:
+            if 'processing_time' in doc:
+                processing_times.append(doc['processing_time'])
+            if 'confidence' in doc:
+                confidence_scores.append(doc['confidence'])
+        
+        avg_time = np.mean(processing_times) if processing_times else 0
+        avg_confidence = np.mean(confidence_scores) if confidence_scores else 0
+        
+        # Efficiency = confidence / time (normalized)
+        efficiency = (avg_confidence * 100) / max(avg_time, 1)
+        return min(efficiency, 100.0)
+    
+    def _identify_document_opportunities(self, document_results: List[Dict]) -> List[Dict]:
+        """Identify opportunities from document processing"""
+        opportunities = []
+        
+        # Cost variance opportunities
+        high_variance_docs = [
+            doc for doc in document_results 
+            if doc.get('cost_variance_percentage', 0) > 10
+        ]
+        
+        if high_variance_docs:
+            avg_variance = np.mean([doc['cost_variance_percentage'] for doc in high_variance_docs])
+            opportunities.append({
+                'type': 'cost_optimization',
+                'description': f'Reduce cost variance (avg: {avg_variance:.1f}%)',
+                'documents_affected': len(high_variance_docs),
+                'potential_savings': avg_variance * 0.5  # Assume 50% improvement potential
+            })
+        
+        # Compliance opportunities
+        non_compliant_docs = [
+            doc for doc in document_results 
+            if doc.get('compliance_status') == 'violated'
+        ]
+        
+        if non_compliant_docs:
+            opportunities.append({
+                'type': 'compliance_improvement',
+                'description': 'Address compliance violations',
+                'documents_affected': len(non_compliant_docs),
+                'risk_reduction': len(non_compliant_docs) * 0.1  # 10% risk reduction per doc
+            })
+        
+        return opportunities
+    
+    def _calculate_document_intelligence_score(self, doc_intelligence: Dict) -> float:
+        """Calculate document intelligence score"""
+        scores = []
+        
+        if 'compliance_score' in doc_intelligence:
+            scores.append(doc_intelligence['compliance_score'])
+        if 'cost_accuracy' in doc_intelligence:
+            scores.append(doc_intelligence['cost_accuracy'])
+        if 'timeline_efficiency' in doc_intelligence:
+            scores.append(doc_intelligence['timeline_efficiency'])
+        if 'risk_detection' in doc_intelligence:
+            scores.append(doc_intelligence['risk_detection'])
+        
+        return np.mean(scores) if scores else 0.0

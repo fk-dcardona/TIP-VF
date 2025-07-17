@@ -32,6 +32,10 @@ export interface UploadResponse {
   upload: Upload;
   analytics?: any;
   agent_result?: any;
+  unified_intelligence?: any;
+  compromised_inventory?: any;
+  triangle_4d_score?: any;
+  real_time_alerts?: any[];
   insights?: {
     total_alerts: number;
     critical_items: number;
