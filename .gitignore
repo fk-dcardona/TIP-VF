@@ -1,0 +1,24 @@
+node_modules/
+.next/
+__pycache__/
+venv*/
+*.db
+*.log
+uploads/
+
+# Environment files with secrets
+.env
+.env.local
+.env.production
+.env.production.local
+.env.development.local
+
+# Keep only example files
+!.env.example
+.vercel
+.env.test
+
+# Deployment and metrics logs
+DEPLOYMENT_SUCCESS_LOG.md
+metrics-*.json
+post-deployment-metrics.json

@@ -1,0 +1,33 @@
+- - - [[...sign-in]]
+- - - [[...sign-up]]
+- - - agents
+- - - finance
+- - - inventory
+- - - procurement
+- - - sales
+- - DocumentIntelligence
+- - agents
+- - api-test
+- - dashboard
+- - demo
+- - design-system
+- - design-system
+- - integration
+- - magic
+- - onboarding
+- - psychology
+- - psychology-demo
+- - sign-in
+- - sign-up
+- - ui
+- @types
+- __tests__
+- app
+- components
+- design-system
+- hooks
+- lib
+- theme
+- types
+- utils
+src

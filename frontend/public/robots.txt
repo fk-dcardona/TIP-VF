@@ -1,0 +1,15 @@
+# Supply Chain B2B SaaS - Robots Configuration
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+
+# Disallow access to internal routes
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /onboarding/
+Disallow: /sign-in/
+Disallow: /sign-up/
+
+# Sitemap
+Sitemap: https://your-domain.vercel.app/sitemap.xml

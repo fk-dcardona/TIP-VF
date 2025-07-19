@@ -1,0 +1,11 @@
+Product ID,Product Name,Current Stock,Sales Last Month,Cost per Unit,Selling Price,Category,Warehouse
+PROD001,Widget A,1500,450,12.50,24.99,Electronics,WH001
+PROD002,Widget B,800,320,8.75,17.99,Electronics,WH002
+PROD003,Component C,200,180,45.00,89.99,Components,WH001
+PROD004,Material D,50,45,125.00,249.99,Materials,WH003
+PROD005,Part E,2500,800,5.25,10.99,Parts,WH002
+PROD006,Tool F,350,120,22.50,44.99,Tools,WH001
+PROD007,Supply G,1200,400,3.75,7.99,Supplies,WH003
+PROD008,Device H,75,70,299.00,599.99,Electronics,WH002
+PROD009,Kit I,450,150,55.00,109.99,Kits,WH001
+PROD010,Module J,900,300,18.25,36.99,Components,WH002

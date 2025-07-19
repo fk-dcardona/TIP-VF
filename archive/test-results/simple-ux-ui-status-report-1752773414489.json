@@ -1,0 +1,187 @@
+{
+  "timestamp": "2025-07-17T17:30:13.349Z",
+  "frontendUrl": "http://localhost:3001",
+  "backendUrl": "http://localhost:5000",
+  "checks": {
+    "backendAPI": {
+      "status": "completed",
+      "checks": {
+        "health": {
+          "status": "success",
+          "statusCode": 200,
+          "hasData": true,
+          "isRealData": "2025-07-17T17:30:13.392467",
+          "data": {
+            "checks": {
+              "configuration": {
+                "debug_mode": true,
+                "max_file_size": 52428800,
+                "status": "healthy",
+                "upload_folder": "./uploads"
+              },
+              "database": {
+                "message": "Database connection successful",
+                "status": "healthy"
+              },
+              "filesystem": {
+                "message": "Upload directory accessible",
+                "status": "healthy"
+              },
+              "system": {
+                "cpu_percent": 48,
+                "disk_percent": 3.7400678990874625,
+                "memory_percent": 81.7,
+                "status": "healthy"
+              }
+            },
+            "service": "supply-chain-backend",
+            "status": "healthy",
+            "timestamp": "2025-07-17T17:30:13.392467",
+            "version": "1.0.0"
+          }
+        },
+        "docs": {
+          "status": "success",
+          "statusCode": 200,
+          "hasData": true,
+          "data": {
+            "description": "Backend API for supply chain data processing and analytics",
+            "endpoints": {
+              "GET /api/analysis/<upload_id>": "Get analysis for specific upload",
+              "GET /api/dashboard/<user_id>": "Get dashboard analytics",
+              "GET /api/health": "Health check endpoint",
+              "GET /api/live": "Liveness check",
+              "GET /api/ready": "Readiness check",
+              "GET /api/template/<data_type>": "Download CSV templates",
+              "GET /api/uploads/<user_id>": "Get user uploads",
+              "POST /api/upload": "Upload CSV files for processing"
+            },
+            "title": "Supply Chain Intelligence API",
+            "version": "1.0.0"
+          }
+        },
+        "documentsAnalytics": {
+          "status": "error",
+          "statusCode": 403,
+          "hasData": true,
+          "data": {
+            "error": "Unauthorized access to organization data"
+          }
+        },
+        "dashboard": {
+          "status": "error",
+          "statusCode": 403,
+          "hasData": true,
+          "data": {
+            "error": "Unauthorized access to organization data"
+          }
+        },
+        "uploads": {
+          "status": "success",
+          "statusCode": 200,
+          "hasData": true,
+          "data": {
+            "uploads": []
+          }
+        }
+      },
+      "summary": {
+        "total": 5,
+        "passed": 3,
+        "failed": 2
+      }
+    },
+    "frontendComponents": {
+      "status": "completed",
+      "components": {
+        "mainDashboard": {
+          "status": "uses-api",
+          "hasHardcoded": true,
+          "hardcodedValues": [
+            "'0'"
+          ],
+          "hasAPICalls": true,
+          "hasLoadingStates": true,
+          "hasErrorHandling": true,
+          "fileExists": true,
+          "fileSize": 18045
+        },
+        "organicDashboard": {
+          "status": "uses-api",
+          "hasHardcoded": false,
+          "hardcodedValues": [],
+          "hasAPICalls": true,
+          "hasLoadingStates": true,
+          "hasErrorHandling": true,
+          "fileExists": true,
+          "fileSize": 17003
+        },
+        "apiClient": {
+          "status": "uses-api",
+          "hasHardcoded": true,
+          "hardcodedValues": [
+            "const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000",
+            "const CACHE_TTL = 5 * 60 * 1000; // 5",
+            "const timeoutId = setTimeout(() => controller.abort(), 30000); // 30",
+            "let attempt = 0"
+          ],
+          "hasAPICalls": true,
+          "hasLoadingStates": false,
+          "hasErrorHandling": true,
+          "fileExists": true,
+          "fileSize": 8475
+        },
+        "hooks": {
+          "status": "uses-api",
+          "hasHardcoded": false,
+          "hardcodedValues": [],
+          "hasAPICalls": true,
+          "hasLoadingStates": true,
+          "hasErrorHandling": true,
+          "fileExists": true,
+          "fileSize": 5903
+        },
+        "dashboardPage": {
+          "status": "hardcoded",
+          "hasHardcoded": true,
+          "hardcodedValues": [
+            "text-2xl font-bold text-gray-900\">Supply Chain Intelligence</h1"
+          ],
+          "hasAPICalls": false,
+          "hasLoadingStates": false,
+          "hasErrorHandling": true,
+          "fileExists": true,
+          "fileSize": 2758
+        }
+      },
+      "summary": {
+        "total": 5,
+        "usesAPI": 4,
+        "hardcoded": 1,
+        "hasLoadingStates": 3,
+        "hasErrorHandling": 5
+      }
+    },
+    "dataFlow": {
+      "status": "completed",
+      "checks": {
+        "hasRealAPIEndpoints": true,
+        "hasHardcodedValues": false,
+        "hasLoadingStates": true,
+        "hasErrorHandling": true,
+        "hasRealTimeUpdates": true
+      },
+      "summary": {
+        "total": 5,
+        "passed": 4,
+        "failed": 1
+      }
+    }
+  },
+  "summary": {
+    "totalChecks": 3,
+    "passed": 2,
+    "failed": 2,
+    "warnings": 0
+  }
+}

@@ -1,0 +1,74 @@
+# Backend Python files
+*.py
+*.pyc
+__pycache__/
+requirements.txt
+requirements-dev.txt
+venv*/
+venv311/
+.python-version
+pytest.ini
+.pytest_cache/
+
+# Database files
+database/
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+DANIEL_SESSIONS/
+DEVELOPMENT_PLAN.md
+DEPLOYMENT.md
+README_BACKEND.md
+
+# Test files
+__tests__/
+*.test.ts
+*.test.tsx
+*.test.js
+*.test.jsx
+*.spec.ts
+*.spec.tsx
+*.spec.js
+*.spec.jsx
+coverage/
+.nyc_output/
+
+# Development files
+.eslintcache
+.next/cache/
+
+# Git
+.git/
+.gitignore
+
+# Other
+.vercel/
+docker-compose*.yml
+Dockerfile*
+.dockerignore
