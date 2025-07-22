@@ -20,14 +20,14 @@ from models import (
 from models_enhanced import UnifiedTransaction, DocumentInventoryLink
 
 # Import configuration and utilities
-from config.settings import settings
-from utils.logger import get_logger
-from utils.error_handler import register_error_handlers
+from backend.config.settings import settings
+from backend.utils.logger import get_logger
+from backend.utils.error_handler import register_error_handlers
 
 # Import blueprints
-from routes.upload_routes import upload_bp
-from routes.analytics import analytics_bp
-from services.health_check import health_bp
+from backend.routes.upload_routes import upload_bp
+from backend.routes.analytics import analytics_bp
+from backend.services.health_check import health_bp
 
 # Initialize logger
 logger = get_logger('main')
@@ -48,11 +48,11 @@ db.init_app(app)
 # Register error handlers
 register_error_handlers(app)
 
-from routes.insights import insights_bp
-from routes.documents import documents_bp
-from routes.agent_routes import agent_routes
-from routes.agent_api import agent_api
-from routes.dashboard_routes import dashboard_bp
+from backend.routes.insights import insights_bp
+from backend.routes.documents import documents_bp
+from backend.routes.agent_routes import agent_routes
+from backend.routes.agent_api import agent_api
+from backend.routes.dashboard_routes import dashboard_bp
 
 # Register blueprints
 app.register_blueprint(upload_bp, url_prefix='/api')

@@ -22,7 +22,7 @@ class Settings:
     SECRET_KEY: str = os.getenv('SECRET_KEY', '')
     
     # CORS Configuration
-    CORS_ORIGINS: list = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:3001,https://your-production-domain.com').split(',')
+    CORS_ORIGINS: list = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:3001,https://finkargo.ai,https://tip-vf-daniel-cardonas-projects-6f697727.vercel.app').split(',')
     
     # File Upload Configuration
     UPLOAD_FOLDER: str = os.getenv('UPLOAD_FOLDER', '/tmp/uploads')
