@@ -1,9 +1,0 @@
-{
-  "timestamp": "2025-07-14T19:32:18Z",
-  "total_suites": 11,
-  "passed": 0,
-  "failed": 11,
-  "pass_rate": 0%,
-  "failed_suites": ["TypeScript","ESLint","Flake8","MyPy","Jest","Pytest","API Integration","Next.js Build","Security Scan","NPM Audit","Memory Test"],
-  "results_directory": "test-results/20250714_143216"
-}

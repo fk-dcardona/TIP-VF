@@ -1,0 +1,158 @@
+import { APIResponse, APIError, NetworkError, TimeoutError } from '@/types/api';
+
+// Custom error classes
+class NetworkErrorClass extends Error {
+  type: 'network';
+  status?: number;
+  
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = 'NetworkError';
+    this.type = 'network';
+    this.status = status;
+  }
+}
+
+class TimeoutErrorClass extends Error {
+  type: 'timeout';
+  timeout: number;
+  
+  constructor(message: string, timeout: number) {
+    super(message);
+    this.name = 'TimeoutError';
+    this.type = 'timeout';
+    this.timeout = timeout;
+  }
+}
+
+class APIClient {
+  private baseURL: string;
+  private timeout: number;
+
+  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api', timeout: number = 10000) {
+    this.baseURL = baseURL;
+    this.timeout = timeout;
+  }
+
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const url = `${this.baseURL}${endpoint}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new NetworkErrorClass(`HTTP ${response.status}: ${response.statusText}`, response.status);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (error instanceof NetworkErrorClass) {
+        throw error;
+      }
+      
+      if (error instanceof TimeoutErrorClass) {
+        throw error;
+      }
+      
+      if (error.name === 'AbortError') {
+        throw new TimeoutErrorClass(`Request timeout after ${this.timeout}ms`, this.timeout);
+      }
+      
+      throw new NetworkErrorClass(`Network error: ${error.message}`);
+    }
+  }
+
+  async get<T>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, { method: 'GET' });
+  }
+
+  async post<T>(endpoint: string, data: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async put<T>(endpoint: string, data: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async delete<T>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+
+  async upload<T>(endpoint: string, file: File, additionalData?: Record<string, any>): Promise<T> {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    if (additionalData) {
+      Object.entries(additionalData).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+    }
+
+    const url = `${this.baseURL}${endpoint}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new NetworkErrorClass(`HTTP ${response.status}: ${response.statusText}`, response.status);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (error instanceof NetworkErrorClass) {
+        throw error;
+      }
+      
+      if (error instanceof TimeoutErrorClass) {
+        throw error;
+      }
+      
+      if (error.name === 'AbortError') {
+        throw new TimeoutErrorClass(`Request timeout after ${this.timeout}ms`, this.timeout);
+      }
+      
+      throw new NetworkErrorClass(`Network error: ${error.message}`);
+    }
+  }
+}
+
+// Create singleton instance
+export const apiClient = new APIClient();
+
+// Export error types and classes
+export { NetworkErrorClass as NetworkError, TimeoutErrorClass as TimeoutError };
+export type { APIError }; 

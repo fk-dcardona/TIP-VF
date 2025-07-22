@@ -5,9 +5,13 @@ import json
 import pandas as pd
 from datetime import datetime, timedelta
 from models import db, Upload, ProcessedData
+from backend.services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
+from backend.services.data_moat_strategy import DataMoatStrategy
+import logging
 
 # Create analytics blueprint
 analytics_bp = Blueprint('analytics', __name__)
+logger = logging.getLogger(__name__)
 
 def require_auth(f):
     """Decorator to require authentication and extract user/org info."""
@@ -376,7 +380,6 @@ def get_triangle_analytics(org_id: str):
     """Get 4D triangle analytics including document intelligence"""
     try:
         # Use enhanced cross-reference engine
-        from services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
         engine = DocumentEnhancedCrossReferenceEngine()
         
         # Get comprehensive 4D analysis
@@ -477,4 +480,34 @@ def get_market_intelligence_analytics(org_id: str):
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@analytics_bp.route('/dashboard/<org_id>', methods=['GET'])
+def get_dashboard_analytics(org_id):
+    """Get comprehensive dashboard analytics for an organization"""
+    try:
+        # Initialize engines
+        engine = DocumentEnhancedCrossReferenceEngine()
+        data_moat = DataMoatStrategy()
+        
+        # Get comprehensive dashboard data
+        dashboard_data = {
+            'triangle_analytics': engine.get_triangle_analytics(org_id),
+            'cross_reference': engine.get_cross_reference_analytics(org_id),
+            'supplier_performance': data_moat.get_supplier_performance_analytics(org_id),
+            'market_intelligence': data_moat.get_market_intelligence_analytics(org_id),
+            'document_intelligence': engine.get_document_intelligence_summary(org_id)
+        }
+        
+        return jsonify({
+            'success': True,
+            'data': dashboard_data,
+            'message': 'Dashboard analytics retrieved successfully'
+        })
+    except Exception as e:
+        logger.error(f"Error getting dashboard analytics for {org_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error retrieving dashboard analytics: {str(e)}'
+        }), 500
 

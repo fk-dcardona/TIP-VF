@@ -301,14 +301,14 @@ export class WhatsAppAlertService {
     
     // Send summaries
     const results = await Promise.allSettled(
-      users.map(async (user) => {
+      users.map(async (user: any) => {
         // Check if user wants WhatsApp summaries
         if (!user.preferences?.notifications?.whatsapp_alerts) {
           return { userId: user.id, skipped: true };
         }
         
         // Get user's metrics
-        const metrics = await this.getUserDailyMetrics(user.company.id);
+        const metrics = await this.getUserDailyMetrics(user.company?.id || '');
         
         // Send summary
         return this.sendAlert(
@@ -319,14 +319,14 @@ export class WhatsAppAlertService {
             ...metrics,
             dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
           },
-          { language: user.company.settings?.language || 'es' }
+          { language: user.company?.settings?.language || 'es' }
         );
       })
     );
     
     // Log results
-    const sent = results.filter(r => r.status === 'fulfilled' && r.value?.success).length;
-    const failed = results.filter(r => r.status === 'rejected' || !r.value?.success).length;
+    const sent = results.filter(r => r.status === 'fulfilled' && r.value && 'success' in r.value && r.value.success).length;
+    const failed = results.filter(r => r.status === 'rejected' || (r.value && 'success' in r.value && !r.value.success)).length;
     
     logger.info('Daily summary distribution completed', { sent, failed, total: users.length });
   }

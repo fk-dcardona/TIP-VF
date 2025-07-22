@@ -11,400 +11,331 @@
 
 'use client';
 
-import { useState } from 'react';
-import { Card, Text, ProgressBar, Button, Badge } from '@tremor/react';
-import { Loader2, CheckCircle, Package, FileText, DollarSign } from 'lucide-react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { logger } from '@/lib/logger';
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Database, 
+  Upload, 
+  CheckCircle, 
+  AlertCircle,
+  FileText,
+  Users,
+  Package,
+  DollarSign,
+  Clock,
+  ArrowRight
+} from 'lucide-react';
 
-interface DemoDataProgress {
-  total: number;
-  completed: number;
-  currentStep: string;
-  errors: string[];
+interface DemoDataLoaderProps {
+  onComplete: () => void;
+  onSkip: () => void;
 }
 
-export function DemoDataLoader({ 
-  companyId,
-  onComplete 
-}: { 
-  companyId: string;
-  onComplete: () => void;
-}) {
+interface DemoDataset {
+  id: string;
+  name: string;
+  description: string;
+  size: string;
+  records: number;
+  type: 'sales' | 'inventory' | 'suppliers' | 'financial';
+  icon: React.ComponentType<any>;
+}
+
+const DEMO_DATASETS: DemoDataset[] = [
+  {
+    id: 'sales',
+    name: 'Sales Data',
+    description: 'Customer orders, revenue, and sales performance metrics',
+    size: '2.3 MB',
+    records: 1250,
+    type: 'sales',
+    icon: DollarSign
+  },
+  {
+    id: 'inventory',
+    name: 'Inventory Data',
+    description: 'Product stock levels, SKUs, and inventory movements',
+    size: '1.8 MB',
+    records: 890,
+    type: 'inventory',
+    icon: Package
+  },
+  {
+    id: 'suppliers',
+    name: 'Supplier Data',
+    description: 'Vendor information, performance metrics, and contact details',
+    size: '0.9 MB',
+    records: 45,
+    type: 'suppliers',
+    icon: Users
+  },
+  {
+    id: 'financial',
+    name: 'Financial Data',
+    description: 'Cash flow, expenses, and financial performance indicators',
+    size: '1.2 MB',
+    records: 320,
+    type: 'financial',
+    icon: FileText
+  }
+];
+
+export function DemoDataLoader({ onComplete, onSkip }: DemoDataLoaderProps) {
+  const [selectedDatasets, setSelectedDatasets] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState<DemoDataProgress>({
-    total: 0,
-    completed: 0,
-    currentStep: '',
-    errors: [],
-  });
-  
-  const supabase = createClientComponentClient();
+  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState<'select' | 'loading' | 'complete'>('select');
 
-  // Demo suppliers
-  const demoSuppliers = [
-    {
-      name: 'Shanghai Electronics Co., Ltd',
-      country: 'CN',
-      city: 'Shanghai',
-      contactEmail: 'sales@shanghai-electronics.cn',
-      paymentTerms: '30% advance, 70% BL',
-      currency: 'USD',
-      averageLeadTimeDays: 45,
-    },
-    {
-      name: 'Miami Trading Corp',
-      country: 'US',
-      city: 'Miami',
-      contactEmail: 'info@miami-trading.com',
-      paymentTerms: 'Net 30',
-      currency: 'USD',
-      averageLeadTimeDays: 15,
-    },
-    {
-      name: 'Grupo Industrial Monterrey',
-      country: 'MX',
-      city: 'Monterrey',
-      contactEmail: 'ventas@grupo-monterrey.mx',
-      paymentTerms: '50% advance, 50% delivery',
-      currency: 'USD',
-      averageLeadTimeDays: 20,
-    },
-  ];
-
-  // Demo import operations
-  const generateDemoOperations = (suppliers: any[]) => {
-    const statuses = ['in_transit', 'in_customs', 'cleared', 'delivered', 'completed'];
-    const products = [
-      { name: 'Componentes Electrónicos', hsCode: '8542.31', unitPrice: 125 },
-      { name: 'Textiles - Tela de Algodón', hsCode: '5208.12', unitPrice: 8.5 },
-      { name: 'Maquinaria Industrial', hsCode: '8428.10', unitPrice: 15000 },
-      { name: 'Productos Químicos', hsCode: '2915.21', unitPrice: 45 },
-      { name: 'Autopartes - Frenos', hsCode: '8708.30', unitPrice: 85 },
-    ];
-
-    const operations = [];
-    const today = new Date();
-
-    for (let i = 0; i < 10; i++) {
-      const supplier = suppliers[i % suppliers.length];
-      const product = products[i % products.length];
-      const status = statuses[i % statuses.length];
-      
-      const orderDate = new Date(today);
-      orderDate.setDate(orderDate.getDate() - (60 - i * 5));
-      
-      const etaDate = new Date(orderDate);
-      etaDate.setDate(etaDate.getDate() + supplier.averageLeadTimeDays);
-
-      const quantity = Math.floor(Math.random() * 900) + 100;
-      const fobValue = quantity * product.unitPrice;
-      const freight = fobValue * (supplier.country === 'CN' ? 0.12 : 0.08);
-      const insurance = fobValue * 0.015;
-      
-      operations.push({
-        referenceNumber: `IMP-2024-${String(1000 + i).padStart(4, '0')}`,
-        poNumber: `PO-${String(2000 + i).padStart(4, '0')}`,
-        status,
-        supplierName: supplier.name,
-        supplierCountry: supplier.country,
-        orderDate: orderDate.toISOString().split('T')[0],
-        etaDestination: etaDate.toISOString().split('T')[0],
-        originPort: supplier.country === 'CN' ? 'Shanghai' : supplier.country === 'US' ? 'Miami' : 'Veracruz',
-        destinationPort: 'Buenaventura',
-        shippingMethod: supplier.country === 'US' ? 'air' : 'sea',
-        totalFobUsd: fobValue,
-        totalFreightUsd: freight,
-        totalInsuranceUsd: insurance,
-        totalCostsUsd: fobValue + freight + insurance,
-        importFactor: (fobValue + freight + insurance) / fobValue,
-        exchangeRate: 4150,
-        items: [{
-          productCode: `SKU-${i + 1000}`,
-          description: product.name,
-          hsCode: product.hsCode,
-          quantity,
-          unit: 'PCS',
-          unitPriceUsd: product.unitPrice,
-          totalPriceUsd: fobValue,
-        }],
-      });
-    }
-
-    return operations;
+  const toggleDataset = (datasetId: string) => {
+    setSelectedDatasets(prev => 
+      prev.includes(datasetId) 
+        ? prev.filter(id => id !== datasetId)
+        : [...prev, datasetId]
+    );
   };
 
-  const loadDemoData = async () => {
+  const handleLoadData = async () => {
+    if (selectedDatasets.length === 0) return;
+
     setLoading(true);
-    setProgress({
-      total: 23, // 3 suppliers + 10 operations + 10 documents
-      completed: 0,
-      currentStep: 'Creando proveedores...',
-      errors: [],
-    });
+    setCurrentStep('loading');
 
-    try {
-      // Step 1: Create suppliers
-      const supplierIds: Record<string, string> = {};
-      
-      for (const supplier of demoSuppliers) {
-        setProgress(prev => ({
-          ...prev,
-          currentStep: `Creando proveedor: ${supplier.name}`,
-        }));
-        
-        const { data, error } = await supabase
-          .from('suppliers')
-          .insert({
-            company_id: companyId,
-            ...supplier,
-          })
-          .select()
-          .single();
-        
-        if (error) throw error;
-        supplierIds[supplier.name] = data.id;
-        
-        setProgress(prev => ({
-          ...prev,
-          completed: prev.completed + 1,
-        }));
-      }
+    // Simulate loading progress
+    const totalSteps = selectedDatasets.length * 3; // 3 steps per dataset
+    let currentStep = 0;
 
-      // Step 2: Create import operations
-      const operations = generateDemoOperations(demoSuppliers);
-      const operationIds: string[] = [];
-      
-      for (const operation of operations) {
-        setProgress(prev => ({
-          ...prev,
-          currentStep: `Creando operación: ${operation.referenceNumber}`,
-        }));
-        
-        const supplier = demoSuppliers.find(s => s.name === operation.supplierName);
-        const supplierId = supplier ? supplierIds[supplier.name] : null;
-        
-        const { data, error } = await supabase
-          .from('import_operations')
-          .insert({
-            company_id: companyId,
-            supplier_id: supplierId,
-            reference_number: operation.referenceNumber,
-            po_number: operation.poNumber,
-            status: operation.status,
-            supplier_name: operation.supplierName,
-            supplier_country: operation.supplierCountry,
-            order_date: operation.orderDate,
-            eta_destination: operation.etaDestination,
-            origin_port: operation.originPort,
-            destination_port: operation.destinationPort,
-            shipping_method: operation.shippingMethod,
-            total_fob_usd: operation.totalFobUsd,
-            total_freight_usd: operation.totalFreightUsd,
-            total_insurance_usd: operation.totalInsuranceUsd,
-            total_costs_usd: operation.totalCostsUsd,
-            import_factor: operation.importFactor,
-            exchange_rate: operation.exchangeRate,
-          })
-          .select()
-          .single();
-        
-        if (error) throw error;
-        operationIds.push(data.id);
-        
-        // Add items
-        for (const item of operation.items) {
-          await supabase
-            .from('operation_items')
-            .insert({
-              operation_id: data.id,
-              ...item,
-            });
-        }
-        
-        // Add costs
-        const costs = [
-          { category: 'product', amount: operation.totalFobUsd, currency: 'USD' },
-          { category: 'freight_international', amount: operation.totalFreightUsd, currency: 'USD' },
-          { category: 'insurance', amount: operation.totalInsuranceUsd, currency: 'USD' },
-        ];
-        
-        for (const cost of costs) {
-          await supabase
-            .from('operation_costs')
-            .insert({
-              operation_id: data.id,
-              ...cost,
-              amount_cop: cost.amount * operation.exchangeRate,
-              exchange_rate: operation.exchangeRate,
-            });
-        }
-        
-        setProgress(prev => ({
-          ...prev,
-          completed: prev.completed + 1,
-        }));
-      }
+    for (const datasetId of selectedDatasets) {
+      // Step 1: Upload
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      currentStep++;
+      setProgress((currentStep / totalSteps) * 100);
 
-      // Step 3: Create sample documents
-      const documentTypes = ['commercial_invoice', 'packing_list', 'bill_of_lading'];
-      
-      for (let i = 0; i < operationIds.length; i++) {
-        const operationId = operationIds[i];
-        const docType = documentTypes[i % documentTypes.length];
-        
-        setProgress(prev => ({
-          ...prev,
-          currentStep: `Creando documento de ejemplo ${i + 1}/10`,
-        }));
-        
-        await supabase
-          .from('documents')
-          .insert({
-            operation_id: operationId,
-            type: docType,
-            name: `${docType.replace('_', '-')}-demo-${i + 1}.pdf`,
-            file_url: `/demo/documents/${docType}-sample.pdf`,
-            file_size_bytes: 250000,
-            mime_type: 'application/pdf',
-            processing_status: 'completed',
-            validation_status: 'valid',
-            extracted_data: {
-              demo: true,
-              processed_at: new Date().toISOString(),
-            },
-            confidence_scores: { overall: 0.95 },
-          });
-        
-        setProgress(prev => ({
-          ...prev,
-          completed: prev.completed + 1,
-        }));
-      }
+      // Step 2: Process
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      currentStep++;
+      setProgress((currentStep / totalSteps) * 100);
 
-      // Step 4: Create sample alerts
-      await supabase
-        .from('alerts')
-        .insert([
-          {
-            company_id: companyId,
-            operation_id: operationIds[0],
-            type: 'delivery_delay',
-            severity: 'medium',
-            title: 'Retraso en Puerto de Origen',
-            message: 'La carga está demorada 3 días en el puerto de Shanghai debido a congestión.',
-            action_required: false,
-          },
-          {
-            company_id: companyId,
-            operation_id: operationIds[1],
-            type: 'payment_due',
-            severity: 'high',
-            title: 'Pago Pendiente - Vence Mañana',
-            message: 'El pago del 70% restante vence mañana. Monto: USD 45,000',
-            action_required: true,
-            action_deadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          },
-        ]);
-
-      logger.info('Demo data loaded successfully', { companyId });
-      
-      setProgress(prev => ({
-        ...prev,
-        currentStep: '¡Datos de demostración cargados exitosamente!',
-      }));
-      
-      setTimeout(onComplete, 1500);
-    } catch (error) {
-      logger.error('Failed to load demo data', error);
-      setProgress(prev => ({
-        ...prev,
-        errors: [...prev.errors, 'Error al cargar datos de demostración'],
-      }));
-    } finally {
-      setLoading(false);
+      // Step 3: Analyze
+      await new Promise(resolve => setTimeout(resolve, 800));
+      currentStep++;
+      setProgress((currentStep / totalSteps) * 100);
     }
+
+    setCurrentStep('complete');
+    setLoading(false);
   };
 
-  const progressPercentage = progress.total > 0 
-    ? Math.round((progress.completed / progress.total) * 100)
-    : 0;
+  const getSelectedDatasets = () => {
+    return DEMO_DATASETS.filter(dataset => selectedDatasets.includes(dataset.id));
+  };
+
+  const getTotalRecords = () => {
+    return getSelectedDatasets().reduce((total, dataset) => total + dataset.records, 0);
+  };
+
+  const getTotalSize = () => {
+    return getSelectedDatasets().reduce((total, dataset) => {
+      const size = parseFloat(dataset.size.replace(' MB', ''));
+      return total + size;
+    }, 0);
+  };
+
+  if (currentStep === 'loading') {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center space-x-2">
+              <Database className="h-6 w-6 animate-pulse" />
+              <span>Loading Demo Data</span>
+            </CardTitle>
+            <CardDescription>
+              Processing {selectedDatasets.length} dataset{selectedDatasets.length !== 1 ? 's' : ''}...
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Progress</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Loading Steps */}
+            <div className="space-y-3">
+              {getSelectedDatasets().map((dataset, index) => (
+                <div key={dataset.id} className="flex items-center space-x-3">
+                  <div className="flex-shrink-0">
+                    <dataset.icon className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">{dataset.name}</p>
+                    <p className="text-sm text-gray-600">{dataset.description}</p>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <Clock className="h-4 w-4 text-gray-400 animate-spin" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (currentStep === 'complete') {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <Card>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+            <CardTitle>Demo Data Loaded Successfully!</CardTitle>
+            <CardDescription>
+              Your demo environment is ready with {getTotalRecords().toLocaleString()} records
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Summary */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-2xl font-bold text-blue-600">{getTotalRecords().toLocaleString()}</p>
+                <p className="text-sm text-gray-600">Total Records</p>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-2xl font-bold text-green-600">{getTotalSize().toFixed(1)} MB</p>
+                <p className="text-sm text-gray-600">Data Size</p>
+              </div>
+            </div>
+
+            {/* Loaded Datasets */}
+            <div className="space-y-2">
+              <h4 className="font-medium">Loaded Datasets:</h4>
+              {getSelectedDatasets().map(dataset => (
+                <div key={dataset.id} className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <div>
+                    <p className="font-medium">{dataset.name}</p>
+                    <p className="text-sm text-gray-600">{dataset.records.toLocaleString()} records</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Button onClick={onComplete} className="w-full">
+              Continue to Dashboard
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <Card className="max-w-2xl mx-auto">
-      <div className="space-y-6">
-        <div className="text-center">
-          <Package className="h-12 w-12 mx-auto text-indigo-600 mb-4" />
-          <Text className="text-2xl font-bold">Cargar Datos de Demostración</Text>
-          <Text className="text-gray-600 mt-2">
-            Esto creará operaciones de importación de ejemplo para explorar la plataforma
-          </Text>
-        </div>
-
-        {!loading && progress.completed === 0 && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <FileText className="h-8 w-8 mx-auto text-gray-600 mb-2" />
-                <Text className="font-medium">10 Operaciones</Text>
-                <Text className="text-sm text-gray-600">Con diferentes estados</Text>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <DollarSign className="h-8 w-8 mx-auto text-gray-600 mb-2" />
-                <Text className="font-medium">Costos Reales</Text>
-                <Text className="text-sm text-gray-600">Basados en el mercado</Text>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <Package className="h-8 w-8 mx-auto text-gray-600 mb-2" />
-                <Text className="font-medium">3 Proveedores</Text>
-                <Text className="text-sm text-gray-600">China, USA, México</Text>
-              </div>
-            </div>
-
-            <Button
-              size="lg"
-              className="w-full"
-              onClick={loadDemoData}
-              icon={Package}
-            >
-              Cargar Datos de Demostración
-            </Button>
-          </>
-        )}
-
-        {(loading || progress.completed > 0) && (
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-2">
-                <Text className="text-sm font-medium">{progress.currentStep}</Text>
-                <Text className="text-sm text-gray-600">
-                  {progress.completed} de {progress.total}
-                </Text>
-              </div>
-              <ProgressBar value={progressPercentage} color="indigo" />
-            </div>
-
-            {progress.errors.length > 0 && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded">
-                {progress.errors.map((error, index) => (
-                  <Text key={index} className="text-red-600 text-sm">
-                    {error}
-                  </Text>
-                ))}
-              </div>
-            )}
-
-            {progress.completed === progress.total && progress.errors.length === 0 && (
-              <div className="text-center py-4">
-                <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-2" />
-                <Text className="font-medium text-green-700">
-                  ¡Datos cargados exitosamente!
-                </Text>
-              </div>
-            )}
-          </div>
-        )}
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold">Load Demo Data</h1>
+        <p className="text-gray-600">
+          Get started quickly with sample data to explore FinkArgo's capabilities
+        </p>
       </div>
-    </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Database className="h-5 w-5" />
+            <span>Available Datasets</span>
+            {selectedDatasets.length > 0 && (
+              <Badge variant="secondary">{selectedDatasets.length} selected</Badge>
+            )}
+          </CardTitle>
+          <CardDescription>
+            Select the datasets you'd like to load. You can always add more data later.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {DEMO_DATASETS.map(dataset => {
+              const Icon = dataset.icon;
+              const isSelected = selectedDatasets.includes(dataset.id);
+              
+              return (
+                <div
+                  key={dataset.id}
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    isSelected 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => toggleDataset(dataset.id)}
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className={`p-2 rounded-lg ${
+                      isSelected ? 'bg-blue-100' : 'bg-gray-100'
+                    }`}>
+                      <Icon className={`h-5 w-5 ${
+                        isSelected ? 'text-blue-600' : 'text-gray-600'
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium">{dataset.name}</h3>
+                        {isSelected && <CheckCircle className="h-5 w-5 text-blue-600" />}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">{dataset.description}</p>
+                      <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                        <span>{dataset.size}</span>
+                        <span>{dataset.records.toLocaleString()} records</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {selectedDatasets.length > 0 && (
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <h4 className="font-medium text-blue-900 mb-2">Summary</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm text-blue-800">
+                <div>
+                  <p><strong>Total Records:</strong> {getTotalRecords().toLocaleString()}</p>
+                  <p><strong>Data Size:</strong> {getTotalSize().toFixed(1)} MB</p>
+                </div>
+                <div>
+                  <p><strong>Datasets:</strong> {selectedDatasets.length}</p>
+                  <p><strong>Estimated Time:</strong> ~{Math.ceil(selectedDatasets.length * 3.3)}s</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onSkip}>
+          Skip Demo Data
+        </Button>
+        <Button 
+          onClick={handleLoadData} 
+          disabled={selectedDatasets.length === 0 || loading}
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Load Selected Data
+        </Button>
+      </div>
+    </div>
   );
 }

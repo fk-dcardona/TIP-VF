@@ -1,2 +1,0 @@
-origin	https://github.com/fk-dcardona/TIP-VF.git (fetch)
-origin	https://github.com/fk-dcardona/TIP-VF.git (push)
