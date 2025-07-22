@@ -1,0 +1,16 @@
+Supplier_ID,Supplier_Name,Contact_Person,Email,Phone,Address,City,Country,Payment_Terms,Lead_Time_Days,Quality_Rating,On_Time_Delivery_Rate,Cost_Rating,Status,Contract_Start_Date,Contract_End_Date,Category,Annual_Spend,Performance_Score
+SUP-001,TechCorp Electronics,John Smith,john.smith@techcorp.com,+1-555-0101,123 Tech Street,San Francisco,USA,Net 30,7,95,98,85,Active,2024-01-01,2025-12-31,Electronics,250000,92
+SUP-002,Global Components Ltd,Sarah Johnson,sarah.j@globalcomp.com,+44-20-7123-4567,456 Industrial Ave,London,UK,Net 45,5,92,95,88,Active,2024-03-15,2025-12-31,Electronics,180000,90
+SUP-003,AccessPro Solutions,Mike Chen,mike.chen@accesspro.com,+86-10-1234-5678,789 Business District,Beijing,China,Net 60,4,88,92,90,Active,2024-02-01,2025-12-31,Accessories,120000,87
+SUP-004,Precision Manufacturing,Emma Wilson,emma.w@precision.com,+1-555-0202,321 Factory Road,Chicago,USA,Net 30,8,94,96,82,Active,2024-01-15,2025-12-31,Manufacturing,300000,94
+SUP-005,Digital Supply Co,David Lee,david.lee@digitalsupply.com,+65-6789-0123,654 Digital Lane,Singapore,Singapore,Net 30,6,91,94,86,Active,2024-04-01,2025-12-31,Electronics,150000,89
+SUP-006,Quality Parts Inc,Lisa Brown,lisa.brown@qualityparts.com,+1-555-0303,987 Quality Blvd,Detroit,USA,Net 45,9,96,97,80,Active,2024-01-01,2025-12-31,Manufacturing,200000,93
+SUP-007,EuroTech Solutions,Pierre Dubois,pierre.d@eurotech.com,+33-1-2345-6789,147 Innovation Street,Paris,France,Net 30,6,93,95,84,Active,2024-03-01,2025-12-31,Electronics,175000,91
+SUP-008,Asia Pacific Supply,Kenji Tanaka,kenji.t@asiapacific.com,+81-3-1234-5678,258 Pacific Road,Tokyo,Japan,Net 60,5,90,93,87,Active,2024-02-15,2025-12-31,Electronics,160000,88
+SUP-009,Smart Accessories,Ana Rodriguez,ana.r@smartacc.com,+52-55-1234-5678,369 Smart Avenue,Mexico City,Mexico,Net 45,4,89,91,89,Active,2024-04-15,2025-12-31,Accessories,90000,86
+SUP-010,Canadian Components,Robert Thompson,robert.t@canadiancomp.com,+1-416-123-4567,741 Maple Street,Toronto,Canada,Net 30,7,94,96,83,Active,2024-01-01,2025-12-31,Electronics,140000,92
+SUP-011,German Engineering,Hans Mueller,hans.m@germaneng.com,+49-30-1234-5678,852 Engineering Way,Berlin,Germany,Net 45,8,95,97,81,Active,2024-02-01,2025-12-31,Manufacturing,220000,94
+SUP-012,Indian Electronics,Raj Patel,raj.p@indianelec.com,+91-11-1234-5678,963 Tech Park,Bangalore,India,Net 60,6,87,90,92,Active,2024-03-01,2025-12-31,Electronics,110000,85
+SUP-013,Brazilian Supply,Maria Silva,maria.s@braziliansupply.com,+55-11-1234-5678,147 Supply Street,Sao Paulo,Brazil,Net 45,5,91,93,85,Active,2024-04-01,2025-12-31,Electronics,130000,89
+SUP-014,Australian Tech,James Wilson,james.w@australiantech.com,+61-2-1234-5678,258 Tech Drive,Sydney,Australia,Net 30,7,93,95,84,Active,2024-01-15,2025-12-31,Electronics,120000,91
+SUP-015,Korean Components,Min Kim,min.k@koreancomp.com,+82-2-1234-5678,369 Component Road,Seoul,South Korea,Net 45,6,92,94,86,Active,2024-02-15,2025-12-31,Electronics,100000,88 
