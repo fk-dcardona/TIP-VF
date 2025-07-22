@@ -139,7 +139,7 @@ export class DocumentProcessor {
       retry?: boolean;
       enhanceImage?: boolean;
     } = {}
-  ) {
+  ): Promise<any> {
     const startTime = Date.now();
     
     try {
@@ -183,13 +183,13 @@ export class DocumentProcessor {
         data: result.data,
         confidence: result.confidence,
         processingTime,
-        warnings: result.warnings || [],
+        warnings: (result as any).warnings || [],
       };
     } catch (error) {
       logger.error('Document processing failed', { error, fileUrl, documentType });
       
       // Retry logic
-      if (options.retry !== false && !error.message.includes('Rate limit')) {
+      if (options.retry !== false && !(error as Error).message?.includes('Rate limit')) {
         logger.info('Retrying document processing', { fileUrl });
         return this.processDocument(fileUrl, documentType, operationId, {
           ...options,

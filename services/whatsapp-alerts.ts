@@ -241,7 +241,7 @@ export class WhatsAppAlertService {
       // Get template
       const language = options.language || 'es';
       const templates = MESSAGE_TEMPLATES[language];
-      const template = templates[config.template];
+      const template = (templates as any)[config.template];
       
       // Prepare message
       const message = this.prepareMessage(template, data, options.buttons);
@@ -266,7 +266,7 @@ export class WhatsAppAlertService {
       logger.error('Failed to send WhatsApp alert', { error, phoneNumber, alertType });
       return {
         success: false,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }

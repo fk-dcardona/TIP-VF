@@ -1,0 +1,11 @@
+k_sc_codigo_fuente,n_numero_documento,ka_nl_movimiento,d_fecha_documento,sc_nombre,n_nit,sc_telefono_ppal,sc_telefono_alterno,sc_nombre_fuente,MARCA,k_sc_codigo_articulo,sc_detalle_articulo,n_cantidad,n_valor,V. BRUTA,n_iva,n_descuento,DESCUENTO,V. NETA,sc_detalle_grupo,sc_signo_inventario,zona,ka_nl_tercero,nombre_vendedor
+SALES001,1001,VENTA,1/15/2025,John Doe,123456789,555-0101,555-0102,Main Store,DELL,PROD001,Laptop Dell XPS 13,2,2500.00,2500.00,400.00,0.00,0.00,2900.00,Electronics,+,North,EMP001,Alice Smith
+SALES002,1002,VENTA,1/16/2025,Jane Smith,987654321,555-0201,555-0202,Main Store,LOGITECH,PROD002,Wireless Mouse,5,125.00,125.00,20.00,0.00,0.00,145.00,Electronics,+,North,EMP001,Alice Smith
+SALES003,1003,VENTA,1/17/2025,Bob Johnson,456789123,555-0301,555-0302,Main Store,HERMAN,PROD003,Office Chair,1,150.00,150.00,24.00,0.00,0.00,174.00,Office,+,South,EMP002,Bob Wilson
+SALES004,1004,VENTA,1/18/2025,Carol Davis,789123456,555-0401,555-0402,Main Store,HP,PROD004,Printer Paper,10,150.00,150.00,24.00,0.00,0.00,174.00,Office,+,North,EMP001,Alice Smith
+SALES005,1005,VENTA,1/19/2025,David Wilson,321654987,555-0501,555-0502,Main Store,PHILIPS,PROD005,Desk Lamp,3,135.00,135.00,21.60,0.00,0.00,156.60,Office,+,South,EMP002,Bob Wilson
+SALES006,1006,VENTA,1/20/2025,Eva Brown,654987321,555-0601,555-0602,Main Store,AMAZON,PROD006,USB Cable,8,64.00,64.00,10.24,0.00,0.00,74.24,Electronics,+,North,EMP001,Alice Smith
+SALES007,1007,VENTA,1/21/2025,Frank Miller,987321654,555-0701,555-0702,Main Store,DELL,PROD007,Monitor Stand,2,150.00,150.00,24.00,0.00,0.00,174.00,Electronics,+,South,EMP002,Bob Wilson
+SALES008,1008,VENTA,1/22/2025,Grace Lee,321987654,555-0801,555-0802,Main Store,LOGITECH,PROD008,Keyboard,4,340.00,340.00,54.40,0.00,0.00,394.40,Electronics,+,North,EMP001,Alice Smith
+SALES009,1009,VENTA,1/23/2025,Henry Taylor,654321987,555-0901,555-0902,Main Store,STAPLES,PROD009,Notebook,20,100.00,100.00,16.00,0.00,0.00,116.00,Office,+,South,EMP002,Bob Wilson
+SALES010,1010,VENTA,1/24/2025,Iris Garcia,987654321,555-1001,555-1002,Main Store,ORGANIZE,PROD010,Desk Organizer,1,35.00,35.00,5.60,0.00,0.00,40.60,Office,+,North,EMP001,Alice Smith 

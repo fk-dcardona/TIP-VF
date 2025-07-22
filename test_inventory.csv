@@ -1,0 +1,11 @@
+k_sc_codigo_articulo,sc_detalle_articulo,sc_detalle_grupo,sc_detalle_subgrupo,n_saldo_anterior,n_entradas,n_salidas,n_saldo_actual,n_costo_promedio,n_ultimo_costo,sc_tipo_unidad
+PROD001,Laptop Dell XPS 13,Electronics,Computers,50,20,15,55,1200.00,1250.00,UN
+PROD002,Wireless Mouse,Electronics,Accessories,100,30,25,105,25.00,28.00,UN
+PROD003,Office Chair,Office,Furniture,25,10,8,27,150.00,160.00,UN
+PROD004,Printer Paper,Office,Supplies,200,50,40,210,15.00,16.00,PK
+PROD005,Desk Lamp,Office,Furniture,30,15,12,33,45.00,48.00,UN
+PROD006,USB Cable,Electronics,Accessories,150,40,35,155,8.00,9.00,UN
+PROD007,Monitor Stand,Electronics,Accessories,20,8,5,23,75.00,80.00,UN
+PROD008,Keyboard,Electronics,Computers,40,12,10,42,85.00,90.00,UN
+PROD009,Notebook,Office,Supplies,300,80,70,310,5.00,5.50,UN
+PROD010,Desk Organizer,Office,Furniture,15,6,4,17,35.00,38.00,UN 

@@ -101,6 +101,61 @@ class APIClient {
     return this.request<T>(endpoint, { method: 'DELETE' });
   }
 
+  // ============ Health Monitoring Enhancement for SOLID Analytics Integration ============
+  
+  /**
+   * Check API health endpoint
+   */
+  async checkHealth(): Promise<{ status: 'healthy' | 'degraded' | 'critical'; response?: any; error?: string }> {
+    try {
+      const response = await this.get('/health');
+      return {
+        status: response?.status === 'healthy' ? 'healthy' : 'degraded',
+        response
+      };
+    } catch (error) {
+      return {
+        status: 'critical',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Check if a specific endpoint is available
+   */
+  async checkEndpointHealth(endpoint: string): Promise<boolean> {
+    try {
+      await this.get(endpoint);
+      return true;
+    } catch (error) {
+      console.warn(`[APIClient] Endpoint ${endpoint} health check failed:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Get the base URL being used (for provider identification)
+   */
+  getBaseURL(): string {
+    return this.baseURL;
+  }
+
+  /**
+   * Get timeout configuration
+   */
+  getTimeout(): number {
+    return this.timeout;
+  }
+
+  /**
+   * Update configuration (useful for provider switching)
+   */
+  updateConfig(baseURL?: string, timeout?: number): void {
+    if (baseURL) this.baseURL = baseURL;
+    if (timeout) this.timeout = timeout;
+  }
+
   async upload<T>(endpoint: string, file: File, additionalData?: Record<string, any>): Promise<T> {
     const formData = new FormData();
     formData.append('file', file);

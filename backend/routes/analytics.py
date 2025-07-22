@@ -406,7 +406,7 @@ def get_triangle_analytics(org_id: str):
 def get_cross_reference_analytics(org_id: str):
     """Get cross-reference intelligence with document validation"""
     try:
-        from services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
+        from backend.services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
         engine = DocumentEnhancedCrossReferenceEngine()
         
         analysis = engine.process_with_documents(org_id)
@@ -430,7 +430,7 @@ def get_cross_reference_analytics(org_id: str):
 def get_supplier_performance_analytics(org_id: str):
     """Get supplier performance analytics with document validation"""
     try:
-        from services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
+        from backend.services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
         engine = DocumentEnhancedCrossReferenceEngine()
         
         analysis = engine.process_with_documents(org_id)
@@ -459,7 +459,7 @@ def get_supplier_performance_analytics(org_id: str):
 def get_market_intelligence_analytics(org_id: str):
     """Get market intelligence with document-enhanced insights"""
     try:
-        from services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
+        from backend.services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
         engine = DocumentEnhancedCrossReferenceEngine()
         
         analysis = engine.process_with_documents(org_id)

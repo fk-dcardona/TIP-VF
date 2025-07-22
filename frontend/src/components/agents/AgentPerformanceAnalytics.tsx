@@ -449,8 +449,8 @@ export function AgentPerformanceAnalytics() {
                         {agent.execution_summary?.total_executions || 0}
                       </td>
                       <td className="text-right p-2">
-                        <span className={agent.execution_summary?.success_rate >= 95 ? 'text-green-600' : 'text-yellow-600'}>
-                          {agent.execution_summary?.success_rate.toFixed(1) || '0.0'}%
+                        <span className={(agent.execution_summary?.success_rate ?? 0) >= 95 ? 'text-green-600' : 'text-yellow-600'}>
+                          {agent.execution_summary?.success_rate?.toFixed(1) || '0.0'}%
                         </span>
                       </td>
                       <td className="text-right p-2">

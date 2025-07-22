@@ -26,7 +26,7 @@ from backend.utils.error_handler import register_error_handlers
 
 # Import blueprints
 from backend.routes.upload_routes import upload_bp
-from backend.routes.analytics import analytics_bp
+from backend.routes.analytics import analytics_bp  # Re-enabled for SOLID analytics integration
 from backend.services.health_check import health_bp
 
 # Initialize logger
@@ -56,7 +56,7 @@ from backend.routes.dashboard_routes import dashboard_bp
 
 # Register blueprints
 app.register_blueprint(upload_bp, url_prefix='/api')
-app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
+app.register_blueprint(analytics_bp, url_prefix='/api/analytics')  # Re-enabled for SOLID analytics integration
 app.register_blueprint(insights_bp)
 app.register_blueprint(documents_bp)
 app.register_blueprint(health_bp, url_prefix='/api')
@@ -64,10 +64,23 @@ app.register_blueprint(agent_routes)
 app.register_blueprint(agent_api, url_prefix='/api')
 app.register_blueprint(dashboard_bp)
 
+# Analytics endpoints now served by analytics_bp blueprint with enhanced analytics engine
+from flask import jsonify
+from datetime import datetime
+
 # Create database tables
 # with app.app_context():
 #     db.create_all()
 #     logger.info("Database tables created successfully")
+
+@app.route('/api/test-deployment')
+def test_deployment():
+    """Test route to verify deployment is using updated code"""
+    return jsonify({
+        "message": "Deployment updated successfully",
+        "timestamp": datetime.utcnow().isoformat(),
+        "version": "2025-07-22-fix"
+    })
 
 @app.route('/')
 def index():

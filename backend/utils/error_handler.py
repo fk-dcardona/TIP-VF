@@ -1,7 +1,7 @@
 from flask import jsonify, request
 from werkzeug.exceptions import HTTPException
 import traceback
-from utils.logger import get_logger
+from backend.utils.logger import get_logger
 
 logger = get_logger('error_handler')
 
