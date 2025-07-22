@@ -89,6 +89,66 @@ export interface KeyMetrics {
   orderFulfillment: number;
 }
 
+// Dashboard Metrics Types
+export interface DashboardMetrics {
+  totalInventory: number;
+  totalInventoryValue: number;
+  criticalAlerts: number;
+  activeSuppliers: number;
+  orderFulfillment: number;
+  avgDeliveryTime: number;
+  documentIntelligence: {
+    totalDocuments: number;
+    validatedDocuments: number;
+    compromisedInventory: number;
+    crossReferenceScore: number;
+  };
+  triangleAnalytics: {
+    salesScore: number;
+    financialScore: number;
+    supplyChainScore: number;
+    documentScore: number;
+  };
+}
+
+export interface CrossReferenceData {
+  compromisedInventory: number;
+  crossReferenceScore: number;
+  documentValidation: {
+    total: number;
+    validated: number;
+    invalid: number;
+  };
+  alerts: Array<{
+    id: string;
+    type: string;
+    message: string;
+    priority: 'low' | 'medium' | 'high' | 'critical';
+  }>;
+}
+
+// Real-time Dashboard Analytics
+export interface RealTimeAnalyticsData {
+  metrics: DashboardMetrics;
+  charts: {
+    inventoryTrends: Array<{ date: string; value: number }>;
+    supplierPerformance: Array<{ name: string; value: number }>;
+    marketIntelligence: Array<{ category: string; value: number }>;
+  };
+  recentActivity: Array<{
+    id: string;
+    action: string;
+    timestamp: string;
+    user: string;
+  }>;
+  insights: Array<{
+    id: string;
+    type: string;
+    message: string;
+    priority: 'low' | 'medium' | 'high' | 'critical';
+  }>;
+}
+
 // Health Check Types
 export interface APIHealth {
   status: 'healthy' | 'degraded' | 'unhealthy';
