@@ -22,3 +22,6 @@ uploads/
 DEPLOYMENT_SUCCESS_LOG.md
 metrics-*.json
 post-deployment-metrics.json
+
+# Backup directory
+backups/
