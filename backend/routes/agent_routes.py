@@ -6,14 +6,14 @@ import logging
 import json
 import uuid
 
-from agent_protocol.executors.agent_executor import get_global_executor
-from agent_protocol.agents import (
+from backend.agent_protocol.executors.agent_executor import get_global_executor
+from backend.agent_protocol.agents import (
     InventoryMonitorAgent,
     SupplierEvaluatorAgent, 
     DemandForecasterAgent
 )
-from agent_protocol.agents.document_intelligence_agent import DocumentIntelligenceAgent
-from agent_protocol.core.agent_types import AgentType
+from backend.agent_protocol.agents.document_intelligence_agent import DocumentIntelligenceAgent
+from backend.agent_protocol.core.agent_types import AgentType
 from backend.utils.llm_cost_tracker import get_cost_tracker
 from models import db, Agent as AgentModel
 
