@@ -102,11 +102,11 @@ install_dependencies() {
     log "Installing dependencies..."
     
     # Clean install
-    rm -rf node_modules package-lock.json
-    npm install
+    rm -rf node_modules
+    npm install --legacy-peer-deps
     
     # Install production dependencies only
-    npm ci --only=production
+    npm ci --only=production --legacy-peer-deps
     
     success "Dependencies installed"
 }
