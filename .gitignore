@@ -12,9 +12,11 @@ uploads/
 .env.production
 .env.production.local
 .env.development.local
+.env.railway
 
 # Keep only example files
 !.env.example
+!.env.railway.example
 .vercel
 .env.test
 
