@@ -10,6 +10,8 @@ import type {
 } from '@/types';
 import { databaseService } from '@/database';
 import { processProducts } from '@/calculations';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { withRetry } from '@/utils/retry';
 
 const timeRanges: TimeRange[] = [
   { 
@@ -50,11 +52,12 @@ const timeRanges: TimeRange[] = [
 ];
 
 export const useSupplyChainData = () => {
+  const { handleError, error: errorState, canRetry, clearError } = useErrorHandler();
   const [inventoryDataset, setInventoryDataset] = useState<UploadedDataset | null>(null);
   const [salesDataset, setSalesDataset] = useState<UploadedDataset | null>(null);
   const [currentTimeRange, setCurrentTimeRange] = useState<TimeRange>(timeRanges[1]); // Default to 30 days
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   // Time-series data state
   const [allInventory, setAllInventory] = useState<InventoryData[]>([]);
@@ -67,17 +70,25 @@ export const useSupplyChainData = () => {
   // Load data from Supabase on mount
   const loadData = useCallback(async () => {
     setIsLoading(true);
-    setError(null);
+    clearError();
     try {
-      // Get all data in parallel
-      const [allInv, latestInv, salesResult, datasets, trends, discontinued] = await Promise.all([
-        databaseService.getInventoryData(),
-        databaseService.getLatestInventoryData(),
-        databaseService.getSalesData(),
-        databaseService.getDatasets(),
-        databaseService.getInventoryTrends('group', 6),
-        databaseService.getDiscontinuedProducts(3)
-      ]);
+      // Get all data in parallel with retry logic
+      const [allInv, latestInv, salesResult, datasets, trends, discontinued] = await withRetry(
+        async () => Promise.all([
+          databaseService.getInventoryData(),
+          databaseService.getLatestInventoryData(),
+          databaseService.getSalesData(),
+          databaseService.getDatasets(),
+          databaseService.getInventoryTrends('group', 6),
+          databaseService.getDiscontinuedProducts(3)
+        ]),
+        {
+          maxAttempts: 3,
+          onRetry: (attempt) => {
+            console.log(`[SupplyChainData] Retry attempt ${attempt} for loading data`);
+          }
+        }
+      );
 
       setAllInventory(allInv);
       setLatestInventory(latestInv);
@@ -115,11 +126,9 @@ export const useSupplyChainData = () => {
         recordCount: Array.isArray(salesResult) ? salesResult.length : salesResult.data?.length || 0
       });
 
-      setError(null);
       setIsLoading(false);
     } catch (err) {
-      console.error('Error loading data from Supabase:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load data from database');
+      handleError(err);
       setInventoryDataset(null);
       setSalesDataset(null);
       setAllInventory([]);
@@ -128,8 +137,9 @@ export const useSupplyChainData = () => {
       setDiscontinuedProducts([]);
       setSelectedPeriod(undefined);
       setIsLoading(false);
+      setIsRetrying(false);
     }
-  }, []);
+  }, [clearError, handleError]);
 
   useEffect(() => {
     loadData();
@@ -151,22 +161,24 @@ export const useSupplyChainData = () => {
     if (!allInventory.length || !salesData.length) return [];
     try {
       return processProducts(allInventory, allInventory, salesData, currentTimeRange);
-    } catch {
-      setError('Failed to process product data');
+    } catch (error) {
+      console.error('Failed to process product data:', error);
+      handleError(new Error('Failed to process product data'));
       return [];
     }
-  }, [allInventory, salesData, currentTimeRange]);
+  }, [allInventory, salesData, currentTimeRange, handleError]);
 
   // Products for alerts/KPIs (latest period only)
   const productsLatestPeriod = useMemo((): ProcessedProduct[] => {
     if (!latestInventory.length || !salesData.length) return [];
     try {
       return processProducts(latestInventory, allInventory, salesData, currentTimeRange);
-    } catch {
-      setError('Failed to process product data');
+    } catch (error) {
+      console.error('Failed to process latest product data:', error);
+      handleError(new Error('Failed to process latest product data'));
       return [];
     }
-  }, [latestInventory, allInventory, salesData, currentTimeRange]);
+  }, [latestInventory, allInventory, salesData, currentTimeRange, handleError]);
 
   // Products for selected period
   const productsSelectedPeriod = useMemo((): ProcessedProduct[] => {
@@ -174,17 +186,21 @@ export const useSupplyChainData = () => {
     try {
       const periodInventory = allInventory.filter(item => item.period === selectedPeriod);
       return processProducts(periodInventory, allInventory, salesData, currentTimeRange);
-    } catch {
-      setError('Failed to process product data for selected period');
+    } catch (error) {
+      console.error('Failed to process product data for selected period:', error);
+      handleError(new Error('Failed to process product data for selected period'));
       return [];
     }
-  }, [selectedPeriod, allInventory, salesData, currentTimeRange, productsLatestPeriod]);
+  }, [selectedPeriod, allInventory, salesData, currentTimeRange, productsLatestPeriod, handleError]);
 
   const hasData = allInventory.length > 0 && salesDataset;
 
   const refreshData = useCallback(() => {
-    loadData();
-  }, [loadData]);
+    if (!isRetrying) {
+      setIsRetrying(true);
+      loadData();
+    }
+  }, [loadData, isRetrying]);
 
   return {
     // Data
@@ -207,8 +223,10 @@ export const useSupplyChainData = () => {
     // State
     hasData,
     isLoading,
-    error,
+    error: errorState?.message || null,
     refreshData,
+    isRetrying,
+    retry: refreshData,
     
     // Available periods
     availablePeriods: useMemo(() => {

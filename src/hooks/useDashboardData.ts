@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { RealTimeAnalyticsData, CrossReferenceData } from '@/types/api';
 import { analyticsService } from '@/services/analytics-service';
 import { useOrganization } from './useOrganization';
+import { useErrorHandler } from './useErrorHandler';
 
 interface UseDashboardDataReturn {
   analyticsData: RealTimeAnalyticsData | null;
@@ -15,15 +16,18 @@ interface UseDashboardDataReturn {
   error: string | null;
   lastUpdate: Date;
   refetch: () => void;
+  isRetrying: boolean;
+  retry: () => void;
 }
 
 export function useDashboardData(): UseDashboardDataReturn {
   const { orgId, isLoaded: orgLoaded } = useOrganization();
+  const { handleError, error: errorState, canRetry, clearError } = useErrorHandler();
   const [analyticsData, setAnalyticsData] = useState<RealTimeAnalyticsData | null>(null);
   const [crossReferenceData, setCrossReferenceData] = useState<CrossReferenceData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [isRetrying, setIsRetrying] = useState(false);
 
   const fetchData = useCallback(async () => {
     // Wait for organization ID to be loaded
@@ -33,7 +37,7 @@ export function useDashboardData(): UseDashboardDataReturn {
 
     try {
       setLoading(true);
-      setError(null);
+      clearError();
       
       // Fetch dashboard analytics
       const dashboardData = await analyticsService.getDashboardAnalytics(orgId);
@@ -45,12 +49,12 @@ export function useDashboardData(): UseDashboardDataReturn {
       
       setLastUpdate(new Date());
     } catch (err) {
-      console.error('Error fetching dashboard data:', err);
-      setError('Failed to load dashboard data');
+      handleError(err);
     } finally {
       setLoading(false);
+      setIsRetrying(false);
     }
-  }, [orgId, orgLoaded]);
+  }, [orgId, orgLoaded, handleError, clearError]);
 
   // Fetch data on mount and set up refresh interval
   useEffect(() => {
@@ -62,12 +66,21 @@ export function useDashboardData(): UseDashboardDataReturn {
     return () => clearInterval(interval);
   }, [fetchData]);
 
+  const retry = useCallback(() => {
+    if (canRetry && !isRetrying) {
+      setIsRetrying(true);
+      fetchData();
+    }
+  }, [canRetry, isRetrying, fetchData]);
+
   return {
     analyticsData,
     crossReferenceData,
     loading,
-    error,
+    error: errorState?.message || null,
     lastUpdate,
-    refetch: fetchData
+    refetch: fetchData,
+    isRetrying,
+    retry
   };
 } 

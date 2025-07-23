@@ -5,6 +5,7 @@
 
 import { apiClient } from '@/lib/api-client';
 import { RealTimeAnalyticsData, DashboardMetrics, CrossReferenceData } from '@/types/api';
+import { withRetry } from '@/utils/retry';
 
 export interface AnalyticsServiceInterface {
   getDashboardAnalytics(orgId: string): Promise<RealTimeAnalyticsData>;
@@ -20,7 +21,7 @@ export class AnalyticsService implements AnalyticsServiceInterface {
    * Single responsibility: Data fetching for dashboard
    */
   async getDashboardAnalytics(orgId: string): Promise<RealTimeAnalyticsData> {
-    try {
+    return withRetry(async () => {
       console.log('[AnalyticsService] Fetching real dashboard analytics for:', orgId);
       const response = await apiClient.getDashboardAnalytics(orgId);
       
@@ -38,14 +39,19 @@ export class AnalyticsService implements AnalyticsServiceInterface {
         }
         throw new Error('No data received from API');
       }
-    } catch (error) {
-      console.error('Error fetching dashboard analytics:', error);
+    }, {
+      maxAttempts: 3,
+      onRetry: (attempt, error) => {
+        console.warn(`[AnalyticsService] Retry attempt ${attempt} for dashboard analytics:`, error);
+      }
+    }).catch(error => {
+      console.error('Error fetching dashboard analytics after retries:', error);
       // Only return demo data if explicitly in demo mode
       if (process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE === 'true') {
         return this.createDemoAnalyticsData();
       }
       throw error;
-    }
+    });
   }
 
   /**

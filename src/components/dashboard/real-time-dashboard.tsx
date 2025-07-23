@@ -30,53 +30,73 @@ import {
   Activity,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Clock,
+  RefreshCw,
+  WifiOff
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // Import our sub-components
 import { MetricsGrid } from './metrics-grid';
 import { TriangleAnalytics } from './triangle-analytics';
 import { ChartsGrid } from './charts-grid';
 import { DocumentIntelligence } from './document-intelligence';
+import { DashboardSkeleton } from './LoadingSkeletons';
 
 interface RealTimeDashboardProps {
   className?: string;
 }
 
 export const RealTimeDashboard: React.FC<RealTimeDashboardProps> = ({ className }) => {
-  const { analyticsData, crossReferenceData, loading, error, lastUpdate, refetch } = useDashboardData();
+  const { 
+    analyticsData, 
+    crossReferenceData, 
+    loading, 
+    error, 
+    lastUpdate, 
+    refetch,
+    isRetrying,
+    retry
+  } = useDashboardData();
   const breathing = useBreathing();
   const [activeTab, setActiveTab] = useState('overview');
 
-  if (loading) {
-    return (
-      <div className={`space-y-6 ${className}`}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="pb-2">
-                <Skeleton className="h-4 w-24" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-16 mb-2" />
-                <Skeleton className="h-3 w-32" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        <Skeleton className="h-64 w-full" />
-      </div>
-    );
+  if (loading && !analyticsData) {
+    return <DashboardSkeleton />;
   }
 
-  if (error) {
+  if (error && !analyticsData) {
     return (
-      <Alert variant="destructive" className={className}>
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>
-          Error loading dashboard data: {error}
-        </AlertDescription>
-      </Alert>
+      <div className={`space-y-4 ${className}`}>
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>{error}</span>
+            {!navigator.onLine && (
+              <Badge variant="secondary" className="ml-2">
+                <WifiOff className="w-3 h-3 mr-1" />
+                Offline
+              </Badge>
+            )}
+          </AlertDescription>
+        </Alert>
+        <div className="flex gap-2">
+          <Button 
+            onClick={retry} 
+            disabled={isRetrying}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRetrying ? 'animate-spin' : ''}`} />
+            {isRetrying ? 'Retrying...' : 'Try Again'}
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => window.location.href = '/dashboard'}
+          >
+            Go to Dashboard
+          </Button>
+        </div>
+      </div>
     );
   }
 
@@ -112,15 +132,43 @@ export const RealTimeDashboard: React.FC<RealTimeDashboardProps> = ({ className 
               animate={breathing}
               className="flex items-center space-x-1"
             >
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-sm text-muted-foreground">Live</span>
+              <div className={`w-2 h-2 ${error ? 'bg-orange-500' : 'bg-green-500'} rounded-full animate-pulse`} />
+              <span className="text-sm text-muted-foreground">{error ? 'Limited' : 'Live'}</span>
             </motion.div>
             <Badge variant="secondary">
               <Clock className="w-3 h-3 mr-1" />
               Updated {lastUpdate.toLocaleTimeString()}
             </Badge>
+            {isRetrying && (
+              <Badge variant="outline">
+                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                Retrying...
+              </Badge>
+            )}
           </div>
         </motion.div>
+
+        {/* Error Banner when we have cached data */}
+        {error && analyticsData && (
+          <Alert variant="destructive" className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                {error} - Showing cached data
+              </AlertDescription>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={retry}
+              disabled={isRetrying}
+              className="ml-4"
+            >
+              <RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
+              Retry
+            </Button>
+          </Alert>
+        )}
 
         {/* Key Performance Indicators */}
         <Card>
