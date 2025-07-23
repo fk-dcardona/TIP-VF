@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ArrowUpDown, ArrowUp, ArrowDown, Search, ExternalLink } from 'lucide-react';
 import type { ProcessedProduct } from '@/types';
-import { InfoModal } from '@/components/UI/InfoModal';
+import { InfoModal } from '@/UI/InfoModal';
 
 interface ProductTableProps {
   products: ProcessedProduct[];

@@ -7,7 +7,7 @@ from typing import Dict, Any, List, Optional, Union
 from .llm_client import LLMClient, LLMResponse
 from .openai_client import OpenAIClient
 from .anthropic_client import AnthropicClient
-from config.llm_settings import LLMSettings
+from backend.config.llm_settings import LLMSettings
 
 
 class MockLLMClient(LLMClient):

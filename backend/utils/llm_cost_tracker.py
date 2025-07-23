@@ -15,8 +15,8 @@ from pathlib import Path
 import threading
 from collections import defaultdict
 
-from config.llm_settings import LLMSettings
-from config.settings import settings
+from backend.config.llm_settings import LLMSettings
+from backend.config.settings import settings
 
 
 class LLMCostTracker:

@@ -10,14 +10,14 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
-  AnalyticsResponse,
-  TriangleAnalyticsData,
-  CrossReferenceData,
+  AnalyticsData,
+  InventoryData,
+  SalesData,
   SupplierData,
-  MarketData,
+  CrossReferenceData,
   AnalyticsHealthStatus
 } from '../types/analytics-solid';
-import { getAnalyticsServiceInstance } from '../services/analytics/AnalyticsServiceFactory';
+import { SolidAnalyticsService } from '../services/analytics/SolidAnalyticsService';
 
 // ==================== Hook State Management ====================
 
@@ -38,46 +38,46 @@ interface AnalyticsHookReturn<T> extends AnalyticsState<T> {
 // ==================== Individual Analytics Hooks ====================
 
 /**
- * Hook for Triangle Analytics with automatic self-repair
+ * Hook for Inventory Analytics
  */
-export function useTriangleAnalytics(orgId: string): AnalyticsHookReturn<TriangleAnalyticsData> {
-  return useAnalyticsData<TriangleAnalyticsData>(
+export function useInventoryAnalytics(orgId: string): AnalyticsHookReturn<InventoryData> {
+  return useAnalyticsData<InventoryData>(
     orgId,
-    'triangle',
-    (service, id) => service.getTriangleAnalytics(id)
+    'inventory',
+    (service, id) => service.getInventoryData(id)
   );
 }
 
 /**
- * Hook for Cross-Reference Analytics with automatic self-repair
+ * Hook for Sales Analytics
+ */
+export function useSalesAnalytics(orgId: string): AnalyticsHookReturn<SalesData> {
+  return useAnalyticsData<SalesData>(
+    orgId,
+    'sales',
+    (service, id) => service.getSalesData(id)
+  );
+}
+
+/**
+ * Hook for Supplier Analytics with product relationships
+ */
+export function useSupplierAnalytics(orgId: string): AnalyticsHookReturn<SupplierData[]> {
+  return useAnalyticsData<SupplierData[]>(
+    orgId,
+    'supplier',
+    (service, id) => service.getSupplierData(id)
+  );
+}
+
+/**
+ * Hook for Cross-Reference Analytics
  */
 export function useCrossReferenceAnalytics(orgId: string): AnalyticsHookReturn<CrossReferenceData> {
   return useAnalyticsData<CrossReferenceData>(
     orgId,
     'cross-reference',
-    (service, id) => service.getCrossReferenceAnalytics(id)
-  );
-}
-
-/**
- * Hook for Supplier Analytics with automatic self-repair
- */
-export function useSupplierAnalytics(orgId: string): AnalyticsHookReturn<SupplierData> {
-  return useAnalyticsData<SupplierData>(
-    orgId,
-    'supplier',
-    (service, id) => service.getSupplierAnalytics(id)
-  );
-}
-
-/**
- * Hook for Market Intelligence with automatic self-repair
- */
-export function useMarketAnalytics(orgId: string): AnalyticsHookReturn<MarketData> {
-  return useAnalyticsData<MarketData>(
-    orgId,
-    'market',
-    (service, id) => service.getMarketAnalytics(id)
+    (service, id) => service.getCrossReferenceData(id)
   );
 }
 
@@ -95,19 +95,17 @@ export function useAnalyticsHealth(): {
   const [health, setHealth] = useState<AnalyticsHealthStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const serviceRef = useRef(getAnalyticsServiceInstance());
+  const serviceRef = useRef(new SolidAnalyticsService());
 
   const refreshHealth = useCallback(async () => {
     setLoading(true);
     setError(null);
-
+    
     try {
       const healthStatus = await serviceRef.current.getHealthStatus();
       setHealth(healthStatus);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch health status';
-      setError(errorMessage);
-      console.error('[useAnalyticsHealth] Error fetching health status:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch health status');
     } finally {
       setLoading(false);
     }
@@ -115,11 +113,11 @@ export function useAnalyticsHealth(): {
 
   useEffect(() => {
     refreshHealth();
+  
     
-    // Set up periodic health checks
-    const interval = setInterval(refreshHealth, 30000); // Every 30 seconds
-    
-    return () => clearInterval(interval);
+    return () => {
+      // Cleanup function
+    };
   }, [refreshHealth]);
 
   return { health, loading, error, refreshHealth };
@@ -128,41 +126,41 @@ export function useAnalyticsHealth(): {
 // ==================== Comprehensive Analytics Hook ====================
 
 /**
- * Hook that fetches all analytics data types for comprehensive dashboards
+ * Hook for all analytics data with automatic self-repair
  */
 export function useAllAnalytics(orgId: string): {
-  triangle: AnalyticsHookReturn<TriangleAnalyticsData>;
+  inventory: AnalyticsHookReturn<InventoryData>;
+  sales: AnalyticsHookReturn<SalesData>;
+  supplier: AnalyticsHookReturn<SupplierData[]>;
   crossReference: AnalyticsHookReturn<CrossReferenceData>;
-  supplier: AnalyticsHookReturn<SupplierData>;
-  market: AnalyticsHookReturn<MarketData>;
   health: AnalyticsHealthStatus | null;
   overallLoading: boolean;
   anyError: boolean;
   refetchAll: () => Promise<void>;
 } {
-  const triangle = useTriangleAnalytics(orgId);
-  const crossReference = useCrossReferenceAnalytics(orgId);
+  const inventory = useInventoryAnalytics(orgId);
+  const sales = useSalesAnalytics(orgId);
   const supplier = useSupplierAnalytics(orgId);
-  const market = useMarketAnalytics(orgId);
+  const crossReference = useCrossReferenceAnalytics(orgId);
   const { health } = useAnalyticsHealth();
 
-  const overallLoading = triangle.loading || crossReference.loading || supplier.loading || market.loading;
-  const anyError = !!(triangle.error || crossReference.error || supplier.error || market.error);
+  const overallLoading = inventory.loading || sales.loading || supplier.loading || crossReference.loading;
+  const anyError = !!(inventory.error || sales.error || supplier.error || crossReference.error);
 
   const refetchAll = useCallback(async () => {
     await Promise.all([
-      triangle.refetch(),
-      crossReference.refetch(),
+      inventory.refetch(),
+      sales.refetch(),
       supplier.refetch(),
-      market.refetch()
+      crossReference.refetch()
     ]);
-  }, [triangle, crossReference, supplier, market]);
+  }, [inventory, sales, supplier, crossReference]);
 
   return {
-    triangle,
-    crossReference,
+    inventory,
+    sales,
     supplier,
-    market,
+    crossReference,
     health,
     overallLoading,
     anyError,
@@ -170,15 +168,12 @@ export function useAllAnalytics(orgId: string): {
   };
 }
 
-// ==================== Core Hook Implementation ====================
+// ==================== Generic Analytics Data Hook ====================
 
-/**
- * Generic analytics data hook with self-repair capabilities
- */
 function useAnalyticsData<T>(
   orgId: string,
   dataType: string,
-  fetcher: (service: any, orgId: string) => Promise<AnalyticsResponse<T>>
+  fetcher: (service: SolidAnalyticsService, orgId: string) => Promise<T>
 ): AnalyticsHookReturn<T> {
   const [state, setState] = useState<AnalyticsState<T>>({
     data: null,
@@ -189,74 +184,47 @@ function useAnalyticsData<T>(
     provider: null
   });
 
-  const serviceRef = useRef(getAnalyticsServiceInstance());
-  const fetchInProgressRef = useRef(false);
+  const serviceRef = useRef(new SolidAnalyticsService());
 
   const fetchData = useCallback(async () => {
-    // Prevent concurrent fetches
-    if (fetchInProgressRef.current) {
-      return;
-    }
-
-    fetchInProgressRef.current = true;
     setState(prev => ({ ...prev, loading: true, error: null }));
-
+    
     try {
-      const response = await fetcher(serviceRef.current, orgId);
+      const data = await fetcher(serviceRef.current, orgId);
+      const healthStatus = await serviceRef.current.getHealthStatus();
       
-      if (response.success && response.data) {
-        setState(prev => ({
-          ...prev,
-          data: response.data!,
-          loading: false,
-          error: null,
-          lastFetch: new Date(),
-          fallbackUsed: response.fallback_used,
-          provider: response.provider
-        }));
-
-        // Log self-repair activity
-        if (response.fallback_used) {
-          console.warn(`[useSolidAnalytics] ${dataType} using fallback provider: ${response.provider}`);
-        } else {
-          console.info(`[useSolidAnalytics] ${dataType} fetched successfully from: ${response.provider}`);
-        }
-      } else {
-        setState(prev => ({
-          ...prev,
-          loading: false,
-          error: response.error || `Failed to fetch ${dataType} analytics`,
-          lastFetch: new Date(),
-          fallbackUsed: response.fallback_used,
-          provider: response.provider
-        }));
-      }
+      setState({
+        data,
+        loading: false,
+        error: null,
+        lastFetch: new Date(),
+        fallbackUsed: healthStatus.fallback_active,
+        provider: healthStatus.overall_health === 'healthy' ? 'Primary' : 'Fallback'
+      });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : `Unknown error fetching ${dataType}`;
       setState(prev => ({
         ...prev,
         loading: false,
-        error: errorMessage,
+        error: error instanceof Error ? error.message : 'Unknown error',
         lastFetch: new Date(),
-        fallbackUsed: false,
-        provider: null
+        fallbackUsed: true,
+        provider: 'Fallback'
       }));
-      console.error(`[useSolidAnalytics] Error fetching ${dataType}:`, error);
-    } finally {
-      fetchInProgressRef.current = false;
     }
-  }, [orgId, dataType, fetcher]);
+  }, [orgId, fetcher]);
 
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }));
   }, []);
 
-  // Auto-fetch on mount and orgId change
   useEffect(() => {
-    if (orgId) {
-      fetchData();
-    }
-  }, [orgId, fetchData]);
+    fetchData();
+  
+    
+    return () => {
+      // Cleanup function
+    };
+  }, [fetchData]);
 
   return {
     ...state,
@@ -265,33 +233,18 @@ function useAnalyticsData<T>(
   };
 }
 
-// ==================== Utility Hooks ====================
+// ==================== Fallback Status Hook ====================
 
-/**
- * Hook for checking if analytics system is using fallback providers
- */
 export function useAnalyticsFallbackStatus(orgId: string): {
   isUsingFallback: boolean;
-  providers: Record<string, boolean>;
+  providers: Record<string, 'online' | 'offline' | 'degraded'>;
   systemHealth: 'healthy' | 'degraded' | 'critical';
 } {
   const { health } = useAnalyticsHealth();
-  const triangle = useTriangleAnalytics(orgId);
-  const crossReference = useCrossReferenceAnalytics(orgId);
-  const supplier = useSupplierAnalytics(orgId);
-  const market = useMarketAnalytics(orgId);
-
-  const isUsingFallback = triangle.fallbackUsed || crossReference.fallbackUsed || 
-                         supplier.fallbackUsed || market.fallbackUsed;
-
-  const providers = {
-    triangle: triangle.fallbackUsed,
-    crossReference: crossReference.fallbackUsed,
-    supplier: supplier.fallbackUsed,
-    market: market.fallbackUsed
+  
+  return {
+    isUsingFallback: health?.fallback_active || false,
+    providers: health?.provider_status || {},
+    systemHealth: health?.overall_health || 'critical'
   };
-
-  const systemHealth = health?.overall_health || 'healthy';
-
-  return { isUsingFallback, providers, systemHealth };
 }

@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Filter, Download, Star, TrendingDown, Eye, ChevronDown, MoreHorizontal } from 'lucide-react';
-import { AdvancedFilters } from '@/components/UI/AdvancedFilters';
+import { AdvancedFilters } from '@/UI/AdvancedFilters';
 import type { ProcessedProduct } from '@/types';
-import { generateCSVFromData } from '@/utils/csvProcessor';
+import { generateCSVFromData } from '@/csvProcessor';
 
 interface EnhancedProductTableProps {
   products: ProcessedProduct[];

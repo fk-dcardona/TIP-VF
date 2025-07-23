@@ -15,7 +15,7 @@ from agent_protocol.monitoring.metrics_collector import get_metrics_collector
 from agent_protocol.monitoring.health_checker import HealthChecker
 from agent_protocol.security.permissions import get_permission_manager
 from agent_protocol.mcp.mcp_server import get_mcp_server
-from config.llm_settings import get_llm_config
+from backend.config.llm_settings import get_llm_config
 
 
 class ComprehensiveAgentTester:

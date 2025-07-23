@@ -6,6 +6,10 @@
 // ==================== Interface Segregation Principle ====================
 // Separate interfaces for different analytics concerns
 
+import type { CrossReferenceData } from './api';
+
+export type { CrossReferenceData };
+
 export interface IAnalyticsDataProvider {
   isAvailable(): Promise<boolean>;
   getProviderName(): string;
@@ -46,40 +50,51 @@ export interface TriangleAnalyticsData {
   timestamp: string;
 }
 
-export interface CrossReferenceData {
-  document_compliance: number;
-  inventory_accuracy: number;
-  cost_variance: number;
-  compromised_inventory: {
-    total_items: number;
-    compromised_count: number;
-    compromised_percentage: number;
-  };
-  discrepancies: Array<{
-    type: string;
-    count: number;
-    severity: 'low' | 'medium' | 'high' | 'critical';
-  }>;
-  timestamp: string;
+// CrossReferenceData interface is defined in api.ts to avoid duplication
+
+export interface SupplierProduct {
+  product_code: string;
+  product_name: string;
+  average_lead_time_days: number;
+  last_delivery_date: string;
+  on_time_delivery_rate: number;
+  average_cost: number;
+  total_supplied: number;
 }
 
 export interface SupplierData {
-  suppliers: Array<{
-    id: string;
-    name: string;
-    health_score: number;
-    delivery_performance: number;
-    quality_score: number;
-    cost_efficiency: number;
-    risk_level: 'low' | 'medium' | 'high' | 'critical';
-  }>;
-  average_performance: {
-    health_score: number;
-    delivery_performance: number;
-    quality_score: number;
-    cost_efficiency: number;
+  supplier_id: string;
+  supplier_name: string;
+  health_score: number;
+  delivery_performance: number;
+  quality_score: number;
+  cost_efficiency: number;
+  risk_level: 'low' | 'medium' | 'high' | 'critical';
+  products_supplied: SupplierProduct[];
+  total_spend: number;
+  average_lead_time: number;
+  on_time_delivery_rate: number;
+  quality_rating: number;
+  last_order_date: string;
+  next_expected_delivery: string;
+  payment_terms: string;
+  contact_info: {
+    email: string;
+    phone: string;
+    address: string;
   };
-  timestamp: string;
+  performance_metrics: {
+    cost_variance: number;
+    delivery_variance: number;
+    quality_issues: number;
+    communication_score: number;
+  };
+  risk_factors: {
+    financial_stability: number;
+    geographic_risk: number;
+    capacity_constraints: number;
+    dependency_level: number;
+  };
 }
 
 export interface MarketData {
@@ -98,6 +113,73 @@ export interface MarketData {
     price_trends: string;
     technology_adoption: string;
   };
+  timestamp: string;
+}
+
+// ==================== Enhanced Analytics Data Interfaces ====================
+
+export interface InventoryData {
+  total_items: number;
+  low_stock_items: number;
+  out_of_stock_items: number;
+  high_value_items: number;
+  average_stock_level: number;
+  stock_turnover_rate: number;
+  inventory_value: number;
+  reorder_alerts: number;
+  items_by_category: Array<{
+    category: string;
+    count: number;
+    value: number;
+  }>;
+  stock_levels: Array<{
+    product_code: string;
+    product_name: string;
+    current_stock: number;
+    reorder_point: number;
+    max_stock: number;
+  }>;
+  recent_movements: Array<{
+    product_code: string;
+    movement_type: 'in' | 'out';
+    quantity: number;
+    date: string;
+  }>;
+}
+
+export interface SalesData {
+  total_revenue: number;
+  total_orders: number;
+  average_order_value: number;
+  conversion_rate: number;
+  top_selling_products: Array<{
+    product_code: string;
+    product_name: string;
+    units_sold: number;
+    revenue: number;
+  }>;
+  sales_by_category: Array<{
+    category: string;
+    revenue: number;
+    units: number;
+  }>;
+  monthly_trends: Array<{
+    month: string;
+    revenue: number;
+    orders: number;
+  }>;
+  customer_segments: Array<{
+    segment: string;
+    revenue: number;
+    customers: number;
+  }>;
+}
+
+export interface AnalyticsData {
+  inventory: InventoryData;
+  sales: SalesData;
+  suppliers: SupplierData[];
+  crossReference: CrossReferenceData;
   timestamp: string;
 }
 

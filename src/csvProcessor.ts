@@ -1,5 +1,51 @@
 import Papa from 'papaparse';
-import type { InventoryData, SalesData, CSVValidationResult } from '@/types';
+import type { CSVValidationResult } from '@/types';
+
+// Legacy inventory data interface for CSV processing
+interface LegacyInventoryData {
+  k_sc_codigo_articulo: string;
+  sc_detalle_articulo: string;
+  sc_detalle_grupo: string;
+  sc_detalle_subgrupo: string;
+  period: string;
+  n_saldo_anterior: number;
+  n_entradas: number;
+  n_salidas: number;
+  n_saldo_actual: number;
+  n_costo_promedio: number;
+  n_ultimo_costo: number;
+  sc_tipo_unidad: string;
+}
+
+// Legacy sales data interface for CSV processing
+interface LegacySalesData {
+  k_sc_codigo_fuente: string;
+  n_numero_documento: number;
+  ka_nl_movimiento: string;
+  d_fecha_documento: string;
+  sc_nombre: string;
+  n_nit: number;
+  sc_telefono_ppal: string;
+  sc_telefono_alterno: string;
+  sc_nombre_fuente: string;
+  MARCA: string;
+  k_sc_codigo_articulo: string;
+  sc_detalle_articulo: string;
+  n_cantidad: number;
+  n_valor: number;
+  v_bruta: number;
+  'V. BRUTA': number;
+  n_iva: number;
+  n_descuento: number;
+  DESCUENTO: number;
+  v_neta: number;
+  'V. NETA': number;
+  sc_detalle_grupo: string;
+  sc_signo_inventario: string;
+  zona: string;
+  ka_nl_tercero: string;
+  nombre_vendedor: string;
+}
 
 const INVENTORY_REQUIRED_COLUMNS = [
   'k_sc_codigo_articulo',
@@ -345,7 +391,7 @@ export const validateSalesCSV = (data: Record<string, unknown>[]): CSVValidation
   };
 };
 
-export const processInventoryData = (rawData: Record<string, unknown>[]): InventoryData[] => {
+export const processInventoryData = (rawData: Record<string, unknown>[]): LegacyInventoryData[] => {
   // Use new helpers
   const parseNumericValue = parseLocaleNumber;
 
@@ -399,7 +445,7 @@ export const processInventoryData = (rawData: Record<string, unknown>[]): Invent
 
   // Deduplicate by (k_sc_codigo_articulo, period)
   const seen = new Set<string>();
-  const deduped: InventoryData[] = [];
+  const deduped: LegacyInventoryData[] = [];
 
   for (const row of rawData) {
     const productCode = String(row.k_sc_codigo_articulo || '').trim();
@@ -426,7 +472,7 @@ export const processInventoryData = (rawData: Record<string, unknown>[]): Invent
   return deduped;
 };
 
-export const processSalesData = (rawData: Record<string, unknown>[]): SalesData[] => {
+export const processSalesData = (rawData: Record<string, unknown>[]): LegacySalesData[] => {
   // Use shared numeric parser
   const parseNumericValue = parseLocaleNumber;
 

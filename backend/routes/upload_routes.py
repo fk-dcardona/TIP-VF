@@ -6,326 +6,290 @@ from datetime import datetime
 import json
 from models import db, Upload, ProcessedData
 from supply_chain_engine import SupplyChainAnalyticsEngine
-from agent_protocol.executors.agent_executor import AgentExecutor
-from agent_protocol.agents.inventory_agent import InventoryMonitorAgent
-from agent_protocol.core.agent_types import AgentType
-from services.unified_document_intelligence_service import unified_document_intelligence
+from flask_cors import cross_origin
+import logging
 
 upload_bp = Blueprint('upload', __name__)
+logger = logging.getLogger(__name__)
 
 ALLOWED_EXTENSIONS = {'csv', 'xlsx', 'xls', 'pdf', 'png', 'jpg', 'jpeg'}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
+# CSV type detection - Enhanced from analytics dashboard
+INVENTORY_REQUIRED_COLUMNS = [
+    'k_sc_codigo_articulo', 'sc_detalle_articulo', 'sc_detalle_grupo',
+    'n_saldo_actual', 'n_costo_promedio'
+]
+
+SALES_REQUIRED_COLUMNS = [
+    'k_sc_codigo_articulo', 'sc_detalle_articulo', 'd_fecha_documento',
+    'n_cantidad', 'n_valor'
+]
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@upload_bp.route('/upload', methods=['POST'])
-def upload_file():
-    """Handle file upload"""
+def detect_csv_type(df):
+    """Detect if CSV is inventory, sales, or mixed based on columns"""
+    columns = [col.lower().strip() for col in df.columns]
+    
+    # Check for inventory columns
+    inventory_matches = sum(1 for col in INVENTORY_REQUIRED_COLUMNS if any(col.lower() in c for c in columns))
+    
+    # Check for sales columns  
+    sales_matches = sum(1 for col in SALES_REQUIRED_COLUMNS if any(col.lower() in c for c in columns))
+    
+    if inventory_matches >= 3 and sales_matches >= 3:
+        return 'mixed'
+    elif inventory_matches >= 3:
+        return 'inventory'
+    elif sales_matches >= 3:
+        return 'sales'
+    else:
+        return 'unknown'
+
+def validate_csv_data(df, csv_type):
+    """Validate CSV data using analytics dashboard logic"""
+    errors = []
+    warnings = []
+    
+    if csv_type == 'inventory':
+        # Check required inventory columns
+        missing_cols = [col for col in INVENTORY_REQUIRED_COLUMNS if col not in df.columns]
+        if missing_cols:
+            errors.append(f"Missing required columns: {', '.join(missing_cols)}")
+            
+        # Validate numeric columns
+        if 'n_saldo_actual' in df.columns:
+            non_numeric = df[~pd.to_numeric(df['n_saldo_actual'], errors='coerce').notna()]
+            if not non_numeric.empty:
+                warnings.append(f"Non-numeric values found in current stock column")
+                
+    elif csv_type == 'sales':
+        # Check required sales columns
+        missing_cols = [col for col in SALES_REQUIRED_COLUMNS if col not in df.columns]
+        if missing_cols:
+            errors.append(f"Missing required columns: {', '.join(missing_cols)}")
+            
+        # Validate date format
+        if 'd_fecha_documento' in df.columns:
+            try:
+                pd.to_datetime(df['d_fecha_documento'].dropna(), errors='coerce')
+            except:
+                warnings.append("Some dates may not be in the correct format")
+    
+    return {
+        'is_valid': len(errors) == 0,
+        'errors': errors,
+        'warnings': warnings,
+        'row_count': len(df),
+        'column_count': len(df.columns)
+    }
+
+@upload_bp.route('/csv/validate', methods=['POST'])
+@cross_origin()
+def validate_csv():
+    """Validate CSV data before processing - Enhanced from analytics dashboard"""
     try:
-        # Check if file is in request
         if 'file' not in request.files:
             return jsonify({'error': 'No file provided'}), 400
         
         file = request.files['file']
+        csv_type = request.form.get('csv_type', 'auto')
+        
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        if not file.filename.lower().endswith('.csv'):
+            return jsonify({'error': 'Only CSV files are supported for validation'}), 400
+        
+        # Read CSV
+        df = pd.read_csv(file)
+        
+        # Auto-detect type if needed
+        if csv_type == 'auto':
+            csv_type = detect_csv_type(df)
+        
+        # Validate
+        validation = validate_csv_data(df, csv_type)
+        
+        # Generate preview
+        preview = df.head(10).to_dict(orient='records')
+        
+        return jsonify({
+            'success': True,
+            'csv_type': csv_type,
+            'validation': validation,
+            'preview': preview,
+            'columns': list(df.columns),
+            'row_count': len(df),
+            'column_count': len(df.columns)
+        })
+        
+    except Exception as e:
+        logger.error(f"CSV validation error: {str(e)}")
+        return jsonify({'error': f'Validation failed: {str(e)}'}), 500
+
+@upload_bp.route('/csv/process', methods=['POST'])
+@cross_origin()
+def process_csv_analytics():
+    """Process CSV files specifically for analytics dashboard integration"""
+    try:
         org_id = request.form.get('org_id')
-        user_id = request.form.get('user_id', 'anonymous')  # Optional user ID
+        user_id = request.form.get('user_id', 'csv_user')
         
         if not org_id:
             return jsonify({'error': 'Organization ID is required'}), 400
         
-        # Check if file is selected
-        if file.filename == '':
-            return jsonify({'error': 'No file selected'}), 400
+        # Handle inventory and sales files
+        inventory_file = request.files.get('inventory_file')
+        sales_file = request.files.get('sales_file')
         
-        # Check file extension
-        if not allowed_file(file.filename):
-            return jsonify({'error': 'Invalid file type. Supported: CSV, Excel, PDF, PNG, JPG'}), 400
+        if not inventory_file and not sales_file:
+            return jsonify({'error': 'At least one CSV file (inventory or sales) is required'}), 400
         
-        # Check file size
-        file.seek(0, os.SEEK_END)
-        file_size = file.tell()
-        file.seek(0)
+        # Process files
+        combined_data = None
         
-        if file_size > MAX_FILE_SIZE:
-            return jsonify({'error': 'File too large. Maximum size is 50MB'}), 400
+        if inventory_file and sales_file:
+            # Process both files
+            inventory_df = pd.read_csv(inventory_file)
+            sales_df = pd.read_csv(sales_file)
+            
+            # Merge data for analytics (simplified)
+            # This would be enhanced with proper data merging logic
+            combined_data = inventory_df  # Placeholder
+            
+        elif inventory_file:
+            # Process inventory only
+            combined_data = pd.read_csv(inventory_file)
+            
+        elif sales_file:
+            # Process sales only  
+            combined_data = pd.read_csv(sales_file)
         
-        # Save file
-        filename = secure_filename(file.filename)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        unique_filename = f"{timestamp}_{filename}"
+        # Normalize data for analytics engine
+        normalized_data = normalize_csv_for_analytics(combined_data)
         
-        upload_dir = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'))
-        os.makedirs(upload_dir, exist_ok=True)
+        # Process with Supply Chain Analytics Engine
+        analytics_engine = SupplyChainAnalyticsEngine()
+        analytics_result = analytics_engine.process_inventory_sales_csv(normalized_data)
         
-        filepath = os.path.join(upload_dir, unique_filename)
-        file.save(filepath)
-        
-        # Create upload record
+        # Store results in database
         upload = Upload(
-            filename=unique_filename,
-            original_filename=filename,
-            file_size=file_size,
-            file_type=filename.rsplit('.', 1)[1].lower(),
+            filename=f"csv_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            original_filename="csv_analytics_combined.csv",
+            file_size=len(str(analytics_result)),
+            file_type='csv_analytics',
             user_id=user_id,
             org_id=org_id,
-            status='processing'
+            status='completed'
         )
         
         db.session.add(upload)
-        db.session.commit()
+        db.session.flush()  # Get upload.id
         
-        # Process file based on type
-        try:
-            file_extension = upload.file_type.lower()
-            
-            if file_extension in ['csv', 'xlsx', 'xls']:
-                # Handle structured data files with pandas
-                if file_extension == 'csv':
-                    df = pd.read_csv(filepath)
-                else:
-                    df = pd.read_excel(filepath)
-                
-                # Update upload record with file info
-                upload.row_count = len(df)
-                upload.column_count = len(df.columns)
-                
-                # Generate basic summary
-                summary = {
-                    'columns': list(df.columns),
-                    'dtypes': {col: str(dtype) for col, dtype in df.dtypes.items()},
-                    'sample_data': df.head(5).to_dict(orient='records'),
-                    'processing_type': 'analytics'
-                }
-                upload.data_summary = json.dumps(summary)
-                
-                # Process with Enhanced Document Intelligence Service
-                csv_data = df.to_dict(orient='records')
-                
-                # Use enhanced cross-reference engine for CSV data
-                from services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
-                cross_ref_engine = DocumentEnhancedCrossReferenceEngine()
-                
-                # Convert CSV data to DataFrame for processing
-                df_for_analysis = pd.DataFrame(csv_data)
-                unified_results = cross_ref_engine.process_with_documents(org_id)
-                
-                # Add CSV-specific analytics
-                unified_results['csv_analytics'] = {
-                    'total_records': len(df),
-                    'columns_analyzed': list(df.columns),
-                    'data_quality_score': 85.0,  # Placeholder - implement actual scoring
-                    'processing_type': 'csv_analytics'
-                }
-                
-            elif file_extension in ['pdf', 'png', 'jpg', 'jpeg']:
-                # Handle document files with Agent Astra
-                upload.row_count = 0  # Documents don't have rows
-                upload.column_count = 0
-                
-                # Generate document summary
-                summary = {
-                    'file_type': file_extension,
-                    'file_size_mb': round(file_size / (1024 * 1024), 2),
-                    'processing_type': 'document_intelligence',
-                    'status': 'ready_for_astra'
-                }
-                upload.data_summary = json.dumps(summary)
-                
-                # Process with Enhanced Document Processor
-                from services.enhanced_document_processor import EnhancedDocumentProcessor
-                enhanced_processor = EnhancedDocumentProcessor()
-                
-                unified_results = enhanced_processor.process_and_link_document(
-                    filepath, org_id, doc_type='auto'
-                )
-                
-                # Add document-specific analytics
-                unified_results['document_analytics'] = {
-                    'document_type': 'auto_detected',
-                    'file_size_mb': round(file_size / (1024 * 1024), 2),
-                    'processing_type': 'document_intelligence',
-                    'extraction_confidence': unified_results.get('extracted_data', {}).get('confidence', 0)
-                }
-            
-            # Store unified intelligence results
-            if 'unified_results' in locals():
-                # Store unified analysis results
-                processed_data = ProcessedData(
-                    upload_id=upload.id,
-                    org_id=org_id,
-                    data_type='unified_intelligence',
-                    processed_data=json.dumps(unified_results)
-                )
-                db.session.add(processed_data)
-                
-                # Legacy analytics for backward compatibility
-                analytics = unified_results.get('unified_analysis', {})
-                
-                # Initialize and run AI Agent with enhanced data
-                try:
-                    executor = AgentExecutor(max_workers=3, default_timeout=120)
-                    executor.register_agent_class(AgentType.INVENTORY_MONITOR, InventoryMonitorAgent)
-                    
-                    # Create agent instance
-                    agent = executor.create_agent(
-                        agent_id=f"unified_agent_{upload.id}",
-                        agent_type=AgentType.INVENTORY_MONITOR,
-                        name="Unified Intelligence Monitor",
-                        description="Monitors inventory with document cross-reference intelligence",
-                        config={}
-                    )
-                    
-                    # Run the agent with unified intelligence as input
-                    agent_result = executor.execute_agent(
-                        agent_id=agent.agent_id,
-                        input_data={
-                            "action": "analyze_inventory_with_documents",
-                            "unified_intelligence": unified_results,
-                            "analytics": analytics,
-                            "compromised_inventory": unified_results.get('compromised_inventory', {}),
-                            "real_time_alerts": unified_results.get('real_time_alerts', [])
-                        },
-                        org_id=org_id,
-                        user_id=user_id
-                    )
-                    
-                    # Store enhanced agent results
-                    agent_data = ProcessedData(
-                        upload_id=upload.id,
-                        org_id=org_id,
-                        data_type='unified_agent_insights',
-                        processed_data=json.dumps(agent_result.to_dict())
-                    )
-                    db.session.add(agent_data)
-                    
-                except Exception as agent_error:
-                    # Fallback to basic agent processing
-                    print(f"Enhanced agent processing failed: {agent_error}")
-                
-                upload.status = 'completed'
-                db.session.commit()
-                
-                return jsonify({
-                    'success': True,
-                    'upload': upload.to_dict(),
-                    'unified_intelligence': unified_results,
-                    'analytics': analytics,
-                    'compromised_inventory': unified_results.get('compromised_inventory', {}),
-                    'triangle_4d_score': unified_results.get('triangle_4d_score', {}),
-                    'real_time_alerts': unified_results.get('real_time_alerts', []),
-                    'enhanced_recommendations': unified_results.get('enhanced_recommendations', []),
-                    'insights': {
-                        'total_alerts': len(unified_results.get('real_time_alerts', [])),
-                        'compromised_items': unified_results.get('compromised_inventory', {}).get('summary', {}).get('total_compromised_items', 0),
-                        'financial_impact': unified_results.get('compromised_inventory', {}).get('summary', {}).get('total_financial_impact', 0),
-                        'triangle_4d_score': unified_results.get('triangle_4d_score', {}).get('overall_4d_score', 0),
-                        'document_score': unified_results.get('triangle_4d_score', {}).get('document_score', 0)
-                    }
-                }), 200
-                
-        except Exception as analytics_error:
-                # If analytics fail, still save the upload but mark as partial
-                upload.status = 'partial'
-                upload.error_message = f"Analytics processing error: {str(analytics_error)}"
-                db.session.commit()
-                
-                return jsonify({
-                    'success': True,
-                    'upload': upload.to_dict(),
-                    'warning': f'File uploaded but analytics failed: {str(analytics_error)}',
-                    'analytics': None,
-                    'agent_result': None
-                }), 200
-            
-        except Exception as e:
-            upload.status = 'error'
-            upload.error_message = str(e)
-            db.session.commit()
-            return jsonify({'error': f'Error processing file: {str(e)}'}), 500
-        
-    except Exception as e:
-        return jsonify({'error': f'Upload failed: {str(e)}'}), 500
-
-@upload_bp.route('/uploads/<org_id>', methods=['GET'])
-def get_org_uploads(org_id):
-    """Get all uploads for an organization"""
-    try:
-        uploads = Upload.query.filter_by(org_id=org_id).order_by(Upload.upload_date.desc()).all()
-        return jsonify({
-            'uploads': [upload.to_dict() for upload in uploads]
-        }), 200
-    except Exception as e:
-        return jsonify({'error': f'Failed to fetch uploads: {str(e)}'}), 500
-
-@upload_bp.route('/upload/<int:upload_id>', methods=['GET'])
-def get_upload_details(upload_id):
-    """Get details for a specific upload"""
-    try:
-        # Get organization ID from request headers or query params
-        org_id = request.headers.get('X-Organization-ID') or request.args.get('org_id')
-        
-        if not org_id:
-            return jsonify({'error': 'Organization ID is required'}), 401
-        
-        # Fetch upload and verify organization access
-        upload = Upload.query.get_or_404(upload_id)
-        
-        # Security check: Ensure the upload belongs to the requesting organization
-        if upload.org_id != org_id:
-            return jsonify({'error': 'Access denied: Upload belongs to different organization'}), 403
-        
-        return jsonify({
-            'upload': upload.to_dict()
-        }), 200
-    except Exception as e:
-        return jsonify({'error': f'Failed to fetch upload details: {str(e)}'}), 500
-
-@upload_bp.route('/template/<data_type>', methods=['GET'])
-def download_template(data_type):
-    """Download a template CSV file"""
-    try:
-        templates = {
-            'inventory': {
-                'Product ID': ['PROD001', 'PROD002', 'PROD003'],
-                'Product Name': ['Widget A', 'Widget B', 'Widget C'],
-                'Quantity': [100, 250, 75],
-                'Unit Price': [10.99, 15.50, 22.00],
-                'Warehouse': ['WH001', 'WH002', 'WH001'],
-                'Last Updated': ['2024-01-15', '2024-01-14', '2024-01-15']
-            },
-            'supplier': {
-                'Supplier ID': ['SUP001', 'SUP002', 'SUP003'],
-                'Supplier Name': ['Acme Corp', 'Global Parts Ltd', 'Quality Supplies Inc'],
-                'Contact Email': ['contact@acme.com', 'sales@globalparts.com', 'info@qualitysupplies.com'],
-                'Rating': [4.5, 4.8, 4.2],
-                'Lead Time (days)': [7, 5, 10],
-                'Payment Terms': ['Net 30', 'Net 45', 'Net 30']
-            },
-            'shipment': {
-                'Shipment ID': ['SHIP001', 'SHIP002', 'SHIP003'],
-                'Order ID': ['ORD001', 'ORD002', 'ORD003'],
-                'Origin': ['Shanghai', 'Rotterdam', 'Los Angeles'],
-                'Destination': ['New York', 'London', 'Tokyo'],
-                'Status': ['In Transit', 'Delivered', 'Processing'],
-                'ETA': ['2024-01-25', '2024-01-20', '2024-01-30']
-            }
-        }
-        
-        if data_type not in templates:
-            return jsonify({'error': 'Invalid template type'}), 400
-        
-        # Create CSV content
-        df = pd.DataFrame(templates[data_type])
-        csv_data = df.to_csv(index=False)
-        
-        # Return as downloadable file
-        from flask import Response
-        return Response(
-            csv_data,
-            mimetype='text/csv',
-            headers={'Content-Disposition': f'attachment; filename={data_type}_template.csv'}
+        processed_data = ProcessedData(
+            upload_id=upload.id,
+            org_id=org_id,
+            data_type='csv_analytics',
+            processed_data=json.dumps(analytics_result)
         )
         
+        db.session.add(processed_data)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'CSV files processed successfully',
+            'upload_id': upload.id,
+            'analytics': analytics_result,
+            'org_id': org_id
+        })
+        
     except Exception as e:
-        return jsonify({'error': f'Failed to generate template: {str(e)}'}), 500
+        logger.error(f"CSV processing error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': f'Processing failed: {str(e)}'}), 500
+
+@upload_bp.route('/csv/analytics/<org_id>', methods=['GET'])
+@cross_origin()
+def get_csv_analytics(org_id):
+    """Get processed CSV analytics data for dashboard consumption"""
+    try:
+        # Get latest processed data for organization
+        processed_data = ProcessedData.query.filter_by(
+            org_id=org_id,
+            data_type='csv_analytics'
+        ).order_by(ProcessedData.created_at.desc()).first()
+        
+        if not processed_data:
+            return jsonify({
+                'success': False,
+                'error': 'No CSV analytics data found for this organization'
+            }), 404
+        
+        # Parse and return analytics data
+        analytics_data = json.loads(processed_data.processed_data)
+        
+        return jsonify({
+            'success': True,
+            'analytics': analytics_data,
+            'org_id': org_id,
+            'last_updated': processed_data.created_at.isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Analytics retrieval error: {str(e)}")
+        return jsonify({'error': f'Failed to retrieve analytics: {str(e)}'}), 500
+
+def normalize_csv_for_analytics(df):
+    """Normalize CSV data to work with analytics engine"""
+    # Create normalized DataFrame with expected columns
+    normalized_df = df.copy()
+    
+    # Map common column variations to expected names
+    column_mapping = {
+        'k_sc_codigo_articulo': 'product_id',
+        'sc_detalle_articulo': 'product_name', 
+        'n_saldo_actual': 'current_stock',
+        'n_costo_promedio': 'cost_per_unit',
+        'sc_detalle_grupo': 'category',
+        'n_cantidad': 'sales_quantity',
+        'n_valor': 'sales_value'
+    }
+    
+    # Rename columns
+    for old_name, new_name in column_mapping.items():
+        if old_name in normalized_df.columns:
+            normalized_df = normalized_df.rename(columns={old_name: new_name})
+    
+    # Add missing required columns with defaults
+    required_columns = {
+        'product_id': 'UNKNOWN',
+        'product_name': 'Unknown Product',
+        'current_stock': 0,
+        'cost_per_unit': 0,
+        'selling_price': 0,
+        'sales_quantity': 0,
+        'sales_period': 30,
+        'category': 'General'
+    }
+    
+    for col, default_value in required_columns.items():
+        if col not in normalized_df.columns:
+            normalized_df[col] = default_value
+    
+    # Calculate selling_price if missing
+    if 'selling_price' not in normalized_df.columns or normalized_df['selling_price'].isna().all():
+        if 'sales_value' in normalized_df.columns and 'sales_quantity' in normalized_df.columns:
+            # Calculate price from sales value and quantity
+            mask = normalized_df['sales_quantity'] > 0
+            normalized_df.loc[mask, 'selling_price'] = (
+                normalized_df.loc[mask, 'sales_value'] / normalized_df.loc[mask, 'sales_quantity']
+            )
+            # Use cost_per_unit * 1.2 as fallback for missing prices
+            mask_missing = normalized_df['selling_price'].isna()
+            normalized_df.loc[mask_missing, 'selling_price'] = normalized_df.loc[mask_missing, 'cost_per_unit'] * 1.2
+    
+    return normalized_df

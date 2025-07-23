@@ -25,7 +25,7 @@ def test_supabase_connection():
         # Test database connection
         print("🔍 Testing database connection...")
         with app.app_context():
-            from models import db
+from backend.models import db
             from models_enhanced import UnifiedTransaction, DocumentInventoryLink
             
             # Test if we can query the database

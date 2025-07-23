@@ -20,6 +20,12 @@ export class AnalyticsService implements AnalyticsServiceInterface {
    * Single responsibility: Data fetching for dashboard
    */
   async getDashboardAnalytics(orgId: string): Promise<RealTimeAnalyticsData> {
+    // In development mode, immediately return demo data
+    if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE === 'true') {
+      console.log('[AnalyticsService] Development mode: returning demo data');
+      return this.createDemoAnalyticsData();
+    }
+
     try {
       const response = await apiClient.get<any>(`/analytics/dashboard/${orgId}`);
       
@@ -41,6 +47,12 @@ export class AnalyticsService implements AnalyticsServiceInterface {
    * Single responsibility: Cross-reference data fetching
    */
   async getCrossReferenceData(orgId: string): Promise<CrossReferenceData | null> {
+    // In development mode, return demo cross-reference data
+    if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE === 'true') {
+      console.log('[AnalyticsService] Development mode: returning demo cross-reference data');
+      return this.createDemoCrossReferenceData();
+    }
+
     try {
       const response = await apiClient.get<any>(`/analytics/cross-reference/${orgId}`);
       
@@ -157,6 +169,95 @@ export class AnalyticsService implements AnalyticsServiceInterface {
         { id: '2', type: 'supplier', message: 'Supplier TechCorp performance improved 15%', priority: 'medium' },
         { id: '3', type: 'financial', message: 'Cash conversion cycle optimized by 2.3 days', priority: 'medium' },
         { id: '4', type: 'document', message: 'Document validation rate: 93.3%', priority: 'low' }
+      ]
+    };
+  }
+
+  /**
+   * Create demo cross-reference data for development
+   * Single responsibility: Demo cross-reference data generation
+   */
+  private createDemoCrossReferenceData(): CrossReferenceData {
+    return {
+      supplier_product_impact: [
+        {
+          supplier_id: 'supplier_001',
+          supplier_name: 'TechCorp Industries',
+          product_code: 'TECH-001',
+          product_name: 'Advanced Microprocessor',
+          lead_time_impact_score: 92.5,
+          stockout_risk: 3.2,
+          sales_impact: 95.8,
+          cost_impact: 88.3
+        },
+        {
+          supplier_id: 'supplier_002',
+          supplier_name: 'Global Supply Co',
+          product_code: 'GLOB-002',
+          product_name: 'Industrial Sensors',
+          lead_time_impact_score: 87.1,
+          stockout_risk: 2.8,
+          sales_impact: 89.2,
+          cost_impact: 91.5
+        }
+      ],
+      inventory_supplier_analysis: [
+        {
+          product_code: 'TECH-001',
+          current_stock: 150,
+          reorder_point: 50,
+          supplier_lead_times: [
+            {
+              supplier_id: 'supplier_001',
+              supplier_name: 'TechCorp Industries',
+              average_lead_time: 5,
+              risk_level: 'low'
+            }
+          ],
+          stockout_probability: 5.2
+        },
+        {
+          product_code: 'GLOB-002',
+          current_stock: 75,
+          reorder_point: 30,
+          supplier_lead_times: [
+            {
+              supplier_id: 'supplier_002',
+              supplier_name: 'Global Supply Co',
+              average_lead_time: 3,
+              risk_level: 'medium'
+            }
+          ],
+          stockout_probability: 12.8
+        }
+      ],
+      sales_supplier_correlation: [
+        {
+          product_code: 'TECH-001',
+          monthly_sales: 125000,
+          supplier_performance: [
+            {
+              supplier_id: 'supplier_001',
+              supplier_name: 'TechCorp Industries',
+              delivery_performance: 94.2,
+              quality_score: 96.5,
+              impact_on_sales: 85.3
+            }
+          ]
+        },
+        {
+          product_code: 'GLOB-002',
+          monthly_sales: 89000,
+          supplier_performance: [
+            {
+              supplier_id: 'supplier_002',
+              supplier_name: 'Global Supply Co',
+              delivery_performance: 87.8,
+              quality_score: 89.1,
+              impact_on_sales: 72.1
+            }
+          ]
+        }
       ]
     };
   }

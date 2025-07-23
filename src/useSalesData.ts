@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { databaseService } from '@/services/database';
+import { databaseService } from '@/database';
 import type { 
   SalesData, 
   SalesKPIs, 
@@ -148,7 +148,7 @@ export const useSalesData = (options: UseSalesDataOptions): UseSalesDataReturn =
     
     try {
       // Import alert generation function
-      const { generateBusinessIntelligenceAlerts } = await import('../utils/salesAnalytics');
+      const { generateBusinessIntelligenceAlerts } = await import('@/salesAnalytics');
       
       if (kpis && salesData.length > 0) {
         // Get inventory data for alert generation
@@ -167,7 +167,7 @@ export const useSalesData = (options: UseSalesDataOptions): UseSalesDataReturn =
   const generateExecutiveSummary = useCallback(async () => {
     if (kpis && salesData.length > 0) {
       try {
-        const { generateExecutiveSummary } = await import('../utils/salesAnalytics');
+        const { generateExecutiveSummary } = await import('@/salesAnalytics');
         const summary = generateExecutiveSummary(salesData, kpis, alerts, timeRange);
         setExecutiveSummary(summary);
       } catch (err) {
@@ -193,7 +193,7 @@ export const useSalesData = (options: UseSalesDataOptions): UseSalesDataReturn =
     if (kpis && salesData.length > 0) {
       loadAlerts();
     }
-  }, [loadAlerts]);
+  }, [loadAlerts, kpis, salesData.length]);
   
   useEffect(() => {
     generateExecutiveSummary();

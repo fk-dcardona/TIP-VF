@@ -4,7 +4,7 @@ import type { ProcessedProduct, DiscontinuedProductAlert } from '@/types';
 import { KPICard } from './KPICard';
 import { ProductTable } from './ProductTable';
 import { DiscontinuedProductsAlert } from './DiscontinuedProductsAlert';
-import { TimePeriodSelector } from '@/components/UI/TimePeriodSelector';
+import { TimePeriodSelector } from '@/UI/TimePeriodSelector';
 
 interface OverviewTabProps {
   products: ProcessedProduct[];
@@ -264,8 +264,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       {/* Complete Product Analysis Table */}
       <ProductTable
         products={products}
-        title="Complete Product Analysis"
-        maxHeight="600px"
       />
     </div>
   );

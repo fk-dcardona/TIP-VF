@@ -1,6 +1,6 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { InfoModal } from '@/components/UI/InfoModal';
+import { InfoModal } from '@/UI/InfoModal';
 
 interface KPICardProps {
   title: string;

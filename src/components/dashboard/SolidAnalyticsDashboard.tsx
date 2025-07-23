@@ -126,16 +126,30 @@ export function SolidAnalyticsDashboard({ orgId, className = '' }: SolidAnalytic
         </CardContent>
       </Card>
 
-      {/* Triangle Analytics */}
+      {/* Inventory Analytics */}
       <AnalyticsSection
-        title="📊 Triangle Analytics"
-        data={analytics.triangle}
+        title="📦 Inventory Analytics"
+        data={analytics.inventory}
         renderData={(data) => (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <MetricCard label="Service Score" value={`${data.service_score.toFixed(1)}%`} />
-            <MetricCard label="Cost Score" value={`${data.cost_score.toFixed(1)}%`} />
-            <MetricCard label="Capital Score" value={`${data.capital_score.toFixed(1)}%`} />
-            <MetricCard label="Documents Score" value={`${data.documents_score.toFixed(1)}%`} />
+            <MetricCard label="Total Items" value={data.total_items.toString()} />
+            <MetricCard label="Low Stock Items" value={data.low_stock_items.toString()} />
+            <MetricCard label="Out of Stock" value={data.out_of_stock_items.toString()} />
+            <MetricCard label="Inventory Value" value={`$${data.inventory_value.toLocaleString()}`} />
+          </div>
+        )}
+      />
+
+      {/* Sales Analytics */}
+      <AnalyticsSection
+        title="💰 Sales Analytics"
+        data={analytics.sales}
+        renderData={(data) => (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <MetricCard label="Total Revenue" value={`$${data.total_revenue.toLocaleString()}`} />
+            <MetricCard label="Total Orders" value={data.total_orders.toString()} />
+            <MetricCard label="Avg Order Value" value={`$${data.average_order_value.toLocaleString()}`} />
+            <MetricCard label="Conversion Rate" value={`${data.conversion_rate}%`} />
           </div>
         )}
       />
@@ -146,9 +160,9 @@ export function SolidAnalyticsDashboard({ orgId, className = '' }: SolidAnalytic
         data={analytics.crossReference}
         renderData={(data) => (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <MetricCard label="Document Compliance" value={`${data.document_compliance.toFixed(1)}%`} />
-            <MetricCard label="Inventory Accuracy" value={`${data.inventory_accuracy.toFixed(1)}%`} />
-            <MetricCard label="Compromised Items" value={`${data.compromised_inventory.compromised_count}`} />
+            <MetricCard label="Supplier-Product Impact" value={`${data.supplier_product_impact.length} relationships`} />
+            <MetricCard label="Inventory Analysis" value={`${data.inventory_supplier_analysis.length} products`} />
+            <MetricCard label="Sales Correlation" value={`${data.sales_supplier_correlation.length} correlations`} />
           </div>
         )}
       />
@@ -160,27 +174,16 @@ export function SolidAnalyticsDashboard({ orgId, className = '' }: SolidAnalytic
         renderData={(data) => (
           <div className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <MetricCard label="Avg Health Score" value={`${data.average_performance.health_score.toFixed(1)}%`} />
-              <MetricCard label="Avg Delivery" value={`${data.average_performance.delivery_performance.toFixed(1)}%`} />
-              <MetricCard label="Avg Quality" value={`${data.average_performance.quality_score.toFixed(1)}%`} />
-              <MetricCard label="Total Suppliers" value={data.suppliers.length.toString()} />
+              <MetricCard label="Total Suppliers" value={data.length.toString()} />
+              <MetricCard label="Avg Health Score" value={`${(data.reduce((sum, s) => sum + s.health_score, 0) / data.length).toFixed(1)}%`} />
+              <MetricCard label="Avg Delivery" value={`${(data.reduce((sum, s) => sum + s.delivery_performance, 0) / data.length).toFixed(1)}%`} />
+              <MetricCard label="Avg Quality" value={`${(data.reduce((sum, s) => sum + s.quality_score, 0) / data.length).toFixed(1)}%`} />
             </div>
           </div>
         )}
       />
 
-      {/* Market Analytics */}
-      <AnalyticsSection
-        title="📈 Market Intelligence"
-        data={analytics.market}
-        renderData={(data) => (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <MetricCard label="Market Segments" value={data.market_segments.length.toString()} />
-            <MetricCard label="Demand Growth" value={`${data.market_trends.demand_growth.toFixed(1)}%`} />
-            <MetricCard label="Price Trend" value={data.market_trends.price_trends} />
-          </div>
-        )}
-      />
+
     </div>
   );
 }

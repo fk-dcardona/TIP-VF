@@ -12,7 +12,7 @@ from .base_llm_agent import BaseLLMAgent
 from ..core.agent_result import AgentResult
 from ..core.agent_context import AgentContext
 from ..core.agent_types import AgentType
-from services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
+from backend.services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
 from models_enhanced import UnifiedTransaction, DocumentInventoryLink
 from models import TradeDocument
 

@@ -8,15 +8,45 @@ import type {
   TimeSeriesData,
   DiscontinuedProductAlert
 } from '@/types';
-import { databaseService } from '@/services/database';
-import { processProducts } from '@/utils/calculations';
+import { databaseService } from '@/database';
+import { processProducts } from '@/calculations';
 
 const timeRanges: TimeRange[] = [
-  { label: '7 days', days: 7, value: '7d' },
-  { label: '30 days', days: 30, value: '30d' },
-  { label: '90 days', days: 90, value: '90d' },
-  { label: '6 months', days: 180, value: '6m' },
-  { label: '1 year', days: 365, value: '1y' }
+  { 
+    label: '7 days', 
+    days: 7, 
+    value: '7d',
+    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    end: new Date()
+  },
+  { 
+    label: '30 days', 
+    days: 30, 
+    value: '30d',
+    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+    end: new Date()
+  },
+  { 
+    label: '90 days', 
+    days: 90, 
+    value: '90d',
+    start: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+    end: new Date()
+  },
+  { 
+    label: '6 months', 
+    days: 180, 
+    value: '6m',
+    start: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+    end: new Date()
+  },
+  { 
+    label: '1 year', 
+    days: 365, 
+    value: '1y',
+    start: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+    end: new Date()
+  }
 ];
 
 export const useSupplyChainData = () => {
@@ -29,6 +59,7 @@ export const useSupplyChainData = () => {
   // Time-series data state
   const [allInventory, setAllInventory] = useState<InventoryData[]>([]);
   const [latestInventory, setLatestInventory] = useState<InventoryData[]>([]);
+  const [salesData, setSalesData] = useState<SalesData[]>([]);
   const [inventoryTrends, setInventoryTrends] = useState<TimeSeriesData[]>([]);
   const [discontinuedProducts, setDiscontinuedProducts] = useState<DiscontinuedProductAlert[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<string | undefined>(undefined);
@@ -39,7 +70,7 @@ export const useSupplyChainData = () => {
     setError(null);
     try {
       // Get all data in parallel
-      const [allInv, latestInv, salesData, datasets, trends, discontinued] = await Promise.all([
+      const [allInv, latestInv, salesResult, datasets, trends, discontinued] = await Promise.all([
         databaseService.getInventoryData(),
         databaseService.getLatestInventoryData(),
         databaseService.getSalesData(),
@@ -50,6 +81,7 @@ export const useSupplyChainData = () => {
 
       setAllInventory(allInv);
       setLatestInventory(latestInv);
+      setSalesData(Array.isArray(salesResult) ? salesResult : salesResult.data);
       setInventoryTrends(trends);
       setDiscontinuedProducts(discontinued);
 
@@ -66,21 +98,21 @@ export const useSupplyChainData = () => {
       // Create dataset objects for compatibility with existing code
       const inventoryDataset: UploadedDataset = {
         id: 'inventory-latest',
+        name: 'Latest Inventory Data',
         type: 'inventory',
         filename: datasets.find(d => d.type === 'inventory')?.filename || 'inventory.csv',
-        uploadDate: datasets.find(d => d.type === 'inventory')?.upload_date || new Date().toISOString(),
-        recordCount: allInv.length,
-        data: allInv
+        uploadedAt: datasets.find(d => d.type === 'inventory')?.uploaded_at || new Date().toISOString(),
+        recordCount: allInv.length
       };
       setInventoryDataset(inventoryDataset);
 
       setSalesDataset({
         id: 'sales-' + Date.now(),
+        name: 'Database Sales Data',
         type: 'sales',
         filename: 'Database Sales',
-        uploadDate: new Date().toISOString(),
-        recordCount: Array.isArray(salesData) ? salesData.length : salesData.data.length,
-        data: Array.isArray(salesData) ? salesData : salesData.data
+        uploadedAt: new Date().toISOString(),
+        recordCount: Array.isArray(salesResult) ? salesResult.length : salesResult.data?.length || 0
       });
 
       setError(null);
@@ -116,40 +148,37 @@ export const useSupplyChainData = () => {
 
   // Products for analytics (all periods)
   const productsAllPeriods = useMemo((): ProcessedProduct[] => {
-    if (!allInventory.length || !salesDataset) return [];
+    if (!allInventory.length || !salesData.length) return [];
     try {
-      const salesData = salesDataset.data as SalesData[];
       return processProducts(allInventory, allInventory, salesData, currentTimeRange);
     } catch {
       setError('Failed to process product data');
       return [];
     }
-  }, [allInventory, salesDataset, currentTimeRange]);
+  }, [allInventory, salesData, currentTimeRange]);
 
   // Products for alerts/KPIs (latest period only)
   const productsLatestPeriod = useMemo((): ProcessedProduct[] => {
-    if (!latestInventory.length || !salesDataset) return [];
+    if (!latestInventory.length || !salesData.length) return [];
     try {
-      const salesData = salesDataset.data as SalesData[];
       return processProducts(latestInventory, allInventory, salesData, currentTimeRange);
     } catch {
       setError('Failed to process product data');
       return [];
     }
-  }, [latestInventory, allInventory, salesDataset, currentTimeRange]);
+  }, [latestInventory, allInventory, salesData, currentTimeRange]);
 
   // Products for selected period
   const productsSelectedPeriod = useMemo((): ProcessedProduct[] => {
-    if (!selectedPeriod || !salesDataset) return productsLatestPeriod;
+    if (!selectedPeriod || !salesData.length) return productsLatestPeriod;
     try {
       const periodInventory = allInventory.filter(item => item.period === selectedPeriod);
-      const salesData = salesDataset.data as SalesData[];
       return processProducts(periodInventory, allInventory, salesData, currentTimeRange);
     } catch {
       setError('Failed to process product data for selected period');
       return [];
     }
-  }, [selectedPeriod, allInventory, salesDataset, currentTimeRange, productsLatestPeriod]);
+  }, [selectedPeriod, allInventory, salesData, currentTimeRange, productsLatestPeriod]);
 
   const hasData = allInventory.length > 0 && salesDataset;
 

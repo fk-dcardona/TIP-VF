@@ -23,9 +23,12 @@ export const saveStoredData = (data: StoredData): void => {
 
 export const addDataset = (dataset: UploadedDataset): void => {
   const existingData = loadStoredData() || {
+    inventory: [],
+    sales: [],
     historical: [],
     minMaxSettings: {},
-    lastUpdated: new Date().toISOString()
+    lastUpdated: new Date().toISOString(),
+    version: '1.0.0'
   };
 
   // Remove existing dataset of same type and add new one
@@ -45,11 +48,11 @@ export const getLatestDatasets = (): { inventory: UploadedDataset | null; sales:
 
   const inventory = data.historical
     .filter(d => d.type === 'inventory')
-    .sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime())[0] || null;
+    .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0] || null;
 
   const sales = data.historical
     .filter(d => d.type === 'sales')
-    .sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime())[0] || null;
+    .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0] || null;
 
   return { inventory, sales };
 };
@@ -71,9 +74,12 @@ export const deleteDataset = (id: string): void => {
 
 export const updateMinMaxSettings = (productCode: string, config: MinMaxConfig): void => {
   const data = loadStoredData() || {
+    inventory: [],
+    sales: [],
     historical: [],
     minMaxSettings: {},
-    lastUpdated: new Date().toISOString()
+    lastUpdated: new Date().toISOString(),
+    version: '1.0.0'
   };
 
   data.minMaxSettings[productCode] = config;

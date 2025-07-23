@@ -14,7 +14,7 @@ from agent_protocol.agents import (
 )
 from agent_protocol.agents.document_intelligence_agent import DocumentIntelligenceAgent
 from agent_protocol.core.agent_types import AgentType
-from utils.llm_cost_tracker import get_cost_tracker
+from backend.utils.llm_cost_tracker import get_cost_tracker
 from models import db, Agent as AgentModel
 
 # Create blueprint

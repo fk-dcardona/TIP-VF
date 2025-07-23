@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { AnalyticsData } from '@/types/api';
+import { LegacyAnalyticsData } from '@/types/api';
 
 // Generic API fetch hook
 export function useAPIFetch<T>(
@@ -30,7 +30,21 @@ export function useAPIFetch<T>(
   }, [endpoint]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    
     fetchData();
+
+    
+    
+
+    
+    return () => {
+
+    
+      controller.abort();
+
+    
+    };
   }, [fetchData, dependencies]);
 
   return { data, loading, error, refetch: fetchData };
@@ -38,7 +52,7 @@ export function useAPIFetch<T>(
 
 // Dashboard data hook
 export function useDashboardData(orgId: string, dashboardType: string) {
-  return useAPIFetch<AnalyticsData>(`/dashboard/${dashboardType}/${orgId}`, [orgId, dashboardType]);
+  return useAPIFetch<LegacyAnalyticsData>(`/dashboard/${dashboardType}/${orgId}`, [orgId, dashboardType]);
 }
 
 // Document analytics hook

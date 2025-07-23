@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 import json
 
 from agent_protocol.agents.inventory_agent import InventoryMonitorAgent
-from services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
-from services.enhanced_document_processor import EnhancedDocumentProcessor
+from backend.services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
+from backend.services.enhanced_document_processor import EnhancedDocumentProcessor
 from models_enhanced import UnifiedTransaction, DocumentInventoryLink
 from models import db, TradeDocument
 

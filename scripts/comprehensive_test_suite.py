@@ -116,10 +116,10 @@ class ComprehensiveTestSuite:
         try:
             from main import app
             from models_enhanced import UnifiedTransaction, DocumentInventoryLink
-            from models import Organization, Upload, TradeDocument
+from backend.models import Organization, Upload, TradeDocument
             
             with app.app_context():
-                from models import db
+from backend.models import db
                 from sqlalchemy import text
                 
                 # Test if all tables exist

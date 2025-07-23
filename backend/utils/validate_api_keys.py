@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from config.llm_config import LLMConfig
+from backend.config.llm_config import LLMConfig
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ def validate_api_keys() -> Dict[str, bool]:
 
 def test_agent_config():
     """Test agent-specific LLM configuration."""
-    from config.llm_config import AGENT_MODEL_MAPPING, get_agent_llm_config
+from backend.config.llm_config import AGENT_MODEL_MAPPING, get_agent_llm_config
     
     print("\n\n🤖 Agent LLM Configuration")
     print("=" * 50)

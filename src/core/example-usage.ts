@@ -339,12 +339,12 @@ export class AnalyticsPerformanceMonitor {
     let slowest = null;
     let maxTime = 0;
 
-    for (const [name, time] of this.performanceMetrics) {
+    this.performanceMetrics.forEach((time, name) => {
       if (time > maxTime) {
         maxTime = time;
         slowest = { name, time };
       }
-    }
+    });
 
     return slowest;
   }
@@ -353,12 +353,12 @@ export class AnalyticsPerformanceMonitor {
     let fastest = null;
     let minTime = Infinity;
 
-    for (const [name, time] of this.performanceMetrics) {
+    this.performanceMetrics.forEach((time, name) => {
       if (time < minTime) {
         minTime = time;
         fastest = { name, time };
       }
-    }
+    });
 
     return fastest;
   }

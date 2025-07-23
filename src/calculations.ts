@@ -243,6 +243,8 @@ export const generateAlerts = (products: ProcessedProduct[]): Alert[] => {
         productCode: product.code,
         productName: product.name,
         type: 'OUT_OF_STOCK',
+        level: 'critical',
+        date: new Date().toISOString(),
         urgency: 3,
         currentStock: product.currentStock,
         minLevel: product.minimumLevel,
@@ -259,6 +261,8 @@ export const generateAlerts = (products: ProcessedProduct[]): Alert[] => {
         productCode: product.code,
         productName: product.name,
         type: 'LOW_STOCK',
+        level: 'high',
+        date: new Date().toISOString(),
         urgency: 2,
         currentStock: product.currentStock,
         minLevel: product.minimumLevel,
@@ -275,6 +279,8 @@ export const generateAlerts = (products: ProcessedProduct[]): Alert[] => {
         productCode: product.code,
         productName: product.name,
         type: 'OVERSTOCK',
+        level: 'medium',
+        date: new Date().toISOString(),
         urgency: 1,
         currentStock: product.currentStock,
         minLevel: product.minimumLevel,
@@ -312,15 +318,10 @@ export const calculateKPIs = (products: ProcessedProduct[], alerts: Alert[]): KP
   const criticalAlerts = alerts.filter(a => a.urgency >= 2).length;
 
   return {
-    supplyChainHealthScore: Math.round(supplyChainHealthScore),
-    totalRevenue,
-    criticalAlerts,
-    avgGrossMargin,
-    totalProducts,
-    outOfStock,
-    lowStock,
-    overStock,
-    normalStock
+    label: 'Supply Chain Health',
+    value: Math.round(supplyChainHealthScore),
+    change: 0, // TODO: Calculate change from previous period
+    trend: 'stable' as const
   };
 };
 
@@ -334,43 +335,34 @@ export const generateProcurementRecommendations = (
       const suggestedQuantity = Math.max(product.minimumLevel, product.monthlySales);
       recommendations.push({
         productCode: product.code,
-        productName: product.name,
-        action: 'immediate',
-        priority: 'high',
-        suggestedQuantity,
-        reasoning: 'Product is out of stock with active demand',
-        timeframe: '0-3 days',
-        cost: suggestedQuantity * product.lastCost
+        recommendedQuantity: suggestedQuantity,
+        estimatedCost: suggestedQuantity * (product.lastCost || product.cost || 0),
+        urgency: 'high' as const,
+        reason: 'Product is out of stock with active demand'
       });
     } else if (product.stockStatus === 'LOW_STOCK' && product.daysOfSupply < product.leadTimeDays) {
       const suggestedQuantity = product.maximumLevel - product.currentStock;
       recommendations.push({
         productCode: product.code,
-        productName: product.name,
-        action: 'planned',
-        priority: product.daysOfSupply < 7 ? 'high' : 'medium',
-        suggestedQuantity,
-        reasoning: 'Stock will deplete before next delivery',
-        timeframe: '1-2 weeks',
-        cost: suggestedQuantity * product.lastCost
+        recommendedQuantity: suggestedQuantity,
+        estimatedCost: suggestedQuantity * (product.lastCost || product.cost || 0),
+        urgency: product.daysOfSupply < 7 ? 'high' as const : 'medium' as const,
+        reason: 'Stock will deplete before next delivery'
       });
     } else if (product.stockStatus === 'OVERSTOCK' && product.daysOfSupply > 90) {
       recommendations.push({
         productCode: product.code,
-        productName: product.name,
-        action: 'reduce',
-        priority: 'low',
-        suggestedQuantity: product.currentStock - product.maximumLevel,
-        reasoning: 'Excess inventory carrying costs',
-        timeframe: '1-3 months',
-        cost: -(product.currentStock - product.maximumLevel) * product.averageCost * 0.02 // 2% monthly carrying cost
+        recommendedQuantity: product.currentStock - product.maximumLevel,
+        estimatedCost: -(product.currentStock - product.maximumLevel) * (product.averageCost || product.cost || 0) * 0.02,
+        urgency: 'low' as const,
+        reason: 'Excess inventory carrying costs'
       });
     }
   });
 
   return recommendations.sort((a, b) => {
-    const priorityOrder = { high: 3, medium: 2, low: 1 };
-    return priorityOrder[b.priority] - priorityOrder[a.priority];
+    const urgencyOrder = { high: 3, medium: 2, low: 1 };
+    return urgencyOrder[b.urgency] - urgencyOrder[a.urgency];
   });
 };
 
@@ -389,9 +381,9 @@ export const calculateStockEfficiency = (products: ProcessedProduct[]): StockEff
       ? 0 
       : product.revenue;
     
-    const stockValue = isNaN(product.currentStock * product.averageCost) 
+    const stockValue = isNaN(product.currentStock * (product.averageCost || product.cost || 0)) 
       ? 0 
-      : Math.max(0, product.currentStock * product.averageCost);
+      : Math.max(0, product.currentStock * (product.averageCost || product.cost || 0));
 
     // More nuanced efficiency calculation
     let efficiency: 'high' | 'medium' | 'low' = 'low';

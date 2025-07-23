@@ -14,8 +14,8 @@ from models_enhanced import (
     MarketplaceIntelligence, FeedbackCollection, CompetitorIntelligence,
     DataQualityMetrics, APIIntegration
 )
-from services.intelligence_extraction import IntelligenceExtractionService
-from services.unified_document_intelligence_service import UnifiedDocumentIntelligenceService
+from backend.services.intelligence_extraction import IntelligenceExtractionService
+from backend.services.unified_document_intelligence_service import UnifiedDocumentIntelligenceService
 import logging
 
 logger = logging.getLogger(__name__)

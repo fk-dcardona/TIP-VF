@@ -71,11 +71,11 @@ class APIClient {
         throw error;
       }
       
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         throw new TimeoutErrorClass(`Request timeout after ${this.timeout}ms`, this.timeout);
       }
       
-      throw new NetworkErrorClass(`Network error: ${error.message}`);
+      throw new NetworkErrorClass(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -108,7 +108,7 @@ class APIClient {
    */
   async checkHealth(): Promise<{ status: 'healthy' | 'degraded' | 'critical'; response?: any; error?: string }> {
     try {
-      const response = await this.get('/health');
+      const response = await this.get<{ status: string }>('/health');
       return {
         status: response?.status === 'healthy' ? 'healthy' : 'degraded',
         response
@@ -196,11 +196,11 @@ class APIClient {
         throw error;
       }
       
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         throw new TimeoutErrorClass(`Request timeout after ${this.timeout}ms`, this.timeout);
       }
       
-      throw new NetworkErrorClass(`Network error: ${error.message}`);
+      throw new NetworkErrorClass(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

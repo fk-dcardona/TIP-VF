@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, Calendar, TrendingUp, BarChart3, CheckCircle, AlertCircle } from 'lucide-react';
-import { validateInventoryCSV, validateSalesCSV, processInventoryData, processSalesData } from '@/utils/csvProcessor';
+import { validateInventoryCSV, validateSalesCSV, processInventoryData, processSalesData, parseCSVFile } from '@/csvProcessor';
 import { databaseService } from '@/services/database';
-import type { CSVValidationResult, InventoryData, SalesData } from '@/types';
+import type { CSVValidationResult } from '@/types';
 
 interface InventoryPeriod {
   id: string;
@@ -10,7 +10,7 @@ interface InventoryPeriod {
   month: string;
   year: string;
   status: 'pending' | 'uploaded' | 'processing' | 'completed' | 'error';
-  data?: InventoryData[];
+  data?: any[];
   recordCount?: number;
   error?: string;
 }
@@ -31,7 +31,7 @@ export const MultiInventoryUpload: React.FC<MultiInventoryUploadProps> = ({ onCo
   ]);
 
   const [currentStep, setCurrentStep] = useState<'inventory' | 'sales' | 'complete'>('inventory');
-  const [salesData, setSalesData] = useState<SalesData[] | null>(null);
+  const [salesData, setSalesData] = useState<any[] | null>(null);
   const [salesFile, setSalesFile] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentlyProcessing, setCurrentlyProcessing] = useState<string | null>(null);
@@ -39,7 +39,6 @@ export const MultiInventoryUpload: React.FC<MultiInventoryUploadProps> = ({ onCo
   const handleFileUpload = useCallback(async (periodId: string, file: File) => {
     try {
       // Parse CSV file to get raw data
-      const { parseCSVFile } = await import('../../utils/csvProcessor');
       const rawData = await parseCSVFile(file);
       
       // Validate the CSV data
@@ -118,7 +117,6 @@ export const MultiInventoryUpload: React.FC<MultiInventoryUploadProps> = ({ onCo
   const handleSalesUpload = useCallback(async (file: File) => {
     try {
       // Parse CSV file to get raw data
-      const { parseCSVFile } = await import('../../utils/csvProcessor');
       const rawData = await parseCSVFile(file);
       
       // Validate the CSV data

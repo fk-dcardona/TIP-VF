@@ -7,7 +7,7 @@ import json
 from datetime import datetime
 
 from .base_tool import Tool, ToolParameter, ToolResult
-from config.settings import settings
+from backend.config.settings import settings
 from document_processor import TradeDocumentProcessor
 
 

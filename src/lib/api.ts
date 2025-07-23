@@ -1,5 +1,5 @@
 import { apiClient } from './api-client';
-import { APIHealth, Upload, UploadResponse, AnalyticsData } from '@/types/api';
+import { APIHealth, Upload, UploadResponse, LegacyAnalyticsData } from '@/types/api';
 
 // Health check functions
 export async function checkAPIHealth(): Promise<APIHealth> {
@@ -28,12 +28,12 @@ export async function downloadTemplate(templateType: string): Promise<Blob> {
 }
 
 // Analytics functions
-export async function getAnalyticsData(orgId: string): Promise<AnalyticsData> {
-  return apiClient.get<AnalyticsData>(`/analytics/${orgId}`);
+export async function getAnalyticsData(orgId: string): Promise<LegacyAnalyticsData> {
+  return apiClient.get<LegacyAnalyticsData>(`/analytics/${orgId}`);
 }
 
-export async function getDashboardData(orgId: string, dashboardType: string): Promise<AnalyticsData> {
-  return apiClient.get<AnalyticsData>(`/dashboard/${dashboardType}/${orgId}`);
+export async function getDashboardData(orgId: string, dashboardType: string): Promise<LegacyAnalyticsData> {
+  return apiClient.get<LegacyAnalyticsData>(`/dashboard/${dashboardType}/${orgId}`);
 }
 
 // Document intelligence functions

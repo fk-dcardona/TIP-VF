@@ -85,12 +85,12 @@ export const reportingService = {
       const performanceData = await databaseService.getPreCalculatedSalesPerformance(timeRange);
       
       // Generate executive summary
-      const { generateExecutiveSummary } = await import('../utils/salesAnalytics');
+      const { generateExecutiveSummary } = await import('@/salesAnalytics');
       const salesData = await databaseService.getSalesData() as any[];
       const inventoryData = await databaseService.getInventoryData();
       
       // Generate alerts
-      const { generateBusinessIntelligenceAlerts } = await import('../utils/salesAnalytics');
+      const { generateBusinessIntelligenceAlerts } = await import('@/salesAnalytics');
       const alerts = kpis ? generateBusinessIntelligenceAlerts(salesData, inventoryData, kpis, timeRange) : [];
       
       const executiveSummary = kpis ? generateExecutiveSummary(salesData, kpis, alerts, timeRange) : null;

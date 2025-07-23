@@ -32,8 +32,8 @@ from agent_protocol.monitoring.agent_logger import get_agent_logger
 from agent_protocol.monitoring.health_checker import HealthChecker
 from agent_protocol.security.permissions import get_permission_manager
 from agent_protocol.mcp.mcp_server import MCPServer
-from config.settings import settings
-from models import db, Agent as AgentModel
+from backend.config.settings import settings
+from backend.models import db, Agent as AgentModel
 
 # Set up logging
 logging.basicConfig(

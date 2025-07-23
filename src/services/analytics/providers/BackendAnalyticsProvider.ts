@@ -1,147 +1,123 @@
 /**
  * Backend Analytics Provider
- * Single Responsibility: Handle backend API communication for analytics data
+ * Connects to backend API for real-time analytics data
+ * Single Responsibility: Fetch analytics from backend services
  */
 
-import { 
-  BaseAnalyticsProvider, 
-  IAnalyticsProviderStrategy,
-  AnalyticsResponse,
-  AnalyticsDataType,
-  TriangleAnalyticsData,
-  CrossReferenceData,
-  SupplierData,
-  MarketData
-} from '../../../types/analytics-solid';
+import { AnalyticsData, InventoryData, SalesData, SupplierData, CrossReferenceData } from '../../../types/analytics-solid';
+import { apiClient } from '../../../lib/api-client';
 
-export class BackendAnalyticsProvider extends BaseAnalyticsProvider implements IAnalyticsProviderStrategy {
-  private readonly baseUrl: string;
-  private readonly timeout: number;
-  
-  constructor(baseUrl: string = process.env.NEXT_PUBLIC_API_URL || 'https://tip-vf-production.up.railway.app', timeout: number = 10000) {
-    super();
-    this.baseUrl = baseUrl.replace(/\/+$/, ''); // Remove trailing slashes
-    this.timeout = timeout;
+export class BackendAnalyticsProvider {
+  private baseUrl: string;
+  private apiKey: string;
+
+  constructor(baseUrl: string = '/api', apiKey: string = '') {
+    this.baseUrl = baseUrl;
+    this.apiKey = apiKey;
   }
 
-  getProviderName(): string {
-    return 'BackendAPI';
+  /**
+   * Get comprehensive analytics from backend
+   */
+  async getAnalytics(orgId?: string): Promise<AnalyticsData> {
+    try {
+      const endpoint = orgId ? `${this.baseUrl}/analytics?orgId=${orgId}` : `${this.baseUrl}/analytics`;
+      const response = await apiClient.get<AnalyticsData>(endpoint);
+
+      if (!response) {
+        throw new Error('No data received from backend');
+      }
+
+      return response;
+      
+    } catch (error) {
+      console.error('[BackendAnalyticsProvider] Error fetching analytics:', error);
+      throw new Error(`Failed to fetch analytics from backend: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
-  getProviderPriority(): number {
-    return 1; // Highest priority - preferred provider
-  }
-
-  canHandle(dataType: AnalyticsDataType): boolean {
-    // Backend can handle all analytics data types
-    return ['triangle', 'cross-reference', 'supplier-performance', 'market-intelligence'].includes(dataType);
-  }
-
+  /**
+   * Check if backend is available
+   */
   async isAvailable(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/health`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-        signal: AbortSignal.timeout(this.timeout)
-      });
-      
-      return response.ok;
+      const response = await apiClient.checkHealth();
+      return response.status === 'healthy';
     } catch (error) {
-      console.warn(`[${this.getProviderName()}] Health check failed:`, error);
+      console.warn('[BackendAnalyticsProvider] Backend not available:', error);
       return false;
     }
   }
 
-
-  async fetchData<T>(orgId: string, dataType: AnalyticsDataType): Promise<AnalyticsResponse<T>> {
-    const endpoint = this.getEndpointForDataType(dataType);
-    const url = `${this.baseUrl}${endpoint}/${orgId}`;
-
+  /**
+   * Get specific analytics section
+   */
+  async getInventoryData(orgId?: string): Promise<InventoryData> {
     try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(this.timeout)
-      });
+      const endpoint = orgId ? `${this.baseUrl}/analytics/inventory?orgId=${orgId}` : `${this.baseUrl}/analytics/inventory`;
+      const response = await apiClient.get<InventoryData>(endpoint);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const responseData = await response.json();
-      
-      // Check if response has expected structure
-      if (responseData.status === 'success' && responseData.data) {
-        return {
-          success: true,
-          data: responseData.data as T,
-          provider: this.getProviderName(),
-          fallback_used: false,
-          timestamp: this.createTimestamp()
-        };
-      }
-
-      throw new Error('Invalid response format from backend');
-      
+      return response;
     } catch (error) {
-      console.error(`[${this.getProviderName()}] Failed to fetch ${dataType} for org ${orgId}:`, error);
-      
+      console.error('[BackendAnalyticsProvider] Error fetching inventory data:', error);
+      throw error;
+    }
+  }
+
+  async getSalesData(orgId?: string): Promise<SalesData> {
+    try {
+      const endpoint = orgId ? `${this.baseUrl}/analytics/sales?orgId=${orgId}` : `${this.baseUrl}/analytics/sales`;
+      const response = await apiClient.get<SalesData>(endpoint);
+
+      return response;
+    } catch (error) {
+      console.error('[BackendAnalyticsProvider] Error fetching sales data:', error);
+      throw error;
+    }
+  }
+
+  async getSupplierData(orgId?: string): Promise<SupplierData[]> {
+    try {
+      const endpoint = orgId ? `${this.baseUrl}/analytics/suppliers?orgId=${orgId}` : `${this.baseUrl}/analytics/suppliers`;
+      const response = await apiClient.get<SupplierData[]>(endpoint);
+
+      return response;
+    } catch (error) {
+      console.error('[BackendAnalyticsProvider] Error fetching supplier data:', error);
+      throw error;
+    }
+  }
+
+  async getCrossReferenceData(orgId?: string): Promise<CrossReferenceData> {
+    try {
+      const endpoint = orgId ? `${this.baseUrl}/analytics/cross-reference?orgId=${orgId}` : `${this.baseUrl}/analytics/cross-reference`;
+      const response = await apiClient.get<CrossReferenceData>(endpoint);
+
+      return response;
+    } catch (error) {
+      console.error('[BackendAnalyticsProvider] Error fetching cross-reference data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Upload data to backend
+   */
+  async uploadData(data: any, orgId?: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const endpoint = orgId ? `${this.baseUrl}/analytics/upload?orgId=${orgId}` : `${this.baseUrl}/analytics/upload`;
+      const response = await apiClient.post<{ message: string }>(endpoint, data);
+
+      return {
+        success: true,
+        message: response.message || 'Data uploaded successfully'
+      };
+    } catch (error) {
+      console.error('[BackendAnalyticsProvider] Error uploading data:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        provider: this.getProviderName(),
-        fallback_used: false,
-        timestamp: this.createTimestamp()
+        message: error instanceof Error ? error.message : 'Failed to upload data'
       };
     }
-  }
-
-  private getEndpointForDataType(dataType: AnalyticsDataType): string {
-    const endpoints = {
-      'triangle': '/api/analytics/triangle',
-      'cross-reference': '/api/analytics/cross-reference', 
-      'supplier-performance': '/api/analytics/supplier-performance',
-      'market-intelligence': '/api/analytics/market-intelligence'
-    };
-    
-    return endpoints[dataType];
-  }
-
-  // Specific methods for each analytics type (Single Responsibility)
-  private async fetchTriangleAnalytics(orgId: string): Promise<TriangleAnalyticsData> {
-    const response = await this.fetchData<TriangleAnalyticsData>(orgId, 'triangle');
-    if (response.success && response.data) {
-      return response.data;
-    }
-    throw new Error(response.error || 'Failed to fetch triangle analytics');
-  }
-
-  private async fetchCrossReferenceAnalytics(orgId: string): Promise<CrossReferenceData> {
-    const response = await this.fetchData<CrossReferenceData>(orgId, 'cross-reference');
-    if (response.success && response.data) {
-      return response.data;
-    }
-    throw new Error(response.error || 'Failed to fetch cross-reference analytics');
-  }
-
-  private async fetchSupplierAnalytics(orgId: string): Promise<SupplierData> {
-    const response = await this.fetchData<SupplierData>(orgId, 'supplier-performance');
-    if (response.success && response.data) {
-      return response.data;
-    }
-    throw new Error(response.error || 'Failed to fetch supplier analytics');
-  }
-
-  private async fetchMarketAnalytics(orgId: string): Promise<MarketData> {
-    const response = await this.fetchData<MarketData>(orgId, 'market-intelligence');
-    if (response.success && response.data) {
-      return response.data;
-    }
-    throw new Error(response.error || 'Failed to fetch market analytics');
   }
 }

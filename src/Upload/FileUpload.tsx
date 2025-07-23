@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { Upload, FileText, AlertCircle } from 'lucide-react';
-import { parseCSVFile } from '@/utils/csvProcessor';
+import { parseCSVFile } from '@/csvProcessor';
 
 interface FileUploadProps {
   onFileUpload: (data: Record<string, unknown>[], filename: string) => void;
@@ -22,7 +22,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const processFile = async (file: File) => {
+  const processFile = useCallback(async (file: File) => {
     if (!file.name.toLowerCase().endsWith('.csv')) {
       console.error('Invalid file type:', file.name);
       return;
@@ -61,7 +61,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         onFileUpload([], `Error: ${error.message}`);
       }
     }
-  };
+  }, [onFileUpload]);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();

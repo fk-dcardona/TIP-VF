@@ -14,8 +14,8 @@ from collections import defaultdict
 from models import db
 from models_enhanced import UnifiedTransaction, DocumentInventoryLink
 from document_processor import TradeDocumentProcessor, DocumentIntelligenceAnalytics
-from services.unified_supply_chain_engine import UnifiedSupplyChainEngine
-from services.intelligence_extraction import IntelligenceExtractionService
+from backend.services.unified_supply_chain_engine import UnifiedSupplyChainEngine
+from backend.services.intelligence_extraction import IntelligenceExtractionService
 
 
 class UnifiedDocumentIntelligenceService:

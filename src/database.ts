@@ -75,60 +75,66 @@ interface PaginatedResult<T> {
 
 // Convert internal types to database types
 const convertInventoryToRecord = (item: InventoryData): Omit<InventoryRecord, 'id' | 'created_at' | 'updated_at'> => ({
-  k_sc_codigo_articulo: item.k_sc_codigo_articulo,
-  sc_detalle_articulo: item.sc_detalle_articulo,
-  sc_detalle_grupo: item.sc_detalle_grupo,
-  sc_detalle_subgrupo: item.sc_detalle_subgrupo,
+  product_code: item.k_sc_codigo_articulo,
+  product_detail: item.sc_detalle_articulo,
+  product_group: item.sc_detalle_grupo,
+  product_subgroup: item.sc_detalle_subgrupo,
   period: item.period,
-  n_saldo_anterior: item.n_saldo_anterior || 0,
-  n_entradas: item.n_entradas || 0,
-  n_salidas: item.n_salidas || 0,
-  n_saldo_actual: item.n_saldo_actual,
-  n_costo_promedio: item.n_costo_promedio,
-  n_ultimo_costo: item.n_ultimo_costo || 0,
-  sc_tipo_unidad: item.sc_tipo_unidad || 'UNIDAD'
+  previous_stock: item.n_saldo_anterior || 0,
+  stock_in: item.n_entradas || 0,
+  stock_out: item.n_salidas || 0,
+  current_stock: item.n_saldo_actual,
+  average_cost: item.n_costo_promedio,
+  last_cost: item.n_ultimo_costo || 0,
+  unit_type: item.sc_tipo_unidad || 'UNIT'
 })
 
 const convertRecordToInventory = (record: InventoryRecord): InventoryData => ({
-  k_sc_codigo_articulo: record.k_sc_codigo_articulo,
-  sc_detalle_articulo: record.sc_detalle_articulo,
-  sc_detalle_grupo: record.sc_detalle_grupo,
-  sc_detalle_subgrupo: record.sc_detalle_subgrupo || '',
+  code: record.product_code,
+  name: record.product_detail,
+  group: record.product_group,
+  currentStock: record.current_stock,
+  cost: record.average_cost,
+  // Legacy fields for backward compatibility
+  k_sc_codigo_articulo: record.product_code,
+  sc_detalle_articulo: record.product_detail,
+  sc_detalle_grupo: record.product_group,
+  sc_detalle_subgrupo: record.product_subgroup || '',
   period: record.period || new Date().toISOString().split('T')[0],
-  n_saldo_anterior: record.n_saldo_anterior || 0,
-  n_entradas: record.n_entradas || 0,
-  n_salidas: record.n_salidas || 0,
-  n_saldo_actual: record.n_saldo_actual,
-  n_costo_promedio: record.n_costo_promedio,
-  n_ultimo_costo: record.n_ultimo_costo || 0,
-  sc_tipo_unidad: record.sc_tipo_unidad || 'UNIDAD'
+  n_saldo_anterior: record.previous_stock || 0,
+  n_entradas: record.stock_in || 0,
+  n_salidas: record.stock_out || 0,
+  n_saldo_actual: record.current_stock,
+  n_costo_promedio: record.average_cost,
+  n_ultimo_costo: record.last_cost || 0,
+  sc_tipo_unidad: record.unit_type || 'UNIT'
 })
 
 const convertSalesToRecord = (item: SalesData): Omit<SalesRecord, 'id' | 'created_at' | 'updated_at'> => ({
-  k_sc_codigo_fuente: item.k_sc_codigo_fuente || '',
-  n_numero_documento: item.n_numero_documento || 0,
-  ka_nl_movimiento: item.ka_nl_movimiento || '',
-  d_fecha_documento: item.d_fecha_documento,
-  sc_nombre: item.sc_nombre || '',
-  n_nit: item.n_nit || 0,
-  sc_telefono_ppal: item.sc_telefono_ppal || '',
-  sc_telefono_alterno: item.sc_telefono_alterno || '',
-  sc_nombre_fuente: item.sc_nombre_fuente || '',
-  marca: item.MARCA || '',
-  k_sc_codigo_articulo: item.k_sc_codigo_articulo,
-  sc_detalle_articulo: item.sc_detalle_articulo,
-  n_cantidad: item.n_cantidad,
-  n_valor: item.n_valor,
-  v_bruta: item['V. BRUTA'] || 0,
-  n_iva: item.n_iva || 0,
-  n_descuento: item.n_descuento || 0,
-  descuento: item.DESCUENTO || 0,
-  v_neta: item['V. NETA'] || 0,
-  sc_detalle_grupo: item.sc_detalle_grupo || '',
-  sc_signo_inventario: item.sc_signo_inventario || '',
-  zona: item.zona || '',
-  ka_nl_tercero: item.ka_nl_tercero || '',
-  nombre_vendedor: item.nombre_vendedor || ''
+  product_source_code: item.k_sc_codigo_fuente || '',
+  document_number: item.n_numero_documento || 0,
+  movement_type: item.ka_nl_movimiento || '',
+  document_date: item.d_fecha_documento,
+  customer_name: item.sc_nombre || '',
+  customer_id: item.n_nit || 0,
+  customer_phone: item.sc_telefono_ppal || '',
+  customer_alt_phone: item.sc_telefono_alterno || '',
+  source_name: item.sc_nombre_fuente || '',
+  brand: item.MARCA || '',
+  product_code: item.k_sc_codigo_articulo,
+  product_detail: item.sc_detalle_articulo,
+  product_quantity: item.n_cantidad,
+  product_value: item.n_valor,
+  gross_value: item['V. BRUTA'] || 0,
+  tax_amount: item.n_iva || 0,
+  discount_amount: item.n_descuento || 0,
+  discount_percentage: item.DESCUENTO || 0,
+  net_value: item['V. NETA'] || 0,
+  product_group: item.sc_detalle_grupo || '',
+  inventory_sign: item.sc_signo_inventario || '',
+  territory: item.zona || '',
+  third_party_code: item.ka_nl_tercero || '',
+  salesperson_name: item.nombre_vendedor || ''
 })
 
 // Database service functions
@@ -256,17 +262,7 @@ export const databaseService = {
       if (error) throw error
       
       const result = data.map(record => ({
-        k_sc_codigo_articulo: record.k_sc_codigo_articulo,
-        sc_detalle_articulo: record.sc_detalle_articulo,
-        sc_detalle_grupo: record.sc_detalle_grupo,
-        sc_detalle_subgrupo: record.sc_detalle_subgrupo || '',
-        n_saldo_anterior: record.n_saldo_anterior || 0,
-        n_entradas: record.n_entradas || 0,
-        n_salidas: record.n_salidas || 0,
-        n_saldo_actual: record.n_saldo_actual,
-        n_costo_promedio: record.n_costo_promedio,
-        n_ultimo_costo: record.n_ultimo_costo || 0,
-        sc_tipo_unidad: record.sc_tipo_unidad || '',
+        ...convertRecordToInventory(record),
         period: record.period || undefined
       }))
       
@@ -300,20 +296,7 @@ export const databaseService = {
         .select('*')
         .eq('period', period)
       if (error) throw error
-      return data.map(record => ({
-        k_sc_codigo_articulo: record.k_sc_codigo_articulo,
-        sc_detalle_articulo: record.sc_detalle_articulo,
-        sc_detalle_grupo: record.sc_detalle_grupo,
-        sc_detalle_subgrupo: record.sc_detalle_subgrupo || '',
-        n_saldo_anterior: record.n_saldo_anterior || 0,
-        n_entradas: record.n_entradas || 0,
-        n_salidas: record.n_salidas || 0,
-        n_saldo_actual: record.n_saldo_actual,
-        n_costo_promedio: record.n_costo_promedio,
-        n_ultimo_costo: record.n_ultimo_costo || 0,
-        sc_tipo_unidad: record.sc_tipo_unidad || '',
-        period: record.period || undefined
-      }))
+      return data.map(record => convertRecordToInventory(record))
     } catch (error) {
       console.error('Error fetching inventory data by period:', error)
       return []
@@ -356,30 +339,35 @@ export const databaseService = {
       if (error) throw error;
       
       const result = data.map(record => ({
-        k_sc_codigo_fuente: record.k_sc_codigo_fuente || '',
-        n_numero_documento: record.n_numero_documento || 0,
-        ka_nl_movimiento: record.ka_nl_movimiento || '',
-        d_fecha_documento: record.d_fecha_documento,
-        sc_nombre: record.sc_nombre || '',
-        n_nit: record.n_nit || 0,
-        sc_telefono_ppal: record.sc_telefono_ppal || '',
-        sc_telefono_alterno: record.sc_telefono_alterno || '',
-        sc_nombre_fuente: record.sc_nombre_fuente || '',
-        MARCA: record.marca || '',
-        k_sc_codigo_articulo: record.k_sc_codigo_articulo,
-        sc_detalle_articulo: record.sc_detalle_articulo,
-        n_cantidad: record.n_cantidad,
-        n_valor: record.n_valor,
-        'V. BRUTA': record.v_bruta || 0,
-        n_iva: record.n_iva || 0,
-        n_descuento: record.n_descuento || 0,
-        DESCUENTO: record.descuento || 0,
-        'V. NETA': record.v_neta || 0,
-        sc_detalle_grupo: record.sc_detalle_grupo || '',
-        sc_signo_inventario: record.sc_signo_inventario || '',
-        zona: record.zona || '',
-        ka_nl_tercero: record.ka_nl_tercero || '',
-        nombre_vendedor: record.nombre_vendedor || ''
+        productCode: record.product_code,
+        date: record.document_date,
+        quantity: record.product_quantity,
+        value: record.net_value || 0,
+        // Legacy fields for backward compatibility
+        k_sc_codigo_fuente: record.product_source_code || '',
+        n_numero_documento: record.document_number || 0,
+        ka_nl_movimiento: record.movement_type || '',
+        d_fecha_documento: record.document_date,
+        sc_nombre: record.customer_name || '',
+        n_nit: record.customer_id || 0,
+        sc_telefono_ppal: record.customer_phone || '',
+        sc_telefono_alterno: record.customer_alt_phone || '',
+        sc_nombre_fuente: record.source_name || '',
+        MARCA: record.brand || '',
+        k_sc_codigo_articulo: record.product_code,
+        sc_detalle_articulo: record.product_detail,
+        n_cantidad: record.product_quantity,
+        n_valor: record.product_value,
+        'V. BRUTA': record.gross_value || 0,
+        n_iva: record.tax_amount || 0,
+        n_descuento: record.discount_amount || 0,
+        DESCUENTO: record.discount_percentage || 0,
+        'V. NETA': record.net_value || 0,
+        sc_detalle_grupo: record.product_group || '',
+        sc_signo_inventario: record.inventory_sign || '',
+        zona: record.territory || '',
+        ka_nl_tercero: record.third_party_code || '',
+        nombre_vendedor: record.salesperson_name || ''
       }));
       
       if (pagination && count !== null) {
@@ -578,7 +566,7 @@ export const databaseService = {
       const inventoryData = await this.getInventoryData();
       
       // Import and calculate KPIs
-      const { calculateSalesKPIs } = await import('../utils/salesAnalytics');
+      const { calculateSalesKPIs } = await import('@/salesAnalytics');
       const kpis = calculateSalesKPIs(salesData, inventoryData, timeRange);
       
       setCache(cacheKey, kpis, 10 * 60 * 1000); // 10 minutes TTL for KPIs
@@ -604,7 +592,7 @@ export const databaseService = {
         calculateOutletCoverage, 
         calculateProductLinePerformance, 
         calculateCustomerAnalytics 
-      } = await import('../utils/salesAnalytics');
+      } = await import('@/salesAnalytics');
       
       const outletCoverage = calculateOutletCoverage(salesData, timeRange);
       const productLinePerformance = calculateProductLinePerformance(salesData, inventoryData, timeRange);

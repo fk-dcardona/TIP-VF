@@ -7,8 +7,8 @@ import {
   validateSalesCSV, 
   processInventoryData, 
   processSalesData 
-} from '@/utils/csvProcessor';
-import { databaseService } from '@/services/database';
+} from '@/csvProcessor';
+import { databaseService } from '@/database';
 import type { UploadStep, CSVValidationResult } from '@/types';
 
 interface UploadWizardProps {
@@ -146,12 +146,33 @@ export const UploadWizard: React.FC<UploadWizardProps> = ({ onComplete, onBack }
       const processedInventory = processInventoryData(inventoryData);
       const processedSales = processSalesData(salesData);
 
+      // Convert legacy inventory data to new format
+      const convertedInventory = processedInventory.map(item => ({
+        code: item.k_sc_codigo_articulo,
+        name: item.sc_detalle_articulo,
+        group: item.sc_detalle_grupo,
+        currentStock: item.n_saldo_actual,
+        cost: item.n_costo_promedio,
+        // Include legacy fields for backward compatibility
+        ...item
+      }));
+
+      // Convert legacy sales data to new format
+      const convertedSales = processedSales.map(item => ({
+        productCode: item.k_sc_codigo_articulo,
+        date: item.d_fecha_documento,
+        quantity: item.n_cantidad,
+        value: item.n_valor,
+        // Include legacy fields for backward compatibility
+        ...item
+      }));
+
       console.log('🚀 Starting data upload to Supabase...');
       
       // Save both datasets to Supabase in parallel for better performance
       await Promise.all([
-        databaseService.saveInventoryData(processedInventory, inventoryFile),
-        databaseService.saveSalesData(processedSales, salesFile)
+        databaseService.saveInventoryData(convertedInventory, inventoryFile),
+        databaseService.saveSalesData(convertedSales, salesFile)
       ]);
 
       console.log('✅ All data uploaded successfully to Supabase!');

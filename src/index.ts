@@ -1,3 +1,13 @@
+// ============================================================================
+// LEGACY EXPORTS - DEPRECATED - Use @/types instead
+// ============================================================================
+// This file is maintained for backward compatibility only
+// All new code should import from @/types
+
+// Re-export from unified type system
+export * from './types';
+
+// Legacy inventory data interface (deprecated - use @/types)
 export interface InventoryData {
   k_sc_codigo_articulo: string;
   sc_detalle_articulo: string;
@@ -13,6 +23,7 @@ export interface InventoryData {
   sc_tipo_unidad: string;
 }
 
+// Legacy sales data interface (deprecated - use @/types)
 export interface SalesData {
   k_sc_codigo_fuente: string;
   n_numero_documento: number;
@@ -40,6 +51,7 @@ export interface SalesData {
   nombre_vendedor: string;
 }
 
+// Legacy processed product interface (deprecated - use @/types)
 export interface ProcessedProduct {
   code: string;
   name: string;
@@ -69,6 +81,7 @@ export interface ProcessedProduct {
   inventoryCarryingCost?: number;
 }
 
+// Legacy alert interface (deprecated - use @/types)
 export interface Alert {
   id: string;
   productCode: string;
@@ -85,6 +98,7 @@ export interface Alert {
   actionRequired: string;
 }
 
+// Legacy KPI data interface (deprecated - use @/types)
 export interface KPIData {
   supplyChainHealthScore: number;
   totalRevenue: number;
@@ -97,6 +111,7 @@ export interface KPIData {
   normalStock: number;
 }
 
+// Legacy chart data interface (deprecated - use @/types)
 export interface ChartData {
   name: string;
   value: number;
@@ -107,6 +122,7 @@ export interface ChartData {
   forecast?: number;
 }
 
+// Legacy uploaded dataset interface (deprecated - use @/types)
 export interface UploadedDataset {
   id: string;
   type: 'inventory' | 'sales';
@@ -116,6 +132,7 @@ export interface UploadedDataset {
   data: InventoryData[] | SalesData[];
 }
 
+// Legacy min-max config interface (deprecated - use @/types)
 export interface MinMaxConfig {
   productCode: string;
   customMinimum?: number;
@@ -124,18 +141,21 @@ export interface MinMaxConfig {
   safetyStockMultiplier: number;
 }
 
+// Legacy stored data interface (deprecated - use @/types)
 export interface StoredData {
   historical: UploadedDataset[];
   minMaxSettings: Record<string, MinMaxConfig>;
   lastUpdated: string;
 }
 
+// Legacy time range interface (deprecated - use @/types)
 export interface TimeRange {
   label: string;
   days: number;
   value: '7d' | '30d' | '90d' | '6m' | '1y';
 }
 
+// Legacy upload step interface (deprecated - use @/types)
 export interface UploadStep {
   id: number;
   title: string;
@@ -144,6 +164,7 @@ export interface UploadStep {
   error?: string;
 }
 
+// Legacy CSV validation result interface (deprecated - use @/types)
 export interface CSVValidationResult {
   isValid: boolean;
   errors: string[];
@@ -153,6 +174,7 @@ export interface CSVValidationResult {
   preview: Record<string, unknown>[];
 }
 
+// Legacy procurement recommendation interface (deprecated - use @/types)
 export interface ProcurementRecommendation {
   productCode: string;
   productName: string;
@@ -164,6 +186,7 @@ export interface ProcurementRecommendation {
   cost: number;
 }
 
+// Legacy stock efficiency data interface (deprecated - use @/types)
 export interface StockEfficiencyData {
   productCode: string;
   productName: string;
@@ -174,6 +197,7 @@ export interface StockEfficiencyData {
   efficiency: 'high' | 'medium' | 'low';
 }
 
+// Legacy filter options interface (deprecated - use @/types)
 export interface FilterOptions {
   timeRange: TimeRange;
   productGroups: string[];
@@ -181,6 +205,7 @@ export interface FilterOptions {
   alertTypes: string[];
 }
 
+// Legacy discontinued product alert interface (deprecated - use @/types)
 export interface DiscontinuedProductAlert {
   productCode: string;
   productName: string;
@@ -192,6 +217,7 @@ export interface DiscontinuedProductAlert {
   reasoning: string;
 }
 
+// Legacy high value insight interface (deprecated - use @/types)
 export interface HighValueInsight {
   type: 'PRODUCT' | 'CLIENT' | 'GROUP';
   identifier: string;
@@ -205,6 +231,7 @@ export interface HighValueInsight {
   recommendations: string[];
 }
 
+// Legacy time series data interface (deprecated - use @/types)
 export interface TimeSeriesData {
   period: string;
   value: number;
@@ -213,7 +240,7 @@ export interface TimeSeriesData {
   subgroup?: string;
 }
 
-// New Sales Intelligence Types
+// Legacy sales KPIs interface (deprecated - use @/types)
 export interface SalesKPIs {
   // Financial KPIs
   totalRevenue: number;
@@ -238,6 +265,7 @@ export interface SalesKPIs {
   repeatPurchaseRate: number;
 }
 
+// Legacy outlet coverage metrics interface (deprecated - use @/types)
 export interface OutletCoverageMetrics {
   totalCalls: number;
   effectivelyCoveredOutlets: number;
@@ -248,6 +276,7 @@ export interface OutletCoverageMetrics {
   period: string;
 }
 
+// Legacy product line performance interface (deprecated - use @/types)
 export interface ProductLinePerformance {
   productCode: string;
   productName: string;
@@ -260,6 +289,7 @@ export interface ProductLinePerformance {
   category: string;
 }
 
+// Legacy customer analytics interface (deprecated - use @/types)
 export interface CustomerAnalytics {
   customerId: string;
   customerName: string;
@@ -275,6 +305,7 @@ export interface CustomerAnalytics {
   riskScore: number;
 }
 
+// Legacy sales performance data interface (deprecated - use @/types)
 export interface SalesPerformanceData {
   monthlyRevenue: TimeSeriesData[];
   grossMarginTrend: TimeSeriesData[];
@@ -286,6 +317,7 @@ export interface SalesPerformanceData {
   territoryPerformance: Record<string, number>;
 }
 
+// Legacy business intelligence alert interface (deprecated - use @/types)
 export interface BusinessIntelligenceAlert {
   id: string;
   type: 'REVENUE_VARIANCE' | 'CUSTOMER_CHURN' | 'INVENTORY_COST' | 'MARGIN_COMPRESSION' | 'OPERATIONAL' | 'STOCKOUT' | 'SLOW_MOVING' | 'PAYMENT_DELAY' | 'TERRITORY_PERFORMANCE';
@@ -302,6 +334,7 @@ export interface BusinessIntelligenceAlert {
   actionRequired: string;
 }
 
+// Legacy sales validation result interface (deprecated - use @/types)
 export interface SalesValidationResult {
   // Prueba de escritorio validation
   accountingReconciliation: {
@@ -327,6 +360,7 @@ export interface SalesValidationResult {
   validatedBy: string;
 }
 
+// Legacy sales dashboard filters interface (deprecated - use @/types)
 export interface SalesDashboardFilters {
   dateRange: {
     startDate: string;
@@ -340,6 +374,7 @@ export interface SalesDashboardFilters {
   categories: string[];
 }
 
+// Legacy executive summary interface (deprecated - use @/types)
 export interface ExecutiveSummary {
   period: string;
   revenueTrend: {
@@ -369,6 +404,7 @@ export interface ExecutiveSummary {
   }>;
 }
 
+// Legacy sales report interface (deprecated - use @/types)
 export interface SalesReport {
   id: string;
   type: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'CUSTOM';

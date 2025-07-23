@@ -2,8 +2,8 @@ from flask import Blueprint, jsonify
 import psutil
 import os
 from datetime import datetime
-from utils.logger import get_logger
-from config.settings import settings
+from backend.utils.logger import get_logger
+from backend.config.settings import settings
 
 logger = get_logger('health_check')
 health_bp = Blueprint('health', __name__)

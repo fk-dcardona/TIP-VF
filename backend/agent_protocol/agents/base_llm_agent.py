@@ -9,7 +9,7 @@ from ..core.agent_result import AgentResult
 from ..core.agent_context import AgentContext
 from ..prompts.prompt_manager import PromptManager
 from ..llm.llm_client import LLMClient, LLMResponse
-from config.llm_config import get_agent_llm_config
+from backend.config.llm_config import get_agent_llm_config
 
 
 class BaseLLMAgent(BaseAgent):

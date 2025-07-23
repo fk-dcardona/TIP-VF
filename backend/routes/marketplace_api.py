@@ -16,7 +16,7 @@ from models_enhanced import (
     MarketplaceIntelligence, MarketIntelligence, CustomerIntelligence,
     DataQualityMetrics, APIIntegration
 )
-from services.data_moat_strategy import DataMoatStrategyService
+from backend.services.data_moat_strategy import DataMoatStrategyService
 import logging
 
 logger = logging.getLogger(__name__)

@@ -14,8 +14,8 @@ from pathlib import Path
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from services.enhanced_document_processor import EnhancedDocumentProcessor
-from services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
+from backend.services.enhanced_document_processor import EnhancedDocumentProcessor
+from backend.services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
 from agent_protocol.agents.enhanced_inventory_agent import DocumentIntelligenceInventoryAgent
 try:
     from agent_protocol.core.agent_types import AgentType
@@ -23,7 +23,7 @@ try:
 except ImportError:
     AGENT_TYPE = "INVENTORY_MONITOR"
 from models_enhanced import UnifiedTransaction, DocumentInventoryLink
-from models import db, TradeDocument
+from backend.models import db, TradeDocument
 
 class EnhancedDocumentIntelligenceTester:
     """Test suite for enhanced document intelligence system"""

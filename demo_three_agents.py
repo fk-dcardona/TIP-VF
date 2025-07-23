@@ -31,7 +31,7 @@ from agent_protocol.agents import (
     DemandForecasterAgent
 )
 from agent_protocol.core.agent_types import AgentType
-from config.llm_settings import LLMSettings
+from backend.config.llm_settings import LLMSettings
 
 
 def demonstrate_inventory_monitor():

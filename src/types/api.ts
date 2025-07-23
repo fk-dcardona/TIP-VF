@@ -32,7 +32,7 @@ export interface Upload {
 export interface UploadResponse extends APIResponse<Upload> {}
 
 // Analytics Types
-export interface AnalyticsData {
+export interface LegacyAnalyticsData {
   summary: DashboardSummary;
   product_performance: ProductPerformance[];
   inventory_alerts: InventoryAlert[];
@@ -112,19 +112,39 @@ export interface DashboardMetrics {
 }
 
 export interface CrossReferenceData {
-  compromisedInventory: number;
-  crossReferenceScore: number;
-  documentValidation: {
-    total: number;
-    validated: number;
-    invalid: number;
-  };
-  alerts: Array<{
-    id: string;
-    type: string;
-    message: string;
-    priority: 'low' | 'medium' | 'high' | 'critical';
-  }>;
+  supplier_product_impact: {
+    supplier_id: string;
+    supplier_name: string;
+    product_code: string;
+    product_name: string;
+    lead_time_impact_score: number;
+    stockout_risk: number;
+    sales_impact: number;
+    cost_impact: number;
+  }[];
+  inventory_supplier_analysis: {
+    product_code: string;
+    current_stock: number;
+    reorder_point: number;
+    supplier_lead_times: {
+      supplier_id: string;
+      supplier_name: string;
+      average_lead_time: number;
+      risk_level: 'low' | 'medium' | 'high' | 'critical';
+    }[];
+    stockout_probability: number;
+  }[];
+  sales_supplier_correlation: {
+    product_code: string;
+    monthly_sales: number;
+    supplier_performance: {
+      supplier_id: string;
+      supplier_name: string;
+      delivery_performance: number;
+      quality_score: number;
+      impact_on_sales: number;
+    }[];
+  }[];
 }
 
 // Real-time Dashboard Analytics

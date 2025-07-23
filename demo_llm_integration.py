@@ -20,9 +20,9 @@ sys.path.append(str(Path(__file__).parent))
 from dotenv import load_dotenv
 load_dotenv('.env.local')
 
-from config.llm_settings import LLMSettings, demonstrate_model_selection
-from config.settings import settings
-from utils.llm_cost_tracker import get_cost_tracker
+from backend.config.llm_settings import LLMSettings, demonstrate_model_selection
+from backend.config.settings import settings
+from backend.utils.llm_cost_tracker import get_cost_tracker
 import json
 
 

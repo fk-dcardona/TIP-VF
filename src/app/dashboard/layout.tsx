@@ -2,22 +2,33 @@
 
 import { useAuth } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Temporarily disable authentication for development
+  const isDevelopmentMode = true; // Force development mode
+  
+  // Always call hooks at the top level (before any conditions)
   const { isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
+    // Only run the redirect logic if not in development mode
+    if (!isDevelopmentMode && isLoaded && !isSignedIn) {
       router.push('/onboarding');
     }
-  }, [isLoaded, isSignedIn, router]);
+  }, [isDevelopmentMode, isLoaded, isSignedIn, router]);
 
+  // Skip all authentication logic in development
+  if (isDevelopmentMode) {
+    return <>{children}</>;
+  }
+
+  // Production authentication logic
   if (!isLoaded || !isSignedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">

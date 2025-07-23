@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 from dataclasses import dataclass
 from enum import Enum
-from config.settings import settings
+from backend.config.settings import settings
 
 class DocumentType(Enum):
     PURCHASE_ORDER = "purchase_order"

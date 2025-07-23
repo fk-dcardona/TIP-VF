@@ -34,7 +34,7 @@ export function ChartsGrid({ charts }: ChartsGridProps) {
         <h3 className="text-lg font-semibold mb-4">Supplier Performance</h3>
         <BarList
           data={charts.supplierPerformance}
-          valueFormatter={(value) => `${value}%`}
+          valueFormatter={(value: number) => `${value}%`}
           className="mt-4"
         />
       </Card>

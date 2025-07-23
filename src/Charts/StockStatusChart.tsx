@@ -1,7 +1,6 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import type { ChartData } from '@/types';
-import type { LegendPayload } from 'recharts';
 
 interface StockStatusChartProps {
   data: ChartData[];
@@ -107,7 +106,7 @@ export const StockStatusChart: React.FC<StockStatusChartProps> = ({
             <Legend 
               verticalAlign="bottom" 
               height={36}
-              formatter={(value: string, entry: LegendPayload) => (
+              formatter={(value: string, entry: any) => (
                 <span style={{ color: entry.color ?? '#000' }} className="text-sm">
                   {value}
                 </span>

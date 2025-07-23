@@ -18,7 +18,7 @@ sys.path.insert(0, current_dir)
 
 from agent_registry import AgentRegistry, AgentRegistryConfig
 from migrations.run_migrations import MigrationRunner
-from config.settings import settings
+from backend.config.settings import settings
 
 # Set up logging
 logging.basicConfig(

@@ -13,7 +13,7 @@ from agent_protocol.agents.document_intelligence_agent import DocumentIntelligen
 from agent_protocol.core.agent_types import AgentType
 from agent_protocol.core.agent_context import AgentContext
 from agent_protocol.core.agent_result import AgentResult
-from services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
+from backend.services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
 from models import TradeDocument
 from models_enhanced import UnifiedTransaction
 

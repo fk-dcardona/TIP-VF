@@ -151,7 +151,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
             <div
               key={alert.id}
               className={`p-4 border-l-4 hover:bg-gray-50 transition-colors cursor-pointer ${alertInfo.color}`}
-              onClick={() => handleViewDetails(alert.productCode)}
+              onClick={() => handleViewDetails(alert.productCode || '')}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
@@ -186,7 +186,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                 <div className="flex items-center space-x-2 ml-4">
                   {alert.type !== 'OVERSTOCK' && alert.revenueImpact > 0 && (
                     <button
-                      onClick={(e) => handleCreatePO(alert.productCode, e)}
+                      onClick={(e) => handleCreatePO(alert.productCode || '', e)}
                       className="px-3 py-1 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                       title="Create Purchase Order"
                     >
@@ -195,7 +195,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                   )}
                   
                   <button
-                    onClick={() => handleViewDetails(alert.productCode)}
+                    onClick={() => handleViewDetails(alert.productCode || '')}
                     className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
                     title="View Details"
                   >

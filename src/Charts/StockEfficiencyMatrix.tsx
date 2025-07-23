@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Star, TrendingUp, HelpCircle, DollarSign } from 'lucide-react';
 import type { StockEfficiencyData } from '@/types';
@@ -28,12 +28,12 @@ export const StockEfficiencyMatrix: React.FC<StockEfficiencyMatrixProps> = ({
   const avgMargin = data.length > 0 ? data.reduce((sum, item) => sum + item.marginPercentage, 0) / data.length : 15;
 
   // Categorize products
-  const categorizeProduct = (item: StockEfficiencyData): EfficiencyCategory => {
+  const categorizeProduct = useCallback((item: StockEfficiencyData): EfficiencyCategory => {
     if (item.turnoverRate > avgTurnover && item.marginPercentage > avgMargin) return 'stars';
     if (item.turnoverRate > avgTurnover && item.marginPercentage <= avgMargin) return 'cash_cows';
     if (item.turnoverRate <= avgTurnover && item.marginPercentage > avgMargin) return 'question_marks';
     return 'dogs';
-  };
+  }, [avgTurnover, avgMargin]);
 
   // Filter data based on selected category
   const filteredData = useMemo(() => {
@@ -44,7 +44,7 @@ export const StockEfficiencyMatrix: React.FC<StockEfficiencyMatrixProps> = ({
     }
 
     return filtered;
-  }, [data, selectedCategory, avgTurnover, avgMargin]);
+  }, [data, selectedCategory, categorizeProduct]);
 
   const getEfficiencyColor = (item: StockEfficiencyData) => {
     const category = categorizeProduct(item);
@@ -149,7 +149,7 @@ export const StockEfficiencyMatrix: React.FC<StockEfficiencyMatrixProps> = ({
       dogs: data.filter(item => categorizeProduct(item) === 'dogs').length,
     };
     return stats;
-  }, [data, avgTurnover, avgMargin]);
+  }, [data, categorizeProduct]);
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

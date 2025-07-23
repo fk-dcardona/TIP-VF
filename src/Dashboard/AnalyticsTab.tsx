@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { TrendingUp, DollarSign, Target, Zap } from 'lucide-react';
-import { StockEfficiencyMatrix } from '@/components/Charts/StockEfficiencyMatrix';
+import { StockEfficiencyMatrix } from '@/Charts/StockEfficiencyMatrix';
 import { EnhancedProductTable } from './EnhancedProductTable';
 import { CollapsibleProcurementRecommendations } from './CollapsibleProcurementRecommendations';
 import { KPICard } from './KPICard';
 import type { ProcessedProduct } from '@/types';
-import { calculateStockEfficiency, generateProcurementRecommendations } from '@/utils/calculations';
-import { TimePeriodSelector } from '@/components/UI/TimePeriodSelector';
+import { calculateStockEfficiency, generateProcurementRecommendations } from '@/calculations';
+import { TimePeriodSelector } from '@/UI/TimePeriodSelector';
 import { ProductDetailModal } from './ProductDetailModal';
-import { generateCSVFromData } from '@/utils/csvProcessor';
+import { generateCSVFromData } from '@/csvProcessor';
 
 interface AnalyticsTabProps {
   /** Full list across all periods for historical visualisations */

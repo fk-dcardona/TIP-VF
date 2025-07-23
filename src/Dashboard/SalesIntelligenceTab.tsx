@@ -2,9 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { TrendingUp, DollarSign, Users, Target, AlertTriangle, Calendar } from 'lucide-react';
 import { KPICard } from './KPICard';
 import { BusinessIntelligenceAlertPanel } from './BusinessIntelligenceAlertPanel';
-import { InteractiveSalesChart } from '@/components/Charts/InteractiveSalesChart';
-import { AdvancedSalesFilters } from '@/components/UI/AdvancedSalesFilters';
-import { useSalesData } from '@/hooks/useSalesData';
+import { InteractiveSalesChart } from '@/Charts/InteractiveSalesChart';
+import { AdvancedSalesFilters } from '@/UI/AdvancedSalesFilters';
+import { useSalesData } from '@/useSalesData';
 import type { SalesDashboardFilters } from '@/types';
 
 // Placeholder imports for new widgets (to be implemented)

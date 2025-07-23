@@ -7,53 +7,24 @@
  */
 
 import { SolidAnalyticsService } from './SolidAnalyticsService';
-import { BackendAnalyticsProvider } from './providers/BackendAnalyticsProvider';
-import { FallbackAnalyticsProvider } from './providers/FallbackAnalyticsProvider';
-import { RealDataAnalyticsProvider } from './providers/RealDataAnalyticsProvider';
-import { IAnalyticsProviderStrategy } from '../../types/analytics-solid';
 
 export interface AnalyticsServiceConfig {
-  backendUrl?: string;
   healthCheckInterval?: number;
-  requestTimeout?: number;
-  enableFallback?: boolean;
-  customProviders?: IAnalyticsProviderStrategy[];
 }
 
 export class AnalyticsServiceFactory {
   private static instance: SolidAnalyticsService | null = null;
 
   /**
-   * Create a new analytics service instance with dependency injection
+   * Create a new analytics service instance
    */
   static create(config: AnalyticsServiceConfig = {}): SolidAnalyticsService {
     const {
-      backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://tip-vf-production.up.railway.app',
-      healthCheckInterval = 30000,
-      requestTimeout = 10000,
-      enableFallback = true,
-      customProviders = []
+      healthCheckInterval = 30000
     } = config;
 
-    // Build provider chain following priority order
-    const providers: IAnalyticsProviderStrategy[] = [];
-
-    // 1. Primary: Real Data Analytics Provider (Priority 0 - Highest)
-    providers.push(new RealDataAnalyticsProvider());
-
-    // 2. Secondary: Backend API Provider (Priority 1)
-    providers.push(new BackendAnalyticsProvider(backendUrl, requestTimeout));
-
-    // 3. Custom providers (if any) - Priority determined by provider implementation
-    providers.push(...customProviders);
-
-    // 4. Fallback: Reliable mock data provider (Priority 10 - Lowest)
-    if (enableFallback) {
-      providers.push(new FallbackAnalyticsProvider());
-    }
-
-    // Create service with injected dependencies
-    return new SolidAnalyticsService(providers, healthCheckInterval);
+    // Create service with internal provider management
+    return new SolidAnalyticsService(undefined, healthCheckInterval);
   }
 
   /**
@@ -78,10 +49,7 @@ export class AnalyticsServiceFactory {
    */
   static createDevelopment(): SolidAnalyticsService {
     return this.create({
-      backendUrl: 'http://localhost:5000',
-      healthCheckInterval: 10000, // More frequent checks in development
-      requestTimeout: 5000,
-      enableFallback: true
+      healthCheckInterval: 10000 // More frequent checks in development
     });
   }
 
@@ -90,76 +58,40 @@ export class AnalyticsServiceFactory {
    */
   static createProduction(): SolidAnalyticsService {
     return this.create({
-      backendUrl: 'https://tip-vf-production.up.railway.app',
-      healthCheckInterval: 60000, // Less frequent checks in production
-      requestTimeout: 15000,
-      enableFallback: true
+      healthCheckInterval: 60000 // Less frequent checks in production
     });
   }
 
   /**
-   * Create analytics service for testing (real data + fallback)
+   * Create analytics service for testing environment
    */
   static createTesting(): SolidAnalyticsService {
     return this.create({
-      enableFallback: true,
-      customProviders: [], // Real data provider is included by default
-      healthCheckInterval: 1000 // Rapid health checks for testing
+      healthCheckInterval: 5000 // Very frequent checks for testing
     });
   }
 
   /**
-   * Create analytics service for real data demo
+   * Create analytics service optimized for real data demo
    */
   static createRealDataDemo(): SolidAnalyticsService {
     return this.create({
-      enableFallback: false, // Only real data, no fallback
-      customProviders: [],
-      healthCheckInterval: 5000
-    });
-  }
-
-  /**
-   * Create analytics service with custom backend URL
-   */
-  static createWithCustomBackend(backendUrl: string, timeout?: number): SolidAnalyticsService {
-    return this.create({
-      backendUrl,
-      requestTimeout: timeout || 10000,
-      enableFallback: true
+      healthCheckInterval: 15000 // Balanced for demo performance
     });
   }
 }
 
-// ==================== Environment-Aware Factory ====================
+// ==================== Convenience Functions ====================
 
 /**
- * Environment-aware factory function
- * Automatically configures service based on environment
+ * Create analytics service with default configuration
  */
 export function createAnalyticsService(): SolidAnalyticsService {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const isTest = process.env.NODE_ENV === 'test';
-
-  if (isTest) {
-    console.log('[AnalyticsServiceFactory] Creating testing analytics service');
-    return AnalyticsServiceFactory.createTesting();
-  }
-
-  if (isDevelopment) {
-    console.log('[AnalyticsServiceFactory] Creating development analytics service');
-    return AnalyticsServiceFactory.createDevelopment();
-  }
-
-  console.log('[AnalyticsServiceFactory] Creating production analytics service');
-  return AnalyticsServiceFactory.createProduction();
+  return AnalyticsServiceFactory.create();
 }
 
-// ==================== React Hook Integration Helper ====================
-
 /**
- * Get analytics service instance for React hooks
- * Ensures consistent instance across component renders
+ * Get analytics service singleton instance
  */
 export function getAnalyticsServiceInstance(): SolidAnalyticsService {
   return AnalyticsServiceFactory.getInstance();

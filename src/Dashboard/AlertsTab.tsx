@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Download } from 'lucide-react';
 import { AlertCard } from './AlertCard';
-import { FilterBar } from '@/components/UI/FilterBar';
-import type { ProcessedProduct } from '@/types';
-import { generateAlerts } from '@/utils/calculations';
+import { FilterBar } from '@/UI/FilterBar';
+import type { ProcessedProduct, Alert } from '@/types';
+import { generateAlerts } from '@/calculations';
 
 interface AlertsTabProps {
   /**
@@ -78,7 +78,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         if (!alert.productName.toLowerCase().includes(searchLower) &&
-            !alert.productCode.toLowerCase().includes(searchLower)) {
+            !(alert.productCode?.toLowerCase().includes(searchLower) || false)) {
           return false;
         }
       }

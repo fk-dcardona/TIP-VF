@@ -96,16 +96,15 @@ export const RealTimeDashboard: React.FC<RealTimeDashboardProps> = ({ className 
   return (
     <ErrorBoundary>
       <div className={`space-y-6 ${className}`}>
-        {/* Header with real-time status */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between"
         >
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Real-Time Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Supply Chain Intelligence Dashboard</h1>
             <p className="text-muted-foreground">
-              Live business intelligence and analytics
+              Real-time analytics and performance monitoring
             </p>
           </div>
           <div className="flex items-center space-x-2">
@@ -123,35 +122,35 @@ export const RealTimeDashboard: React.FC<RealTimeDashboardProps> = ({ className 
           </div>
         </motion.div>
 
-        {/* SOLID Principles Integration Card */}
+        {/* Key Performance Indicators */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Activity className="w-5 h-5" />
-              <span>SOLID Principles Implementation</span>
+              <TrendingUp className="w-5 h-5" />
+              <span>Key Performance Indicators</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <h4 className="font-semibold text-blue-800">SRP</h4>
-                <p className="text-sm text-blue-600">Single Responsibility</p>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <Package className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                <h4 className="font-semibold text-blue-800">{metrics.totalInventory.toLocaleString()}</h4>
+                <p className="text-sm text-blue-600">Total Inventory</p>
               </div>
-              <div className="text-center p-3 bg-green-50 rounded-lg">
-                <h4 className="font-semibold text-green-800">OCP</h4>
-                <p className="text-sm text-green-600">Open/Closed</p>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <DollarSign className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <h4 className="font-semibold text-green-800">${metrics.totalInventoryValue.toLocaleString()}</h4>
+                <p className="text-sm text-green-600">Inventory Value</p>
               </div>
-              <div className="text-center p-3 bg-purple-50 rounded-lg">
-                <h4 className="font-semibold text-purple-800">LSP</h4>
-                <p className="text-sm text-purple-600">Liskov Substitution</p>
+              <div className="text-center p-4 bg-red-50 rounded-lg">
+                <AlertTriangle className="w-8 h-8 text-red-600 mx-auto mb-2" />
+                <h4 className="font-semibold text-red-800">{metrics.criticalAlerts}</h4>
+                <p className="text-sm text-red-600">Critical Alerts</p>
               </div>
-              <div className="text-center p-3 bg-orange-50 rounded-lg">
-                <h4 className="font-semibold text-orange-800">ISP</h4>
-                <p className="text-sm text-orange-600">Interface Segregation</p>
-              </div>
-              <div className="text-center p-3 bg-red-50 rounded-lg">
-                <h4 className="font-semibold text-red-800">DIP</h4>
-                <p className="text-sm text-red-600">Dependency Inversion</p>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <Activity className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <h4 className="font-semibold text-purple-800">{metrics.activeSuppliers}</h4>
+                <p className="text-sm text-purple-600">Active Suppliers</p>
               </div>
             </div>
           </CardContent>

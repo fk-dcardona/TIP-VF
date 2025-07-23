@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supply Chain Intelligence Platform - Complete Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .progress-bar {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        }
+        .matrix-cell {
+            transition: all 0.3s ease;
+        }
+        .matrix-cell:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        .breathing-animation {
+            animation: breathing 4s ease-in-out infinite;
+        }
+        @keyframes breathing {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                        <i data-lucide="zap" class="w-5 h-5 text-blue-600"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold">Supply Chain Intelligence</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-green-400 rounded-full pulse-dot"></div>
+                        <span class="text-sm">Live Data</span>
+                    </div>
+                    <div class="text-sm opacity-90">
+                        Last updated: <span id="lastUpdate">Just now</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="container mx-auto px-6">
+            <div class="flex space-x-1 overflow-x-auto">
+                <button class="tab-button active px-4 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600 whitespace-nowrap" data-tab="overview">
+                    <i data-lucide="activity" class="w-4 h-4 inline mr-2"></i>
+                    Overview
+                </button>
+                <button class="tab-button px-4 py-3 text-sm font-medium text-gray-600 hover:text-blue-600 whitespace-nowrap" data-tab="upload">
+                    <i data-lucide="database" class="w-4 h-4 inline mr-2"></i>
+                    Upload
+                </button>
+                <button class="tab-button px-4 py-3 text-sm font-medium text-gray-600 hover:text-blue-600 whitespace-nowrap" data-tab="analytics">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4 inline mr-2"></i>
+                    Analytics
+                </button>
+                <button class="tab-button px-4 py-3 text-sm font-medium text-gray-600 hover:text-blue-600 whitespace-nowrap" data-tab="sales">
+                    <i data-lucide="trending-up" class="w-4 h-4 inline mr-2"></i>
+                    Sales
+                </button>
+                <button class="tab-button px-4 py-3 text-sm font-medium text-gray-600 hover:text-blue-600 whitespace-nowrap" data-tab="suppliers">
+                    <i data-lucide="users" class="w-4 h-4 inline mr-2"></i>
+                    Suppliers
+                </button>
+                <button class="tab-button px-4 py-3 text-sm font-medium text-gray-600 hover:text-blue-600 whitespace-nowrap" data-tab="alerts">
+                    <i data-lucide="bell" class="w-4 h-4 inline mr-2"></i>
+                    Alerts
+                </button>
+                <button class="tab-button px-4 py-3 text-sm font-medium text-gray-600 hover:text-blue-600 whitespace-nowrap" data-tab="agents">
+                    <i data-lucide="zap" class="w-4 h-4 inline mr-2"></i>
+                    Agents
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- KPI Cards -->
+                <div class="bg-white rounded-lg shadow-sm border p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total Revenue</p>
+                            <p class="text-2xl font-bold text-gray-900">$2.4M</p>
+                            <p class="text-sm text-green-600">+12.5% from last month</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="dollar-sign" class="w-6 h-6 text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Inventory Value</p>
+                            <p class="text-2xl font-bold text-gray-900">$890K</p>
+                            <p class="text-sm text-orange-600">+5.2% from last month</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="package" class="w-6 h-6 text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Turnover Rate</p>
+                            <p class="text-2xl font-bold text-gray-900">8.5x</p>
+                            <p class="text-sm text-green-600">+2.1x improvement</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="rotate-ccw" class="w-6 h-6 text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Active Products</p>
+                            <p class="text-2xl font-bold text-gray-900">1,247</p>
+                            <p class="text-sm text-green-600">+23 new this month</p>
+                        </div>
+                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="trending-up" class="w-6 h-6 text-yellow-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock Efficiency Matrix -->
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Stock Efficiency Matrix (BCG Analysis)</h3>
+                <div class="grid grid-cols-4 gap-4 h-64">
+                    <div class="matrix-cell bg-red-100 border-2 border-red-300 rounded-lg p-4 flex flex-col justify-center items-center text-center">
+                        <h4 class="font-semibold text-red-800">Low Stock</h4>
+                        <p class="text-sm text-red-600">High Efficiency</p>
+                        <p class="text-xs text-red-500 mt-2">Stars</p>
+                    </div>
+                    <div class="matrix-cell bg-green-100 border-2 border-green-300 rounded-lg p-4 flex flex-col justify-center items-center text-center">
+                        <h4 class="font-semibold text-green-800">High Stock</h4>
+                        <p class="text-sm text-green-600">High Efficiency</p>
+                        <p class="text-xs text-green-500 mt-2">Cash Cows</p>
+                    </div>
+                    <div class="matrix-cell bg-yellow-100 border-2 border-yellow-300 rounded-lg p-4 flex flex-col justify-center items-center text-center">
+                        <h4 class="font-semibold text-yellow-800">Low Stock</h4>
+                        <p class="text-sm text-yellow-600">Low Efficiency</p>
+                        <p class="text-xs text-yellow-500 mt-2">Question Marks</p>
+                    </div>
+                    <div class="matrix-cell bg-gray-100 border-2 border-gray-300 rounded-lg p-4 flex flex-col justify-center items-center text-center">
+                        <h4 class="font-semibold text-gray-800">High Stock</h4>
+                        <p class="text-sm text-gray-600">Low Efficiency</p>
+                        <p class="text-xs text-gray-500 mt-2">Dogs</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Alerts</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
+                            <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                            <div>
+                                <p class="text-sm font-medium text-red-800">Low Stock Alert</p>
+                                <p class="text-xs text-red-600">Advanced Microprocessor - 15 units remaining</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
+                            <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                            <div>
+                                <p class="text-sm font-medium text-yellow-800">Price Change</p>
+                                <p class="text-xs text-yellow-600">Industrial Sensors price increased by 8%</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <div>
+                                <p class="text-sm font-medium text-green-800">Efficiency Improvement</p>
+                                <p class="text-xs text-green-600">Electronics group turnover increased by 15%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Performers</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                            <div>
+                                <p class="text-sm font-medium text-blue-800">Advanced Microprocessor</p>
+                                <p class="text-xs text-blue-600">Electronics Group</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold text-blue-800">$125K</p>
+                                <p class="text-xs text-blue-600">Revenue</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div>
+                                <p class="text-sm font-medium text-green-800">Industrial Sensors</p>
+                                <p class="text-xs text-green-600">Automation Group</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold text-green-800">$89K</p>
+                                <p class="text-xs text-green-600">Revenue</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                            <div>
+                                <p class="text-sm font-medium text-purple-800">Smart Controllers</p>
+                                <p class="text-xs text-purple-600">IoT Group</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold text-purple-800">$67K</p>
+                                <p class="text-xs text-purple-600">Revenue</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="upload" class="tab-content space-y-6">
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">CSV Data Upload</h3>
+                <p class="text-gray-600 mb-6">Upload your inventory and sales data to generate comprehensive supply chain analytics</p>
+                
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <i data-lucide="upload" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+                    <h4 class="text-lg font-medium text-gray-900 mb-2">Drop files here or click to upload</h4>
+                    <p class="text-sm text-gray-500 mb-4">Support for CSV files up to 10MB</p>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        Choose Files
+                    </button>
+                </div>
+
+                <div class="mt-6">
+                    <h4 class="font-medium text-gray-900 mb-3">Upload Progress</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">inventory_data.csv</span>
+                            <span class="text-sm text-green-600">✓ Completed</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">sales_data.csv</span>
+                            <span class="text-sm text-blue-600">Processing...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics" class="tab-content space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- BCG Matrix Analysis -->
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">BCG Matrix Analysis</h3>
+                    <p class="text-sm text-gray-600 mb-4">Stock efficiency and profitability matrix</p>
+                    <canvas id="bcgMatrix" width="400" height="300"></canvas>
+                </div>
+
+                <!-- Revenue Trends -->
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Revenue Trends</h3>
+                    <p class="text-sm text-gray-600 mb-4">Monthly revenue performance</p>
+                    <canvas id="revenueChart" width="400" height="300"></canvas>
+                </div>
+
+                <!-- Group Performance -->
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Group Performance</h3>
+                    <p class="text-sm text-gray-600 mb-4">Performance by product group</p>
+                    <canvas id="groupChart" width="400" height="300"></canvas>
+                </div>
+
+                <!-- Sales Intelligence -->
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Sales Intelligence</h3>
+                    <p class="text-sm text-gray-600 mb-4">Interactive sales analytics</p>
+                    <canvas id="salesChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Tab -->
+        <div id="sales" class="tab-content space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Sales KPIs -->
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total Sales</p>
+                            <p class="text-2xl font-bold text-gray-900">$1.8M</p>
+                            <p class="text-sm text-green-600">+18.2% vs last month</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="trending-up" class="w-6 h-6 text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Average Order Value</p>
+                            <p class="text-2xl font-bold text-gray-900">$2,450</p>
+                            <p class="text-sm text-green-600">+5.7% improvement</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="dollar-sign" class="w-6 h-6 text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Customer Count</p>
+                            <p class="text-2xl font-bold text-gray-900">734</p>
+                            <p class="text-sm text-green-600">+12 new customers</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="users" class="w-6 h-6 text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Conversion Rate</p>
+                            <p class="text-2xl font-bold text-gray-900">23.4%</p>
+                            <p class="text-sm text-green-600">+2.1% improvement</p>
+                        </div>
+                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="target" class="w-6 h-6 text-yellow-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Sales Performance</h3>
+                    <canvas id="salesPerformanceChart" width="400" height="300"></canvas>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Customer Segmentation</h3>
+                    <canvas id="customerSegChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suppliers Tab -->
+        <div id="suppliers" class="tab-content space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Supplier Performance -->
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Supplier Performance</h3>
+                    <p class="text-sm text-gray-600 mb-4">Cross-reference analytics and supplier impact</p>
+                    
+                    <div class="space-y-4">
+                        <div class="p-4 border rounded-lg">
+                            <h4 class="font-semibold">TechCorp Industries</h4>
+                            <p class="text-sm text-gray-600">Health Score: 92%</p>
+                            <p class="text-sm text-gray-600">Products: 45</p>
+                            <p class="text-sm text-gray-600">Risk Level: Low</p>
+                        </div>
+                        <div class="p-4 border rounded-lg">
+                            <h4 class="font-semibold">Global Supply Co.</h4>
+                            <p class="text-sm text-gray-600">Health Score: 78%</p>
+                            <p class="text-sm text-gray-600">Products: 23</p>
+                            <p class="text-sm text-gray-600">Risk Level: Medium</p>
+                        </div>
+                        <div class="p-4 border rounded-lg">
+                            <h4 class="font-semibold">Precision Parts Ltd.</h4>
+                            <p class="text-sm text-gray-600">Health Score: 85%</p>
+                            <p class="text-sm text-gray-600">Products: 67</p>
+                            <p class="text-sm text-gray-600">Risk Level: Low</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Procurement Recommendations -->
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Procurement Recommendations</h3>
+                    <p class="text-sm text-gray-600 mb-4">AI-powered procurement insights</p>
+                    
+                    <div class="space-y-4">
+                        <div class="p-4 bg-blue-50 rounded-lg">
+                            <h4 class="font-semibold text-blue-800">Increase Order Quantity</h4>
+                            <p class="text-sm text-blue-600">Advanced Microprocessor - Consider increasing order size by 25% to meet growing demand</p>
+                        </div>
+                        <div class="p-4 bg-green-50 rounded-lg">
+                            <h4 class="font-semibold text-green-800">Negotiate Better Terms</h4>
+                            <p class="text-sm text-green-600">Industrial Sensors - Opportunity to negotiate 5% price reduction with current supplier</p>
+                        </div>
+                        <div class="p-4 bg-yellow-50 rounded-lg">
+                            <h4 class="font-semibold text-yellow-800">Diversify Supply</h4>
+                            <p class="text-sm text-yellow-600">Smart Controllers - Consider adding backup supplier to reduce risk</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Tab -->
+        <div id="alerts" class="tab-content space-y-6">
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">System Alerts</h3>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-3 p-4 bg-red-50 rounded-lg border border-red-200">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-red-800">Critical Stock Alert</h4>
+                            <p class="text-sm text-red-600">Advanced Microprocessor stock level critical (15 units remaining)</p>
+                            <p class="text-xs text-red-500 mt-1">Alerted 2 hours ago</p>
+                        </div>
+                        <button class="text-red-600 hover:text-red-800">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center space-x-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-yellow-800">Price Change Alert</h4>
+                            <p class="text-sm text-yellow-600">Industrial Sensors price increased by 8% from supplier</p>
+                            <p class="text-xs text-yellow-500 mt-1">Alerted 4 hours ago</p>
+                        </div>
+                        <button class="text-yellow-600 hover:text-yellow-800">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center space-x-3 p-4 bg-green-50 rounded-lg border border-green-200">
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-green-800">Efficiency Improvement</h4>
+                            <p class="text-sm text-green-600">Electronics group turnover rate improved by 15%</p>
+                            <p class="text-xs text-green-500 mt-1">Alerted 6 hours ago</p>
+                        </div>
+                        <button class="text-green-600 hover:text-green-800">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-blue-800">New Product Alert</h4>
+                            <p class="text-sm text-blue-600">23 new products added to inventory system</p>
+                            <p class="text-xs text-blue-500 mt-1">Alerted 1 day ago</p>
+                        </div>
+                        <button class="text-blue-600 hover:text-blue-800">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agents Tab -->
+        <div id="agents" class="tab-content space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- AI Agents Status -->
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">AI Agents Status</h3>
+                    <p class="text-sm text-gray-600 mb-4">Real-time agent performance and health</p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span class="font-medium">Analytics Agent</span>
+                            </div>
+                            <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Active</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <span class="font-medium">Supply Chain Agent</span>
+                            </div>
+                            <span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">Processing</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                <span class="font-medium">Document Intelligence</span>
+                            </div>
+                            <span class="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full">Idle</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                                <span class="font-medium">Risk Assessment Agent</span>
+                            </div>
+                            <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">Learning</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Performance -->
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Agent Performance</h3>
+                    <p class="text-sm text-gray-600 mb-4">Processing metrics and efficiency scores</p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Analytics Agent</span>
+                                <span>98%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-green-500 h-2 rounded-full" style="width: 98%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Supply Chain Agent</span>
+                                <span>87%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: 87%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Document Intelligence</span>
+                                <span>92%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-purple-500 h-2 rounded-full" style="width: 92%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Risk Assessment</span>
+                                <span>76%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-yellow-500 h-2 rounded-full" style="width: 76%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent Logs -->
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Agent Activity</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div>
+                            <p class="text-sm font-medium">Analytics Agent processed 1,247 data points</p>
+                            <p class="text-xs text-gray-500">2 minutes ago</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <div>
+                            <p class="text-sm font-medium">Supply Chain Agent updated inventory levels</p>
+                            <p class="text-xs text-gray-500">5 minutes ago</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
+                        <div>
+                            <p class="text-sm font-medium">Document Intelligence validated 3 CSV files</p>
+                            <p class="text-xs text-gray-500">8 minutes ago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Supply Chain Intelligence</h4>
+                    <p class="text-gray-400 text-sm">Advanced analytics platform for supply chain optimization and business intelligence.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Features</h4>
+                    <ul class="text-gray-400 text-sm space-y-2">
+                        <li>• Real-time Analytics</li>
+                        <li>• AI-Powered Insights</li>
+                        <li>• Automated Alerts</li>
+                        <li>• Performance Monitoring</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Status</h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span class="text-sm text-gray-400">All systems operational</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span class="text-sm text-gray-400">Data processing active</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span class="text-sm text-gray-400">AI agents running</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                <p class="text-gray-400 text-sm">© 2024 Supply Chain Intelligence Platform. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Tab switching functionality
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and content
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active', 'text-blue-600', 'border-blue-600');
+                    btn.classList.add('text-gray-600');
+                });
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+
+                // Add active class to clicked button and corresponding content
+                button.classList.add('active', 'text-blue-600', 'border-blue-600');
+                button.classList.remove('text-gray-600');
+                
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Update timestamp
+        function updateTimestamp() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('lastUpdate').textContent = timeString;
+        }
+        setInterval(updateTimestamp, 30000);
+        updateTimestamp();
+
+        // Initialize charts when Analytics tab is shown
+        function initializeCharts() {
+            // BCG Matrix Chart
+            const bcgCtx = document.getElementById('bcgMatrix');
+            if (bcgCtx) {
+                new Chart(bcgCtx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Products',
+                            data: [
+                                {x: 0.8, y: 0.9, r: 8}, // High efficiency, low stock
+                                {x: 0.9, y: 0.3, r: 12}, // High efficiency, high stock
+                                {x: 0.3, y: 0.8, r: 6}, // Low efficiency, low stock
+                                {x: 0.4, y: 0.2, r: 10} // Low efficiency, high stock
+                            ],
+                            backgroundColor: ['#ef4444', '#22c55e', '#eab308', '#6b7280']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                title: { display: true, text: 'Stock Level' },
+                                min: 0, max: 1
+                            },
+                            y: {
+                                title: { display: true, text: 'Efficiency' },
+                                min: 0, max: 1
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart');
+            if (revenueCtx) {
+                new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Revenue',
+                            data: [1800000, 1950000, 2100000, 2400000, 2300000, 2450000],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+
+            // Group Performance Chart
+            const groupCtx = document.getElementById('groupChart');
+            if (groupCtx) {
+                new Chart(groupCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Electronics', 'Automation', 'IoT', 'Others'],
+                        datasets: [{
+                            data: [45, 25, 20, 10],
+                            backgroundColor: ['#3b82f6', '#22c55e', '#eab308', '#6b7280']
+                        }]
+                    },
+                    options: {
+                        responsive: true
+                    }
+                });
+            }
+
+            // Sales Chart
+            const salesCtx = document.getElementById('salesChart');
+            if (salesCtx) {
+                new Chart(salesCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                        datasets: [{
+                            label: 'Sales',
+                            data: [450000, 520000, 480000, 580000],
+                            backgroundColor: '#8b5cf6'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+
+            // Sales Performance Chart
+            const salesPerfCtx = document.getElementById('salesPerformanceChart');
+            if (salesPerfCtx) {
+                new Chart(salesPerfCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Daily Sales',
+                            data: [65000, 72000, 68000, 75000, 82000, 78000, 85000],
+                            borderColor: '#22c55e',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+
+            // Customer Segmentation Chart
+            const customerCtx = document.getElementById('customerSegChart');
+            if (customerCtx) {
+                new Chart(customerCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Enterprise', 'Mid-Market', 'SMB', 'Startup'],
+                        datasets: [{
+                            data: [40, 30, 20, 10],
+                            backgroundColor: ['#3b82f6', '#22c55e', '#eab308', '#ef4444']
+                        }]
+                    },
+                    options: {
+                        responsive: true
+                    }
+                });
+            }
+        }
+
+        // Initialize charts when page loads
+        document.addEventListener('DOMContentLoaded', initializeCharts);
+
+        // Re-initialize charts when Analytics tab is shown
+        document.querySelector('[data-tab="analytics"]').addEventListener('click', () => {
+            setTimeout(initializeCharts, 100);
+        });
+
+        // Add some interactive features
+        document.querySelectorAll('.matrix-cell').forEach(cell => {
+            cell.addEventListener('click', () => {
+                alert('Matrix cell clicked! This would show detailed product analysis.');
+            });
+        });
+
+        // Simulate real-time updates
+        setInterval(() => {
+            const pulseDots = document.querySelectorAll('.pulse-dot');
+            pulseDots.forEach(dot => {
+                dot.style.opacity = Math.random() > 0.5 ? '1' : '0.5';
+            });
+        }, 2000);
+    </script>
+</body>
+</html> 
