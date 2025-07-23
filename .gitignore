@@ -18,6 +18,10 @@ uploads/
 !.env.example
 !.env.railway.example
 .vercel
+
+# Test files
+test-*.sh
+test-*.html
 .env.test
 
 # Deployment and metrics logs
