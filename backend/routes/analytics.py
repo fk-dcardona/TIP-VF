@@ -6,7 +6,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from models import db, Upload, ProcessedData
 from backend.services.enhanced_cross_reference_engine import DocumentEnhancedCrossReferenceEngine
-from backend.services.data_moat_strategy import DataMoatStrategy
+from backend.services.data_moat_strategy import DataMoatStrategyService
 import logging
 
 # Create analytics blueprint
@@ -488,7 +488,7 @@ def get_dashboard_analytics(org_id):
     try:
         # Initialize engines
         engine = DocumentEnhancedCrossReferenceEngine()
-        data_moat = DataMoatStrategy()
+        data_moat = DataMoatStrategyService()
         
         # Get comprehensive dashboard data
         dashboard_data = {
