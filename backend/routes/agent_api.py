@@ -9,14 +9,14 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 import uuid
 
-from agent_protocol.agents.inventory_agent import InventoryMonitorAgent
-from agent_protocol.agents.supplier_agent import SupplierEvaluatorAgent
-from agent_protocol.agents.demand_agent import DemandForecasterAgent
-from agent_protocol.agents.document_intelligence_agent import DocumentIntelligenceAgent
-from agent_protocol.executors.agent_executor import AgentExecutor
-from agent_protocol.monitoring.metrics_collector import get_metrics_collector
-from agent_protocol.monitoring.agent_logger import get_agent_logger
-from agent_protocol.security.permissions import get_permission_manager, PermissionLevel, ResourceType
+from backend.agent_protocol.agents.inventory_agent import InventoryMonitorAgent
+from backend.agent_protocol.agents.supplier_agent import SupplierEvaluatorAgent
+from backend.agent_protocol.agents.demand_agent import DemandForecasterAgent
+from backend.agent_protocol.agents.document_intelligence_agent import DocumentIntelligenceAgent
+from backend.agent_protocol.executors.agent_executor import AgentExecutor
+from backend.agent_protocol.monitoring.metrics_collector import get_metrics_collector
+from backend.agent_protocol.monitoring.agent_logger import get_agent_logger
+from backend.agent_protocol.security.permissions import get_permission_manager, PermissionLevel, ResourceType
 from models import db, Agent as AgentModel
 
 # Create blueprint
