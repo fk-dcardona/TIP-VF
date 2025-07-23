@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { RealTimeAnalyticsData, CrossReferenceData } from '@/types/api';
 import { analyticsService } from '@/services/analytics-service';
+import { useOrganization } from './useOrganization';
 
 interface UseDashboardDataReturn {
   analyticsData: RealTimeAnalyticsData | null;
@@ -16,7 +17,8 @@ interface UseDashboardDataReturn {
   refetch: () => void;
 }
 
-export function useDashboardData(orgId: string = 'test_org'): UseDashboardDataReturn {
+export function useDashboardData(): UseDashboardDataReturn {
+  const { orgId, isLoaded: orgLoaded } = useOrganization();
   const [analyticsData, setAnalyticsData] = useState<RealTimeAnalyticsData | null>(null);
   const [crossReferenceData, setCrossReferenceData] = useState<CrossReferenceData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,6 +26,11 @@ export function useDashboardData(orgId: string = 'test_org'): UseDashboardDataRe
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
   const fetchData = useCallback(async () => {
+    // Wait for organization ID to be loaded
+    if (!orgLoaded || !orgId) {
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -43,7 +50,7 @@ export function useDashboardData(orgId: string = 'test_org'): UseDashboardDataRe
     } finally {
       setLoading(false);
     }
-  }, [orgId]);
+  }, [orgId, orgLoaded]);
 
   // Fetch data on mount and set up refresh interval
   useEffect(() => {

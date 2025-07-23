@@ -30,7 +30,6 @@ export default function TestSolidAnalyticsPage() {
       </div>
 
       <SolidAnalyticsDashboard 
-        orgId="test_organization_123"
         className="space-y-6"
       />
 

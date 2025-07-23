@@ -18,13 +18,14 @@ import {
   useAnalyticsFallbackStatus,
   useAnalyticsHealth 
 } from '../../hooks/useSolidAnalytics';
+import { useOrganization } from '../../hooks/useOrganization';
 
 interface SolidAnalyticsDashboardProps {
-  orgId: string;
   className?: string;
 }
 
-export function SolidAnalyticsDashboard({ orgId, className = '' }: SolidAnalyticsDashboardProps) {
+export function SolidAnalyticsDashboard({ className = '' }: SolidAnalyticsDashboardProps) {
+  const { orgId } = useOrganization();
   const analytics = useAllAnalytics(orgId);
   const fallbackStatus = useAnalyticsFallbackStatus(orgId);
   const { health, refreshHealth } = useAnalyticsHealth();

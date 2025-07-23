@@ -54,6 +54,7 @@ import {
   useCrossReferenceAnalytics,
   useAllAnalytics 
 } from '@/hooks/useSolidAnalytics';
+import { useOrganization } from '@/hooks/useOrganization';
 
 // Import types
 import type { 
@@ -67,6 +68,9 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
+  // Get organization ID
+  const { orgId } = useOrganization();
+
   // Data hooks
   const supplyChainData = useSupplyChainData();
   const salesData = useSalesData({ 
@@ -75,10 +79,10 @@ export default function DashboardPage() {
   });
   
   // Individual analytics hooks
-  const inventoryAnalytics = useInventoryAnalytics('demo_org');
-  const salesAnalytics = useSalesAnalytics('demo_org');
-  const supplierAnalytics = useSupplierAnalytics('demo_org');
-  const crossReferenceAnalytics = useCrossReferenceAnalytics('demo_org');
+  const inventoryAnalytics = useInventoryAnalytics(orgId || 'demo_org');
+  const salesAnalytics = useSalesAnalytics(orgId || 'demo_org');
+  const supplierAnalytics = useSupplierAnalytics(orgId || 'demo_org');
+  const crossReferenceAnalytics = useCrossReferenceAnalytics(orgId || 'demo_org');
 
   // Update timestamp every 30 seconds
   useEffect(() => {

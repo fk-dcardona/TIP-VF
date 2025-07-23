@@ -203,6 +203,78 @@ class APIClient {
       throw new NetworkErrorClass(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
+
+  // ============ Analytics API Methods ============
+  
+  /**
+   * Get Supply Chain Triangle analytics for an organization
+   */
+  async getTriangleAnalytics(orgId: string): Promise<any> {
+    return this.get(`/analytics/triangle/${orgId}`);
+  }
+
+  /**
+   * Get cross-reference analytics for an organization
+   */
+  async getCrossReferenceAnalytics(orgId: string): Promise<any> {
+    return this.get(`/analytics/cross-reference/${orgId}`);
+  }
+
+  /**
+   * Get supplier performance analytics for an organization
+   */
+  async getSupplierPerformanceAnalytics(orgId: string): Promise<any> {
+    return this.get(`/analytics/supplier-performance/${orgId}`);
+  }
+
+  /**
+   * Get market intelligence analytics for an organization
+   */
+  async getMarketIntelligenceAnalytics(orgId: string): Promise<any> {
+    return this.get(`/analytics/market-intelligence/${orgId}`);
+  }
+
+  /**
+   * Get uploads analytics for an organization
+   */
+  async getUploadsAnalytics(orgId: string): Promise<any> {
+    return this.get(`/analytics/uploads/${orgId}`);
+  }
+
+  /**
+   * Get comprehensive dashboard analytics for an organization
+   */
+  async getDashboardAnalytics(orgId: string): Promise<any> {
+    return this.get(`/analytics/dashboard/${orgId}`);
+  }
+
+  /**
+   * Check analytics service health
+   */
+  async getAnalyticsHealth(): Promise<any> {
+    return this.get('/analytics/health');
+  }
+
+  /**
+   * Get detailed analytics service status
+   */
+  async getAnalyticsStatus(): Promise<any> {
+    return this.get('/analytics/status');
+  }
+
+  /**
+   * Get available analytics providers
+   */
+  async getAnalyticsProviders(): Promise<any> {
+    return this.get('/analytics/providers');
+  }
+
+  /**
+   * Get analytics configuration
+   */
+  async getAnalyticsConfig(): Promise<any> {
+    return this.get('/analytics/config');
+  }
 }
 
 // Create singleton instance
